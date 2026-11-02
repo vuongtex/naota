@@ -4,6 +4,12 @@
 
 NAOTA release history. Newest first.
 
+## [1.3.0] - 2026-11-03
+### Improved
+- **A new sidebar, as clean as the big AI apps.** Every item sits in one column and opens with one click, no groups to expand.
+- **A New task button** at the top of the sidebar opens a fresh chat.
+- **An account box at the bottom** holds the brain, account, advanced tools, updates, language and light or dark theme.
+
 ## [1.2.1] - 2026-11-03
 ### Improved
 - **The Store has Naota Gate**: ChatGPT and Claude connect to Naota through one pack, read and post into your chats, and keep a log. Machines with the **Naota in ChatGPT** pack see Gate as an update, no need to reconnect.
