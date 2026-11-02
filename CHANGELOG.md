@@ -2,7 +2,7 @@
 
 ***Tiếng Việt** · [English](CHANGELOG.en.md)*
 
-Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay trong app tại mục **Cập nhật** (thanh bên, nhóm Hệ thống).
+Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay trong app tại mục **Cập nhật** (bấm ô tài khoản dưới đáy thanh bên).
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 

@@ -4,7 +4,7 @@
    Cockpit (.hud) giữ nguyên; layer này bọc thêm bên ngoài.
    ============================================ */
 :root {
-  --rail-w: 160px;
+  --rail-w: 232px;
   --rail-w-collapsed: 60px;
   --font-ui: var(--font);
   --rail-bg: rgba(14, 14, 22, 0.72);
@@ -45,48 +45,13 @@ body.in-console .hud-actions { display: none; }
 }
 .rail-nav::-webkit-scrollbar { width: 0; }            /* ẩn thanh cuộn cho gọn */
 .rail-nav { scrollbar-width: none; }
-/* Every group is always open: its name is a small grey section label and all its items show
-   below it. Only the .fold group (Advanced) is a button that folds. The .foot group sits at the bottom. */
+/* One flat column like Claude's sidebar: no group names, a thin line between sections. */
 .rail-group { display: flex; flex-direction: column; }
-.rail-group.foot { margin-top: auto; }                /* đẩy Hệ thống xuống đáy rail */
-@media (min-width: 861px) {                           /* System stays in view while the middle scrolls */
-  .rail-group.foot { position: sticky; bottom: -4px; padding-bottom: 4px; background: var(--rail-bg);
-    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
-}
-.rail-grp-lbl {
-  display: flex; align-items: center; width: 100%;
-  background: transparent; border: 0;
-  font-family: var(--font-ui); font-size: 11.5px; font-weight: 600; letter-spacing: 0.3px;
-  color: var(--text3); text-align: left; white-space: nowrap;
-  padding: 10px 8px 3px 10px; border-radius: 9px; user-select: none;
-}
-.rail-group:first-child > .rail-grp-lbl { padding-top: 2px; }
-button.rail-grp-lbl {                                  /* the fold group's label: clickable, with an arrow */
-  cursor: pointer; padding: 7px 8px 7px 10px; margin-top: 6px;
-  font-size: 13.5px; font-weight: 400; letter-spacing: 0.1px;
-  transition: color var(--rail-anim), background var(--rail-anim);
-}
-button.rail-grp-lbl::after {                           /* ▸ after the name, turns to ▾ when open */
-  content: ""; flex: 0 0 auto; margin-left: auto;
-  width: 0; height: 0; border-left: 4px solid currentColor;
-  border-top: 4px solid transparent; border-bottom: 4px solid transparent;
-  opacity: 0.55; transition: transform var(--rail-anim);
-}
-.rail-grp-ico { flex: 0 0 auto; display: flex; align-items: center; margin-right: 10px; }
-.rail-grp-ico svg { width: 19px; height: 19px; }
-.rail-group.open > button.rail-grp-lbl::after { transform: rotate(90deg); }
-button.rail-grp-lbl:hover { color: var(--text); background: var(--surface-2); }
-.rail-group.has-active:not(.open) > .rail-grp-lbl { color: var(--accent-ink); }   /* nhóm gập nhưng đang chứa trang hiện tại → hé màu cam */
-.rail-group.foot .rail-grp-lbl { border-top: 1px solid var(--glass-brd); border-radius: 0; margin-top: 6px; padding-top: 10px; }
-.rail-grp-items {
-  display: flex; flex-direction: column; gap: 1px;
-  transition: max-height var(--rail-anim), opacity var(--rail-anim);
-}
-.rail-group.fold > .rail-grp-items { max-height: 340px; overflow: hidden; }
-.rail-group.fold:not(.open) > .rail-grp-items { max-height: 0; opacity: 0; }
+.rail-group + .rail-group { border-top: 1px solid var(--glass-brd); margin-top: 5px; padding-top: 5px; }
+.rail-grp-items { display: flex; flex-direction: column; gap: 1px; }
 .rail-brand {
-  height: 42px; display: flex; align-items: center; justify-content: center; gap: 9px;
-  color: var(--accent-ink); font-size: 22px;
+  height: 42px; display: flex; align-items: center; justify-content: flex-start; gap: 9px;
+  padding: 0 6px; color: var(--accent-ink); font-size: 22px;
 }
 /* Quầng sáng cam ở trên ô DẤU ẤN, không ở cả khối. filter của cha ăn xuống toàn bộ cây con,
    và `filter:none` của con KHÔNG gỡ được nó - để nguyên ở .rail-brand là chữ "NAOTA"
@@ -102,17 +67,20 @@ button.rail-grp-lbl:hover { color: var(--text); background: var(--surface-2); }
   letter-spacing: 0.5px; color: var(--text); white-space: nowrap; filter: none;
 }
 .rail-item {
-  position: relative; background: transparent; border: 0; cursor: pointer;
-  color: var(--text3); border-radius: 9px; padding: 6px 8px 6px 10px;
+  position: relative; background: transparent; border: 0; cursor: pointer; text-decoration: none;
+  color: var(--text2); border-radius: 9px; padding: 6px 10px;
   display: flex; flex-direction: row; align-items: center; gap: 10px;
   transition: color var(--rail-anim), background var(--rail-anim);
 }
 .rail-item .rail-ico { flex: 0 0 auto; line-height: 0; display: flex; align-items: center; justify-content: center; }
-.rail-item .rail-ico svg { width: 19px; height: 19px; }
+.rail-item .rail-ico svg { width: 18px; height: 18px; }
 .rail-item .rail-lbl {
-  font-family: var(--font-ui); font-size: 13.5px; letter-spacing: 0.1px; opacity: 0.95;
+  font-family: var(--font-ui); font-size: 14px; letter-spacing: 0.1px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+/* Việc mới: một mục thường ở đầu cột, chữ đậm hơn chút, không tô màu. */
+.rail-newtask { width: 100%; margin: 6px 0 6px; color: var(--text); }
+.rail-newtask .rail-lbl { font-weight: 600; }
 /* Chấm "Mới" trên mục Cập nhật khi máy chủ báo có bản mới. Thu gọn thanh bên thì chỉ còn chấm tròn. */
 .rail-item .rail-new {
   margin-left: auto; flex: 0 0 auto; font-size: 9.5px; font-weight: 700; line-height: 1; padding: 2px 5px;
@@ -122,12 +90,8 @@ button.rail-grp-lbl:hover { color: var(--text); background: var(--surface-2); }
   position: absolute; top: 4px; right: 8px; padding: 0; width: 8px; height: 8px; font-size: 0;
 }
 .rail-item:hover { color: var(--text); background: var(--surface-2); }
-.rail-item.active { color: var(--accent-ink); background: var(--accent-wash-2); }
-.rail-item.active::before {
-  content: ""; position: absolute; left: -8px; top: 18%; bottom: 18%;
-  width: 3px; border-radius: 0 3px 3px 0; background: var(--accent);
-  box-shadow: 0 0 10px var(--accent);
-}
+/* Trang đang mở: nền xám nhẹ, chữ đậm. Không vàng, không vạch sáng (anh Vương 03/11/2026). */
+.rail-item.active { color: var(--text); background: var(--surface-3); font-weight: 600; }
 /* Select Brain - dời lên navbar (header trái), dùng dropdown sẵn có (.orb-graph-ctl) */
 .hud-top .navbar-brain { position: static; z-index: auto; gap: 8px; }
 .hud-top .navbar-brain .graph-select { max-width: 200px; }
@@ -429,9 +393,18 @@ body.ord-is-dragging, body.ord-is-dragging * { cursor: grabbing !important; user
 .sk-group-head .dim { color: var(--text3); font-weight: 400; margin-left: 6px; }
 
 .rail-spacer { flex: 1; }
-.rail-lang {                                           /* ô đổi ngôn ngữ giao diện, ngay trên hàng version */
-  display: flex; align-items: center; gap: 6px; padding: 8px 6px 0;
-  border-top: 1px solid var(--glass-brd); color: var(--text3);
+/* Menu tài khoản: bung lên trên ô tài khoản ở đáy thanh bên. */
+.rail-menu {
+  position: absolute; left: 8px; right: 8px; bottom: 58px; z-index: 70;
+  display: flex; flex-direction: column; gap: 1px; padding: 6px;
+  max-height: calc(100% - 120px); overflow-y: auto;
+  background: var(--panel-solid); border: 1px solid var(--glass-brd); border-radius: 12px;
+  box-shadow: var(--shadow-2);
+}
+.rail-menu-lbl { font-family: var(--font-ui); font-size: 11.5px; font-weight: 600; color: var(--text3); padding: 8px 10px 3px; }
+.rail-menu-sep { height: 1px; background: var(--glass-brd); margin: 5px 4px; }
+.rail-lang {                                           /* ô đổi ngôn ngữ giao diện, trong menu tài khoản */
+  display: flex; align-items: center; gap: 10px; padding: 4px 10px; color: var(--text2);
 }
 .rail-lang svg { width: 14px; height: 14px; flex: 0 0 auto; }
 .rail-lang-sel {
@@ -441,10 +414,31 @@ body.ord-is-dragging, body.ord-is-dragging * { cursor: grabbing !important; user
 }
 .rail-lang-sel:hover { color: var(--text); background: var(--surface-2); }
 .rail-lang-sel option { background: var(--panel-solid); color: var(--text); }
-.rail-foot {                                           /* version/tác giả bên TRÁI, nút thu/mở bên PHẢI */
-  font-family: var(--font); line-height: 1.35; padding: 8px 6px 0;
+.rail-foot {                                           /* ô tài khoản bên TRÁI, nút thu/mở bên PHẢI */
+  font-family: var(--font); line-height: 1.35; padding: 8px 0 0;
   border-top: 1px solid var(--glass-brd);
-  display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 8px;
+  display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 6px;
+}
+.rail-acct {
+  order: 1; position: relative; flex: 1 1 auto; min-width: 0;
+  display: flex; align-items: center; gap: 9px; padding: 5px 6px;
+  background: transparent; border: 0; border-radius: 10px; color: var(--text); cursor: pointer; text-align: left;
+  transition: background var(--rail-anim);
+}
+.rail-acct:hover, .rail-acct.on { background: var(--surface-2); }
+.rail-acct-av {
+  flex: none; width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface-3); color: var(--text); font-family: var(--font-ui); font-size: 13px; font-weight: 700;
+}
+.rail-acct-txt { display: flex; flex-direction: column; min-width: 0; }
+.rail-acct-name, .rail-acct-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-ui); }
+.rail-acct-name { font-size: 13.5px; font-weight: 600; }
+.rail-acct-sub { font-size: 11.5px; color: var(--text3); }
+.rail-acct-sub:empty { display: none; }
+.rail-acct-dot {                                        /* có bản mới: chấm nhỏ trên ảnh tài khoản */
+  position: absolute; top: 4px; left: 27px; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 0 2px var(--rail-bg);
 }
 .rail-collapse-btn {                                   /* nút thu/mở sidebar, ghim bên phải; icon căn cỡ với icon nav */
   order: 2; display: flex; align-items: center; justify-content: center;
@@ -455,10 +449,10 @@ body.ord-is-dragging, body.ord-is-dragging * { cursor: grabbing !important; user
 }
 .rail-collapse-btn:hover { color: var(--text); background: var(--surface-2); }
 .rail-collapse-btn svg { width: 18px; height: 18px; }
-.rail-foot .rf-meta { order: 1; text-align: left; min-width: 0; }
-.rail-foot .rf-ver { font-size: 11px; color: var(--text2); }
-.rail-foot .rf-author { display: block; margin-top: 2px; font-size: 8.5px; color: var(--accent-ink); text-decoration: none; }
-.rail-foot .rf-author:hover { text-decoration: underline; }
+.rf-meta { text-align: left; min-width: 0; padding: 6px 10px 2px; font-family: var(--font); line-height: 1.35; }
+.rf-meta .rf-ver { font-size: 11px; color: var(--text3); }
+.rf-meta .rf-author { display: block; margin-top: 2px; font-size: 10px; color: var(--text3); text-decoration: none; }
+.rf-meta .rf-author:hover { text-decoration: underline; }
 
 /* Tooltip nhanh cho rail thu gọn (JS đặt vị trí; body-level nên không bị overflow rail cắt) */
 .rail-tip {
@@ -475,20 +469,19 @@ body.ord-is-dragging, body.ord-is-dragging * { cursor: grabbing !important; user
 /* ===== Chế độ THU GỌN sidebar (chỉ desktop): còn mỗi icon, tên hiện qua tooltip ===== */
 @media (min-width: 861px) {
   body.rail-collapsed { --rail-w: var(--rail-w-collapsed); }
-  .rail.collapsed .rail-grp-lbl { display: none; }              /* ẩn header nhóm */
-  .rail.collapsed .rail-grp-items {                             /* hiện HẾT mục (bỏ accordion), icon xếp dọc */
-    max-height: none; opacity: 1; overflow: visible; padding: 0;
-  }
-  .rail.collapsed .rail-group.fold > .rail-grp-items { max-height: none; opacity: 1; }  /* no label to unfold it here */
-  .rail.collapsed .rail-group + .rail-group > .rail-grp-items { /* vạch ngăn mờ giữa các nhóm */
-    border-top: 1px solid var(--glass-brd); margin-top: 5px; padding-top: 5px;
-  }
   .rail.collapsed .rail-item { justify-content: center; padding: 9px 0; gap: 0; }
   .rail.collapsed .rail-item .rail-lbl { display: none; }       /* giấu chữ, chỉ còn icon */
+  .rail.collapsed .rail-brand { justify-content: center; padding: 0; }
   .rail.collapsed .rail-brand-text { display: none; }           /* thu gọn: chỉ còn dấu ấn, chữ không vừa */
-  .rail.collapsed .rf-meta { display: none; }                   /* giấu version/tác giả cho vừa bề ngang hẹp, chỉ còn nút */
-  .rail.collapsed .rail-lang { display: none; }                 /* ô ngôn ngữ cũng không vừa bề ngang thu gọn */
-  .rail.collapsed .rail-foot { justify-content: center; }       /* thu: chỉ còn nút, căn giữa */
+  /* Thu gọn: ô tài khoản chỉ còn ảnh tròn, nằm trên nút thu/mở. */
+  .rail.collapsed .rail-foot { flex-direction: column; justify-content: center; }
+  .rail.collapsed .rail-acct { flex: 0 0 auto; padding: 4px; }
+  .rail.collapsed .rail-acct-txt { display: none; }
+  .rail.collapsed .rail-acct-dot { left: 25px; }
+  /* Menu vẫn đầy chữ, tràn ra bên phải dải icon. */
+  .rail.collapsed .rail-menu { right: auto; width: 240px; bottom: 92px; }
+  .rail.collapsed .rail-menu .rail-item { justify-content: flex-start; padding: 6px 10px; gap: 10px; }
+  .rail.collapsed .rail-menu .rail-item .rail-lbl { display: inline; }
 }
 
 /* ===== Đẩy cockpit sang phải để chừa rail ===== */
@@ -879,14 +872,16 @@ body.has-rail .hud { margin-left: var(--rail-w); width: calc(100% - var(--rail-w
   body.nav-open .rail { left: 0; visibility: visible; transition: left .22s ease, visibility 0s;
     box-shadow: 8px 0 40px var(--shadow-veil); }
   .rail-top, .rail-foot { display: flex; }            /* hiện lại brand + version trong ngăn kéo */
+  .rail-top { flex-direction: column; align-items: stretch; }   /* Việc mới nằm dưới logo, không đứng cạnh */
   /* Full height, not shrunk to the drawer: with every group open the list is taller than a phone, and a shrunk
      list spilled its last items over the language, brain and version rows below it. The drawer scrolls instead. */
   .rail-nav { flex: 0 0 auto; flex-direction: column; overflow: visible; gap: 2px; padding: 0; }
   .rail-group, .rail-grp-items { display: block; }
-  .rail-grp-lbl { display: flex; }
   .rail-item { flex: none; flex-direction: row; gap: 10px; padding: 9px 10px; border-radius: 9px; }
-  .rail-item .rail-lbl { font-size: 13px; }
-  .rail-item.active::before { left: 0; right: auto; top: 15%; bottom: 15%; width: 3px; height: auto; }
+  .rail-item .rail-lbl { font-size: 14px; }
+  /* The drawer itself scrolls, so the account menu opens in place above the account row. */
+  .rail-menu { position: static; max-height: none; overflow: visible; margin: 6px 0; box-shadow: none; }
+  .rail-foot .rail-acct { flex: 1 1 auto; }
 
   /* Mục "Hệ thống" ở đáy ngăn kéo: chọn brain, đổi tông, loa và trạng thái; Cài đặt dùng mục rail duy nhất. */
   .rail-sys { margin-top: 8px; padding: 10px 6px 4px; border-top: 1px solid var(--glass-brd);

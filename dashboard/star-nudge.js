@@ -239,34 +239,11 @@
   window.addEventListener("naota:react-positive", function () { moment("heart"); });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && the && the.querySelector(".sn-x")) the.querySelector(".sn-x").click(); });
 
-  // Nút "Tặng sao" luôn có sẵn ở chân thanh bên trái: ai muốn tặng sao lúc nào cũng tìm được.
-  // Là một HÀNG RIÊNG trải hết bề ngang dưới số phiên bản và nút thu/mở (nhét
-  // vào cột phiên bản thì chữ "Give a star" bị gãy làm hai dòng). Thanh thu gọn chỉ còn ngôi sao.
-  function ganNutGoc() {
-    var chan = document.querySelector(".rail-foot");
-    if (!chan || chan.querySelector(".rf-star")) return;
-    var b = document.createElement("button");
-    b.type = "button";
-    b.className = "rf-star";
-    veNutGoc(b);
-    b.onclick = function () { moment("manual"); };
-    chan.appendChild(b);
-  }
-  function veNutGoc(b) {
-    b.innerHTML = ic("star") + '<span class="rf-star-chu">' + esc(t("star.rail")) + "</span>";
-    b.title = t("star.go");
-    b.setAttribute("aria-label", t("star.go"));
-  }
-  function batDau() {
-    ganNutGoc();
-    moment("load");
-  }
+  // The rail no longer carries a "Give a star" button (1.3.0): the account menu has a NAOTA
+  // community link in its place. The card on the Updates page still opens this invitation.
+  function batDau() { moment("load"); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", batDau);
   else batDau();
-  window.addEventListener("naota:i18n", function () {
-    var b = document.querySelector(".rf-star");
-    if (b) veNutGoc(b);
-  });
 
   /** Thẻ "Ủng hộ Naota" cố định trên trang Cập nhật (console.js gắn nút bấm). */
   function theUngHo() {

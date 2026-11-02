@@ -159,8 +159,8 @@ check("console.js: không còn nhóm tro_ly", !/id: "tro_ly"/.test(console_js));
 check("console.js: home và chat nằm trong nhóm Bộ não",
   /ids: \["home", "chat", "files", "learn"\]/.test(console_js));
 check("i18n: không còn khoá nhóm tro_ly", vi["nav.group.tro_ly"] === undefined && en["nav.group.tro_ly"] === undefined);
-check("i18n: trang home đổi tên thành Sơ đồ / Graph",
-  vi["page.home.label"] === "Sơ đồ" && en["page.home.label"] === "Graph");
+check("i18n: trang home đổi tên thành Bản đồ bộ não / Brain map",
+  vi["page.home.label"] === "Bản đồ bộ não" && en["page.home.label"] === "Brain map");
 
 // ---- 8. Nạp file và từ điển ----
 const iApp = html.indexOf("/static/app.js"), iPet = html.indexOf("/static/pet.js");

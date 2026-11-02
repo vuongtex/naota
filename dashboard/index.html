@@ -32,7 +32,7 @@
        vì style.css tham chiếu các biến này. -->
   <link rel="stylesheet" href="/static/vendor/lucide-icons.css?v=1">
   <link rel="stylesheet" href="/static/style.css?v=159">
-  <link rel="stylesheet" href="/static/console.css?v=137">
+  <link rel="stylesheet" href="/static/console.css?v=138">
   <!-- Áp tông đã lưu TRƯỚC khi vẽ để không nháy tối rồi mới đổi sang sáng.
        Giá trị cũ "dim" (tông tối-nhạt, gỡ) quy về tối; theme.js sẽ ghi đè lại.
        Chưa chọn gì thì SÁNG (NAOTA 1.0.0). Chế độ "auto" (chỉ khi người dùng tự chọn) tính theo khung giờ "HH:MM-HH:MM", cùng quy tắc với
@@ -667,54 +667,87 @@
            vật (xem veDauAn), nên chữ phải nằm ngoài ô đó, không thì mỗi lần đổi hình dáng hay
            bảng màu là chữ bị xoá theo. .brand .brand-icon trên thanh trên cũng cùng vai trò. -->
       <div class="rail-brand"><span class="brand-mark"><img src="/brand-logo" alt="Naota" style="width:30px;height:30px;border-radius:8px;display:block;object-fit:cover"></span><span class="rail-brand-text">NAOTA</span></div>
+      <!-- Việc mới: mở trang Hội thoại với khung trống (store.nav.newTask -> app.js newChat). -->
+      <button class="rail-item rail-newtask" @click="$store.nav.newTask()"
+              :title="($store.nav.i18nTick, t('rail.new_task'))">
+        <span class="rail-ico"><i data-ic="square-pen"></i></span>
+        <span class="rail-lbl" data-i18n="rail.new_task">Việc mới</span>
+      </button>
     </div>
-    <!-- GIỮA cuộn được - gom theo nhóm; nhóm foot (Hệ thống) tự ghim xuống đáy -->
+    <!-- GIỮA cuộn được: một cột phẳng, vạch mảnh giữa các khúc (RAIL_SECTIONS trong console.js) -->
     <div class="rail-nav">
-      <template x-for="g in $store.nav.groups" :key="g.label">
-        <!-- Every group is always open and its name is only a section label. Only a `fold` group
-             (Advanced) is a button that folds, which keeps the rail on one screen. -->
-        <div class="rail-group" :class="{ foot: g.foot, fold: g.fold, open: $store.nav.isOpen(g.label), 'has-active': g.items.some(it => it.id === $store.nav.active) }">
-          <template x-if="g.fold">
-            <button class="rail-grp-lbl" @click="$store.nav.toggleGroup(g.label)" :title="g.label"
-                    :aria-expanded="$store.nav.isOpen(g.label) ? 'true' : 'false'">
-              <span class="rail-grp-ico" x-html="g.icon"></span>
-              <span class="grp-name" x-text="g.label"></span>
-            </button>
-          </template>
-          <template x-if="!g.fold">
-            <div class="rail-grp-lbl" x-text="g.label"></div>
-          </template>
+      <template x-for="(g, gi) in $store.nav.groups" :key="gi">
+        <div class="rail-group">
           <div class="rail-grp-items">
             <template x-for="it in g.items" :key="it.id">
               <button class="rail-item" :class="{ active: $store.nav.active === it.id }"
                       @click="$store.nav.go(it.id)" :title="it.label">
                 <span class="rail-ico" x-html="it.icon"></span>
-                <span class="rail-lbl" x-text="it.label"></span>
-                <span class="rail-new" x-show="it.id === 'logs' && $store.nav.updAvail"
-                      x-text="($store.nav.i18nTick, t('rail.upd_new'))"></span>
+                <span class="rail-lbl" x-text="($store.nav.i18nTick, it.label)"></span>
               </button>
             </template>
           </div>
         </div>
       </template>
     </div>
-    <!-- Ô đổi ngôn ngữ GIAO DIỆN ngay trên hàng version: console.js đổ danh sách từ /settings
-         (lang_list - sổ đăng ký phía server, cùng nguồn với trang Cài đặt). Đổi là
-         NaotaI18n.setLang áp NGAY trên máy này rồi mới lưu ui_lang lên server. Ẩn cho tới khi
-         có danh sách để không hiện một ô select trống. -->
-    <div class="rail-lang" id="railLangWrap" hidden>
-      <i data-ic="globe"></i>
-      <select id="railLang" class="rail-lang-sel" aria-label="Ngôn ngữ giao diện" data-i18n-aria="settings.ui_lang.title"></select>
-    </div>
-    <!-- ĐÁY cố định: nút thu/mở + version + tác giả -->
-    <div class="rail-foot">
-      <button class="rail-collapse-btn" @click="$store.nav.toggleCollapsed()"
-              :title="($store.nav.i18nTick, $store.nav.collapsed ? t('rail.expand') : t('rail.collapse'))"
-              x-html="$store.nav.collapseIcon"></button>
+    <!-- Menu tài khoản: bung lên trên ô tài khoản. Tài khoản, Cập nhật, các trang Nâng cao,
+         ngôn ngữ, giao diện sáng tối, cộng đồng, số phiên bản. -->
+    <div class="rail-menu" id="railMenu" role="menu" x-show="$store.nav.menuOpen" x-transition.opacity.duration.120ms
+         @click.outside="if (!$event.target.closest('.rail-acct')) $store.nav.menuOpen = false"
+         @keydown.escape.window="$store.nav.menuOpen = false">
+      <template x-for="it in $store.nav.menu.main" :key="it.id">
+        <button class="rail-item" role="menuitem" :class="{ active: $store.nav.active === it.id }" @click="$store.nav.go(it.id)">
+          <span class="rail-ico" x-html="it.icon"></span>
+          <span class="rail-lbl" x-text="($store.nav.i18nTick, it.label)"></span>
+          <span class="rail-new" x-show="it.id === 'logs' && $store.nav.updAvail"
+                x-text="($store.nav.i18nTick, t('rail.upd_new'))"></span>
+        </button>
+      </template>
+      <div class="rail-menu-lbl" x-text="($store.nav.i18nTick, t('nav.group.nang_cao'))"></div>
+      <template x-for="it in $store.nav.menu.adv" :key="it.id">
+        <button class="rail-item" role="menuitem" :class="{ active: $store.nav.active === it.id }" @click="$store.nav.go(it.id)">
+          <span class="rail-ico" x-html="it.icon"></span>
+          <span class="rail-lbl" x-text="($store.nav.i18nTick, it.label)"></span>
+        </button>
+      </template>
+      <div class="rail-menu-sep"></div>
+      <!-- Ô đổi ngôn ngữ GIAO DIỆN: console.js đổ danh sách từ /settings (lang_list - sổ đăng ký
+           phía server, cùng nguồn với trang Cài đặt). Đổi là NaotaI18n.setLang áp NGAY trên máy
+           này rồi mới lưu ui_lang lên server. Ẩn cho tới khi có danh sách để không hiện một ô
+           select trống. -->
+      <div class="rail-lang" id="railLangWrap" hidden>
+        <i data-ic="globe"></i>
+        <select id="railLang" class="rail-lang-sel" aria-label="Ngôn ngữ giao diện" data-i18n-aria="settings.ui_lang.title"></select>
+      </div>
+      <button class="rail-item" role="menuitem" @click="window.naotaTheme && window.naotaTheme.toggle()">
+        <span class="rail-ico"><i data-ic="moon"></i></span>
+        <span class="rail-lbl" data-i18n="rail.theme">Giao diện sáng / tối</span>
+      </button>
+      <a class="rail-item" role="menuitem" href="https://github.com/vuongtex/naota" target="_blank" rel="noopener">
+        <span class="rail-ico"><i data-ic="users"></i></span>
+        <span class="rail-lbl" data-i18n="rail.community">Cộng đồng NAOTA</span>
+      </a>
       <div class="rf-meta">
         <div class="rf-ver" id="railVersion">v0.0.0</div>
         <a class="rf-author" href="https://vuong.ai" target="_blank" rel="noopener">by Hoàng Ngọc Vương</a>
       </div>
+    </div>
+    <!-- ĐÁY cố định: ô tài khoản (mở menu trên) + nút thu/mở -->
+    <div class="rail-foot">
+      <button class="rail-acct" type="button" :class="{ on: $store.nav.menuOpen || $store.nav.menuActive }"
+              @click="$store.nav.menuOpen = !$store.nav.menuOpen" aria-haspopup="menu"
+              :aria-expanded="$store.nav.menuOpen ? 'true' : 'false'"
+              :title="($store.nav.i18nTick, t('rail.menu'))" :aria-label="($store.nav.i18nTick, t('rail.menu'))">
+        <span class="rail-acct-av" x-text="$store.nav.acctInitial">N</span>
+        <span class="rail-acct-txt">
+          <span class="rail-acct-name" x-text="$store.nav.acctName">NAOTA</span>
+          <span class="rail-acct-sub" x-text="$store.nav.acctSub"></span>
+        </span>
+        <span class="rail-acct-dot" x-show="$store.nav.updAvail"></span>
+      </button>
+      <button class="rail-collapse-btn" @click="$store.nav.toggleCollapsed()"
+              :title="($store.nav.i18nTick, $store.nav.collapsed ? t('rail.expand') : t('rail.collapse'))"
+              x-html="$store.nav.collapseIcon"></button>
     </div>
   </nav>
 
@@ -1147,14 +1180,14 @@
   <script src="/static/login-vault.js?v=2"></script>
   <script src="/static/messenger-connect.js?v=3"></script>
   <script src="/static/voice-catalog.js?v=1"></script>
-  <script src="/static/console.js?v=208"></script>
+  <script src="/static/console.js?v=209"></script>
   <script src="/static/mobile-chat.js?v=16"></script>
   <script src="/static/brain-view.js?v=1"></script>
   <script src="/static/push.js?v=3"></script>
   <script src="/static/install-nudge.js?v=1"></script>
   <!-- Mời tặng sao GitHub: thẻ hiện ở khoảnh khắc vui, xem server/star_nudge.py. -->
-  <link rel="stylesheet" href="/static/star-nudge.css?v=4">
-  <script src="/static/star-nudge.js?v=2"></script>
+  <link rel="stylesheet" href="/static/star-nudge.css?v=5">
+  <script src="/static/star-nudge.js?v=3"></script>
   <script src="/static/notifications.js?v=11"></script>
   <!-- Linh vật ở mép màn hình. Nạp SAU app.js vì nó chỉ được app.js gọi vào
        (setOrbState -> NaotaPet.setState), và sau console.js để trang Cài đặt vẽ được thẻ chọn. -->
