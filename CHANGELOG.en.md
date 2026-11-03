@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.3.3] - 2026-11-03
+### Fixed
+- **The Chatbot page names the brain you picked**, instead of the word "brain" or a folder path.
+
 ## [1.3.2] - 2026-11-03
 ### Improved
 - **Page titles match the sidebar names**: Brain map, Tasks, Partners, Connections, Models.
