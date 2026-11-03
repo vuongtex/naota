@@ -26,6 +26,17 @@
   }
   function el(html) { var d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; }
   function brain() { try { return (window.currentBrainPath && window.currentBrainPath()) || "brain"; } catch (e) { return "brain"; } }
+  // What the brain picker shows (brains-ui.js data-brain-label), never the address: brain() is "brain" for the
+  // default brain and a full server path for the others.
+  function tenBrain() {
+    try {
+      var o = document.getElementById("graphSource");
+      o = o && o.options[o.selectedIndex];
+      if (o && o.dataset.brainLabel) return o.dataset.brainLabel;
+    } catch (e) {}
+    var b = brain();
+    return b === "brain" ? "Brain Default" : b.split(/[\\/]/).filter(Boolean).pop();
+  }
 
   async function api(url, opts) {
     var r = await fetch(url, opts || {});
@@ -140,7 +151,7 @@
         '</div>' +
         '<div class="cb-loc"></div>' +
         // One short line stays on the page; the rest of the intro folds behind (i).
-        '<div class="cb-intro">' + esc(window.t("cb.intro_1")) + ' <b>' + esc(brain()) + '</b>' + infoBtn() + '</div>' +
+        '<div class="cb-intro">' + esc(window.t("cb.intro_1")) + ' <b>' + esc(tenBrain()) + '</b>' + infoBtn() + '</div>' +
         infoBody(esc(window.t("cb.intro_2").replace(/^[.\s]+/, "")) + ' <b>Agent</b> ' +
           esc(window.t("cb.intro_3")) + esc(window.t("cb.intro_4")) +
           ' <b>' + esc(window.t("cb.intro_chi_doc")) + '</b>' + esc(window.t("cb.intro_5")) +

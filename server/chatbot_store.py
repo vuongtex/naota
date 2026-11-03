@@ -148,17 +148,17 @@ def nhan_muc(muc: str) -> str:
 # xoá, công bố) - đúng cách `mcp_catalog` phân loại, và đúng cho mọi nguồn dữ liệu đấu vào.
 _CANH_BAO = {
     "auto": [
-        "Bot GHI ĐƯỢC file trong brain của chính nó. Người nhắn cho bot một câu là nội dung "
-        "trong brain đổi thật, không có bước duyệt.",
+        "Bot GHI ĐƯỢC file trong bộ não của chính nó. Người nhắn cho bot một câu là nội dung "
+        "trong bộ não đổi thật, không có bước duyệt.",
         "Bot gọi được các nguồn dữ liệu (MCP) bạn đã đấu, ở mức đọc và ghi. Mọi thứ trong "
         "những nguồn đó nằm trong tầm với của người đang chat với bot.",
         "Naota vẫn CHẶN cứng nhóm thao tác RA NGOÀI ở mức này: không gửi đi, không thanh toán, "
         "không đặt hay huỷ, không xoá, không công bố gì.",
-        "Bot vẫn KHÔNG thấy brain khác, không chạy lệnh máy, không ra được ngoài máy.",
+        "Bot vẫn KHÔNG thấy bộ não khác, không chạy lệnh máy, không ra được ngoài máy.",
     ],
     "full": [
         "Bot có ĐÚNG những quyền của kênh admin: chạy lệnh trên máy chủ, đọc và ghi mọi file (kể cả "
-        "brain khác), dùng mọi kết nối của bạn (kể cả Gmail, Drive, lịch nối qua tài khoản Claude "
+        "bộ não khác), dùng mọi kết nối của bạn (kể cả Gmail, Drive, lịch nối qua tài khoản Claude "
         "hoặc ChatGPT), kỹ năng, giao việc nền và đặt lịch.",
         "Bot làm được mọi thao tác ra ngoài: gửi đi, thanh toán, đặt hay huỷ, xoá, công bố. Những "
         "thao tác đó KHÔNG hoàn tác được.",
@@ -881,7 +881,7 @@ def create_bot(data: dict) -> tuple[Optional[str], str]:
         return None, _loi(LOI_SLUG_AGENT)
     brain = str(data.get("brain") or "").strip()
     if not brain:
-        return None, localefmt.chu("Thiếu brain riêng của bot", "Missing the bot's own brain")
+        return None, localefmt.chu("Thiếu bộ não riêng của bot", "Missing the bot's own brain")
     if can_xac_nhan(data.get("muc_quyen"), data.get("xac_nhan_rui_ro")):
         return None, _loi(LOI_CHUA_XAC_NHAN)
     if can_xac_nhan_doi_tuong(data.get("audience"), data.get("xac_nhan_rui_ro")):
