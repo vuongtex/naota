@@ -160,10 +160,11 @@
   // names and nothing to unfold (owner 03/11/2026: as plain as Claude). RAIL_GROUPS above still
   // names the groups for voice commands (open_group). Pages in RAIL_MENU sit in the account menu
   // at the foot of the rail instead, the advanced ones under their own small label there.
+  // The brain map leads the column (owner 03/11/2026: the brain is what matters, top left).
   const RAIL_SECTIONS = [
-    ["chat", "tasks"],
+    ["home", "chat", "tasks"],
     ["workspace", "teams", "conversations", "skills"],
-    ["learn", "files", "home"],
+    ["learn", "files"],
     ["mcp", "channels", "packs"],
     ["models", "settings"],
   ];

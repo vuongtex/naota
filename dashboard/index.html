@@ -32,7 +32,7 @@
        vì style.css tham chiếu các biến này. -->
   <link rel="stylesheet" href="/static/vendor/lucide-icons.css?v=1">
   <link rel="stylesheet" href="/static/style.css?v=160">
-  <link rel="stylesheet" href="/static/console.css?v=139">
+  <link rel="stylesheet" href="/static/console.css?v=140">
   <!-- Áp tông đã lưu TRƯỚC khi vẽ để không nháy tối rồi mới đổi sang sáng.
        Giá trị cũ "dim" (tông tối-nhạt, gỡ) quy về tối; theme.js sẽ ghi đè lại.
        Chưa chọn gì thì SÁNG (NAOTA 1.0.0). Chế độ "auto" (chỉ khi người dùng tự chọn) tính theo khung giờ "HH:MM-HH:MM", cùng quy tắc với
@@ -315,7 +315,8 @@
         <!-- Thanh gọi (call-bar.js): hiện khi bấm mic gọi Naota. Nằm trong CHAT_NODE_IDS
              (console.js) nên sang trang Trò chuyện là đi theo khung chat. -->
         <div class="call-bar" id="callBar" hidden></div>
-        <div class="transcript" id="chatArea" data-i18n-empty="chat.empty_hint" data-empty-hint="Nói hoặc gõ để bắt đầu hội thoại với Naota."></div>
+        <div class="transcript" id="chatArea" data-i18n-empty="chat.empty_hint" data-empty-hint="Nói hoặc gõ để bắt đầu hội thoại với Naota."
+             data-i18n-hello="chat.hello" data-hello="Hôm nay mình làm gì?"></div>
         <!-- Thanh #toolBar cũ ĐÃ BỎ: trạng thái "đang suy nghĩ / gọi tool" giờ hiện bằng
              chip hoạt động NGAY TRONG #chatArea (app.js showActivity) → tự đi theo cả khi
              phóng to chat workspace (chat-zoom chỉ dời #chatArea, trước đây toolBar bị bỏ lại). -->
@@ -1039,7 +1040,7 @@
 }</script>
   <script src="/static/nap-cham.js?v=1"></script>
   <script src="/static/auto-domain.js?v=1"></script>
-  <script src="/static/i18n/index.js?v=2"></script>
+  <script src="/static/i18n/index.js?v=3"></script>
   <script src="/static/vendor/lucide-icons.js?v=17"></script>
   <script src="/static/icons.js?v=2"></script>
   <script src="/static/info-tip.js?v=2"></script>
@@ -1183,7 +1184,7 @@
   <script src="/static/login-vault.js?v=2"></script>
   <script src="/static/messenger-connect.js?v=3"></script>
   <script src="/static/voice-catalog.js?v=1"></script>
-  <script src="/static/console.js?v=210"></script>
+  <script src="/static/console.js?v=211"></script>
   <script src="/static/mobile-chat.js?v=17"></script>
   <script src="/static/brain-view.js?v=1"></script>
   <script src="/static/push.js?v=3"></script>

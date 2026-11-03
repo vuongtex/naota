@@ -1826,6 +1826,24 @@ body.has-rail .hud { margin-left: var(--rail-w); width: calc(100% - var(--rail-w
    trang Cộng sự dùng chung node chat mà thiếu, nên lỗi chỉ hiện ra ở đây. */
 .ws-slot .transcript { flex: 1 1 auto; min-height: 0; max-height: none; }
 .ws-slot .bg-strip, .ws-slot .attach-bar, .ws-slot .model-bar, .ws-slot .hud-voice { flex: none; }
+/* Empty conversation, Claude-style (desktop): a large greeting and the composer sit together in the middle.
+   Pure CSS on #chatArea:empty, so the first message turns the page back into the usual chat with the
+   composer at the foot; nothing to keep in sync. The greeting comes from the dictionary (data-i18n-hello). */
+@media (min-width: 861px) {
+  .ws-slot:has(> #chatArea:empty), .chatpage-slot:has(> #chatArea:empty) { justify-content: center; padding-bottom: 12vh; }
+  .ws-slot > #chatArea:empty, .chatpage-slot > #chatArea:empty {
+    flex: 0 0 auto; min-height: 0; overflow: visible; gap: 8px;
+    align-items: center; text-align: center; padding: 0 16px 18px;
+  }
+  .ws-slot > #chatArea:empty::before, .chatpage-slot > #chatArea:empty::before {
+    content: attr(data-hello); color: var(--text);
+    font-family: var(--font-head); font-size: clamp(28px, 3vw, 40px); font-weight: 600; line-height: 1.2;
+  }
+  .ws-slot > #chatArea:empty::after, .chatpage-slot > #chatArea:empty::after { font-size: 15px; font-style: normal; }
+  .ws-slot:has(> #chatArea:empty) > .hud-voice, .chatpage-slot:has(> #chatArea:empty) > .hud-voice {
+    width: 100%; max-width: 760px; align-self: center;
+  }
+}
 /* Trình sửa file mở từ chat / từ tab Thư mục. Mở ra là nó chiếm TRỌN khoang giữa ở mọi khổ
    màn - khung chat ẩn đi (xem khối bên dưới).
    `flex: 1 1 auto` để trình sửa cao hết cột: thiếu nó thì nó chỉ cao bằng nội dung, nằm lửng
