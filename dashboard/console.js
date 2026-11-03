@@ -5702,12 +5702,14 @@
       + '<div class="cview-section"><h3>◆ ' + esc(window.t("cs.cn_tab_sanco")) + '</h3>'
       + '<div class="cat-tools"><input class="js-input" id="catQ" placeholder="' + esc(window.t("cs.cn_search_ph")) + '" style="max-width:220px">'
       + '<span class="cat-filter"><button class="cat-chip on" data-catf="">' + esc(window.t("studio.all")) + '</button>' + cats.map(x => '<button class="cat-chip" data-catf="' + esc(x) + '">' + esc(nhanDanhMuc(x)) + '</button>').join("") + '</span></div>'
-      + '<div class="cat-grid" id="catGrid">' + catalogCard(byId.custom) + groupCards(cat, conns)
+      // `pin` (WebPay) stands ahead of everything, the custom-MCP card included.
+      + '<div class="cat-grid" id="catGrid">' + catSolo(cat).filter(c => c.pin).map(catalogCard).join("")
+      + catalogCard(byId.custom) + groupCards(cat, conns)
       // Facebook Messenger is set up by its own form (messenger-connect.js), but it sits in this grid like every
       // other service, filed under the same category as Zalo so the category chips find it.
       + (window.NaotaMessenger && window.NaotaMessenger.catCard
         ? window.NaotaMessenger.catCard((cat.find(c => c.id === "zalo") || {}).category || "") : "")
-      + catSolo(cat).map(catalogCard).join("") + '</div></div>'
+      + catSolo(cat).filter(c => !c.pin).map(catalogCard).join("") + '</div></div>'
       // Hai khu kết nối sẵn của CLI: GẬP mặc định (dân thường không cần thấy) + LAZY:
       // chỉ gọi /mcp/ambient (chậm - phải health check) khi người dùng thật sự mở ra.
       + '</div>';

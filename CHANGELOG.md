@@ -6,6 +6,11 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.3.5] - 2026-11-03
+### Thêm mới
+- **WebPay có sẵn ở đầu trang Kết nối dữ liệu.** Dán link MCP lấy ở WebPay (**Kết nối** > **MCP**) là NAOTA đọc được doanh thu, khách, gói và kỳ thu của shop. Mặc định chỉ đọc. Tạo link thu tiền hay bắt đầu thu định kỳ cần nâng lên **Toàn quyền**.
+- Link MCP có khoá nằm ngay trong đường dẫn, nên NAOTA cất nó như mật khẩu, không hiện lại trên trang.
+
 ## [1.3.4] - 2026-11-03
 ### Sửa lỗi
 - **Bot Zalo trong nhóm nhận ra khi được tag bằng tên Zalo của nick**, kể cả ngay sau khi máy chủ khởi động lại. Trước đây NAOTA quên tên đó mỗi lần khởi động lại, nên tag nick bằng tên khác với tên kết nối thì bot im.

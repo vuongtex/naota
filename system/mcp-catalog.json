@@ -3,6 +3,43 @@
   "_doc": "Kho connector MCP mẫu của NAOTA. Connector = MẪU (url/command + cách đăng nhập + phân loại tool). Tài khoản cụ thể user đấu = connection, lưu ở mcp_servers.json (xem server/mcp_store.py). status: ready | beta | soon. Đã xác minh chi tiết 2026-07-04 (research notes: ke-hoach-ket-noi-hub).",
   "connectors": [
     {
+      "id": "webpay",
+      "name": "WebPay",
+      "icon": "/static/logos/webpay.svg",
+      "pin": true,
+      "category": "Bán hàng",
+      "description": "Thu tiền khoá học, gói định kỳ và trả góp qua chuyển khoản QR. Nối vào là Naota xem được doanh thu, học viên, gói và kỳ thu của shop, hỏi bằng lời kiểu \"tháng này thu được bao nhiêu?\", \"ai chưa đóng phí?\". Chỉ cần dán link MCP lấy ở WebPay.",
+      "status": "ready",
+      "transport": "http",
+      "url_template": "{mcp_link}",
+      "url_secret": true,
+      "auth": {
+        "type": "apikey",
+        "fields": [
+          {
+            "key": "mcp_link",
+            "label": "Link MCP của WebPay",
+            "placeholder": "Ví dụ: https://webpay.vn/mcp/wpm_...",
+            "url_prefixes": ["https://webpay.vn/mcp/", "https://app.webpay.vn/mcp/"]
+          }
+        ],
+        "guide": "Làm 1 lần:\n1. Đăng nhập WebPay, vào Kết nối > MCP.\n2. Bấm sao chép link MCP riêng của shop (dạng https://webpay.vn/mcp/wpm_...).\n3. Dán vào đây rồi bấm Kết nối.\n\nLink này chứa khoá vào tài khoản WebPay, giữ kín như mật khẩu. Naota cất nó đã mã hoá và không hiện lại. Lỡ lộ link thì bấm Đổi link ở trang MCP của WebPay, rồi dán link mới vào Naota.",
+        "guide_url": "https://webpay.vn/ket-noi/mcp"
+      },
+      "validate": {
+        "tool": "tai_khoan",
+        "args": {},
+        "label_paths": ["ten_shop"]
+      },
+      "tool_meta": {
+        "read": ["tai_khoan", "doanh_thu", "danh_sach_khach", "danh_sach_goi", "ky_thu", "thue_bao", "tra_cuu_ky_thu"],
+        "write": ["tao_khach", "tao_goi_dinh_ky"],
+        "danger": ["tao_link_thu_tien", "thu_tien_ngay", "bat_dau_thu_dinh_ky"]
+      },
+      "default_perm": "readonly",
+      "risk": "Mức Chỉ đọc (mặc định): Naota xem doanh thu, danh sách học viên, gói và kỳ thu. Không tạo hay đổi gì.\n\nMức Ghi nháp: thêm quyền tạo học viên và tạo gói định kỳ mới trong WebPay. Chưa thu tiền của ai.\n\nMức Toàn quyền: Naota tạo được link thu tiền, khoản thu ngay và bắt đầu thu định kỳ cho một học viên.\nKhách vẫn tự quét QR trả tiền, tiền vào thẳng tài khoản ngân hàng của bạn, nhưng khoản thu đã tạo là thật và khách nhìn thấy.\nChỉ nâng khi bạn thật sự muốn Naota lập khoản thu thay bạn."
+    },
+    {
       "id": "composio",
       "name": "Composio",
       "icon": "puzzle",

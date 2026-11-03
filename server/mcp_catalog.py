@@ -184,6 +184,9 @@ def public_catalog():
             "cred_dir": bool(c.get("cred_dir")),
             # Nguồn: connector do GÓI cấp không bao giờ được trông y hệt hàng chính chủ.
             "pack": c.get("_pack", ""), "pack_name": c.get("_pack_name", ""),
+            # Thẻ đứng đầu lưới Sẵn có (WebPay). Chỉ hàng chính chủ: gói tự ghim mình lên trên
+            # cùng là quảng cáo chen vào giữa trang.
+            "pin": bool(c.get("pin")) and not c.get("_pack"),
         })
     import catalog_i18n   # lazy: catalog_i18n -> localefmt -> config, tránh vòng import
     return catalog_i18n.phu(out)
@@ -242,8 +245,33 @@ def build_url(connector, secrets):
             val = normalize_base_url(val)
             if not val:
                 return ""
+        if f.get("url_prefixes"):
+            val = link_theo_tien_to(val, f["url_prefixes"])
+            if not val:
+                return ""
         out = out.replace("{" + key + "}", val)
     return "" if "{" in out else out
+
+
+_DUOI_KHOA = re.compile(r"[A-Za-z0-9_-]{8,200}")
+
+
+def link_theo_tien_to(raw, prefixes):
+    """Link MCP có KHOÁ NẰM TRÊN ĐƯỜNG DẪN (WebPay: https://webpay.vn/mcp/wpm_...). Trả "" nếu
+    không dùng được.
+
+    Nhận cả link đầy đủ lẫn mỗi phần khoá (người ta hay chỉ chép đoạn cuối). Link phải bắt đầu
+    bằng một trong `prefixes` của catalog: ô này cầm khoá vào tài khoản bán hàng, dán nhầm một
+    địa chỉ lạ thì khoá đó sẽ được gửi tới chỗ lạ.
+    """
+    u = (raw or "").strip().rstrip("/")
+    for p in prefixes or []:
+        if u.lower().startswith(p.lower()):
+            duoi = u[len(p):]
+            return p + duoi if _DUOI_KHOA.fullmatch(duoi) else ""
+    if prefixes and _DUOI_KHOA.fullmatch(u):
+        return prefixes[0] + u
+    return ""
 
 
 def normalize_base_url(raw):
