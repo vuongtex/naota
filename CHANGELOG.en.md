@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.3.4] - 2026-11-03
+### Fixed
+- **The Zalo bot notices when it is tagged in a group by the account's Zalo name**, even right after a server restart. NAOTA used to forget that name on every restart, so a tag that did not match the connection name got no answer.
+
 ## [1.3.3] - 2026-11-03
 ### Fixed
 - **The Chatbot page names the brain you picked**, instead of the word "brain" or a folder path.
