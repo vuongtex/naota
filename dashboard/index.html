@@ -759,7 +759,7 @@
         <button type="button" class="rf-upd" :class="{ on: $store.nav.updAvail }" @click="$store.nav.go('logs')"
                 :title="($store.nav.i18nTick, t('page.logs.label'))">
           <i data-ic="rocket"></i>
-          <span x-text="($store.nav.i18nTick, $store.nav.updAvail ? t('rail.upd_avail') : t('page.logs.label'))">Cập nhật</span>
+          <span x-text="($store.nav.i18nTick, $store.nav.updAvail ? t('rail.upd_avail') : t('page.logs.label'))"></span>
         </button>
       </div>
       <a class="rf-author" href="https://vuong.ai" target="_blank" rel="noopener">by Hoàng Ngọc Vương</a>
