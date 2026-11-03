@@ -1,6 +1,6 @@
 // Wiring giao diện chat trên điện thoại (mobile-only, <=860px):
 //  - dời chip model (#mbOpen + #mbPop) và nút + (#newChatBtn) lên header khi mobile, trả về khi desktop
-//  - dời nút sáng tối xuống đáy ngăn kéo (bộ não đã nằm sẵn ở đầu thanh bên)
+//  - dời nhóm Hệ thống (chọn brain, đổi tông, loa, dải HỆ THỐNG) vào đáy ngăn kéo
 //  - nút + = hội thoại mới (reset) + focus ô nhập
 //  - ngăn kéo điều hướng: nút menu mở/đóng, backdrop / Esc / chọn mục thì đóng
 //  - rút gọn placeholder ô nhập cho vừa bề ngang điện thoại
@@ -53,23 +53,70 @@
       }
     }
 
-    // ---- 2) Nút sáng tối: mobile dời xuống đáy ngăn kéo (cạnh nút thu mở), desktop trả về thanh trên ----
-    // 1.3.0: the brain picker lives at the top of the rail on every screen, so the light/dark switch is the
-    // only thing borrowed and the old "System" frame (label + holder) is gone for good.
-    var themeHome = null;
+    // ---- 2) Nhóm Hệ thống: mobile dời vào đáy ngăn kéo, desktop trả về chỗ cũ ----
+    var sysHost = null, sysBtns = null, sysLbl = null, moved = [];
+    function ensureSysHost() {
+      if (sysHost || !railEl) return;
+      sysHost = document.createElement("div");
+      sysHost.className = "rail-sys";
+      sysLbl = document.createElement("div");
+      sysLbl.className = "rail-sys-lbl";
+      sysLbl.textContent = window.t("nav.group.he_thong");
+      sysHost.appendChild(sysLbl);
+      sysBtns = document.createElement("div");
+      sysBtns.className = "rail-sys-btns";
+      sysHost.appendChild(sysBtns);
+      var foot = railEl.querySelector(".rail-foot");
+      railEl.insertBefore(sysHost, foot || null);
+    }
+    // `toFoot` (owner): the light/dark switch goes to the drawer's foot, just left of the collapse button,
+    // instead of a row of its own under the "System" label.
+    function moveEl(el, toBtns, toFoot) {
+      if (!el) return;
+      ensureSysHost();
+      if (!sysHost) return;
+      moved.push({ el: el, parent: el.parentElement, next: el.nextSibling });
+      var foot = toFoot && railEl && railEl.querySelector(".rail-foot");
+      if (foot) foot.insertBefore(el, foot.querySelector(".rail-collapse-btn"));
+      else (toBtns ? sysBtns : sysHost).appendChild(el);
+    }
+    function traVe(m) {
+      if (m.next && m.next.parentElement === m.parent) m.parent.insertBefore(m.el, m.next);
+      else m.parent.appendChild(m.el);
+    }
+    // Gỡ hẳn khung "Hệ thống" khỏi rail. PHẢI có hàm này: `ensureSysHost` dựng khung một lần
+    // rồi giữ tham chiếu, còn `placeSystem` trước đây chỉ trả các nút về chỗ cũ mà KHÔNG dọn
+    // cái khung rỗng. Nên sau một lần đi qua màn hẹp là cái nhãn "Hệ thống" ở lại vĩnh viễn,
+    // đứng chình ình trên hàng version mà bên dưới chẳng còn gì
+    // (chữ hệ thống to lại hiện ra trong khi chỗ đó đáng nhẽ là không có gì).
+    function boSysHost() {
+      if (sysHost && sysHost.parentElement) sysHost.parentElement.removeChild(sysHost);
+      sysHost = null; sysBtns = null; sysLbl = null;
+    }
     function placeSystem() {
-      var el = document.getElementById("themeToggle");
-      var foot = railEl && railEl.querySelector(".rail-foot");
-      if (!el || !foot) return;
       if (mq.matches) {
-        if (el.parentElement !== foot) {
-          themeHome = { parent: el.parentElement, next: el.nextSibling };
-          foot.insertBefore(el, foot.querySelector(".rail-collapse-btn"));
+        if (!moved.length) {
+          moveEl(document.querySelector(".navbar-brain"), false);
+          moveEl(document.getElementById("themeToggle"), true, true);
+          // Nút loa header đã bỏ, nút loa thanh nhập cũng bỏ: giọng đi theo
+          // mic, bấm mic là bật loa. Không còn nút loa nào để dời cả.
+          // Dải "VỪA GỌI" cũng bỏ: bước tool đã hiện ngay trong khung chat.
         }
-      } else if (themeHome && el.parentElement === foot) {
-        if (themeHome.next && themeHome.next.parentElement === themeHome.parent) themeHome.parent.insertBefore(el, themeHome.next);
-        else themeHome.parent.appendChild(el);
-        themeHome = null;
+        // Nhãn không được đứng một mình. Mấy nút mượn nằm trong HUD, mà HUD bị vẽ lại ở vài
+        // đường (đổi brain, đổi trang) - lúc đó chúng biến mất khỏi khung này và để lại đúng
+        // cái nhãn trơ ra. Còn nút thì giữ, hết nút thì dọn.
+        if (sysHost && !sysHost.querySelector(".navbar-brain, #themeToggle")) {
+          var cu = moved; moved = [];
+          // Whatever still sits in the foot goes home, so the next pass borrows it again from its real place.
+          cu.forEach(function (m) { if (m.el.parentElement && m.el.parentElement !== m.parent) traVe(m); });
+          boSysHost();
+        }
+      } else if (moved.length) {
+        moved.forEach(traVe);
+        moved = [];
+        boSysHost();   // trả nút về desktop rồi thì cái khung rỗng cũng phải đi theo
+      } else {
+        boSysHost();   // desktop mà vẫn còn khung (dựng hụt, hoặc nút bị vẽ lại mất) -> dọn
       }
     }
 

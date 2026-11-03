@@ -1,9 +1,5 @@
 {
   "bpick.title": "Chọn bộ não",
-  "bpick.act_new": "Tạo bộ não mới",
-  "bpick.act_rename": "Đổi tên bộ não này",
-  "bpick.act_folder": "Mở bộ não từ thư mục",
-  "bpick.act_delete": "Xoá bộ não này",
   "bpick.reorder_title": "Sắp xếp bộ não",
   "bpick.reorder": "Sắp xếp",
   "bpick.done": "Xong",

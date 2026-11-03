@@ -26,22 +26,6 @@ check("the native select stays the source of truth", () => {
   assert.ok(src.includes('sel.dispatchEvent(new Event("change", { bubbles: true }))'), "picking fires the select's change");
   assert.ok(src.includes('fetch("/brains/order"'), "the order is saved on the server, for every device");
 });
-// 1.3.0: the picker is one line; New / Rename / Open folder / Delete are labelled rows in its panel that click the
-// original hidden buttons, Delete last and in red.
-check("brain actions are labelled rows in the panel, Delete last", () => {
-  const src = read("brain-picker.js");
-  const ids = [...src.matchAll(/\{ id: "(\w+)", icon:/g)].map((m) => m[1]);
-  assert.deepEqual(ids, ["newBrainBtn", "renameBrainBtn", "pickFolderBtn", "delBrainBtn"]);
-  assert.ok(/id: "delBrainBtn"[^}]*danger: true/.test(src), "Delete is marked danger");
-  assert.ok(src.includes("if (target) target.click();"), "a row clicks the original button");
-  const html = read("index.html");
-  // Owner 03/11/2026: one place per item, so the picker lives in the sidebar only and the four buttons are hidden.
-  assert.ok(/<span class="rb-acts" hidden>/.test(html), "the bare icon row is hidden");
-  assert.ok(!/bp-mirror/.test(html), "no second brain picker in the top bar");
-  ["bpick.act_new", "bpick.act_rename", "bpick.act_folder", "bpick.act_delete"].forEach((k) => {
-    assert.ok(JSON.parse(read("i18n/vi.json"))[k] && JSON.parse(read("i18n/en.json"))[k], k);
-  });
-});
 check("brains-ui keeps the server's order, Brain Default included", () => {
   const src = read("brains-ui.js");
   assert.ok(src.includes("const opt = b.is_default && defOpt ? defOpt : document.createElement(\"option\");"));

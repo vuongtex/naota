@@ -8,7 +8,7 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 ## [1.3.0] - 2026-11-03
 ### Cải thiện
-- **Thanh bên mới một cột**: bộ não đang dùng ở trên cùng, nút **Việc mới** ngay dưới, các mục chia khúc có tên nhỏ (Đội ngũ, Kiến thức, Kết nối, Hệ thống).
+- **Thanh bên mới một cột**: nút **Việc mới** ở đầu cột, các mục chia khúc có tên nhỏ (Đội ngũ, Kiến thức, Kết nối, Hệ thống).
 - **Tên mục dễ hiểu hơn trên thanh bên**: Bản đồ bộ não, Trò chuyện, Việc cần làm, Trợ lý, Kết nối dữ liệu, Chọn Models.
 - **Số phiên bản và nút Cập nhật luôn hiện dưới đáy thanh bên**, có bản mới thì nút chuyển vàng.
 - **Ô tài khoản dưới đáy** gom tài khoản, cập nhật, nâng cao, ngôn ngữ và giao diện sáng tối. Các trang và thanh trên giữ nguyên như 1.2.1.

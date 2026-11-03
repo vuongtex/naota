@@ -128,8 +128,7 @@
       '<div class="bp-search-wrap"><span class="bp-search-ic">' + icon("search") + '</span>' +
       '<input type="search" class="bp-search" autocomplete="off" spellcheck="false"></div>' +
       '<div class="bp-hint" hidden></div><div class="bp-err" hidden></div>' +
-      '<div class="bp-list" role="listbox"></div>' +
-      '<div class="bp-acts"></div>';
+      '<div class="bp-list" role="listbox"></div>';
     listEl = pop.querySelector(".bp-list");
     searchEl = pop.querySelector(".bp-search");
     headBtn = pop.querySelector(".bp-head-btn");
@@ -144,7 +143,6 @@
     listEl.addEventListener("click", onListClick);
     listEl.addEventListener("keydown", onListKey);
     listEl.addEventListener("pointerdown", onGrab);
-    pop.querySelector(".bp-acts").addEventListener("click", onActClick);
     document.body.appendChild(shade);
     document.body.appendChild(pop);
   }
@@ -185,36 +183,9 @@
       '<span class="bp-check">' + (on ? icon("check") : "") + "</span></div>";
   }
 
-  // Brain actions, as labelled rows at the foot of the panel (1.3.0). Four bare icons beside the picker were hard
-  // to read and put Delete one slip away, so Delete comes last, in red, below a rule. Each row clicks the original
-  // hidden button (index.html .rb-acts), so brains-ui.js and app.js keep their own handlers.
-  var ACTS = [
-    { id: "newBrainBtn", icon: "plus", key: "bpick.act_new", text: "New brain" },
-    { id: "renameBrainBtn", icon: "pencil", key: "bpick.act_rename", text: "Rename this brain" },
-    { id: "pickFolderBtn", icon: "folder-open", key: "bpick.act_folder", text: "Open a brain from a folder" },
-    { id: "delBrainBtn", icon: "trash-2", key: "bpick.act_delete", text: "Delete this brain", danger: true }
-  ];
-  function drawActs() {
-    var box = pop.querySelector(".bp-acts");
-    box.hidden = reorder;
-    box.innerHTML = ACTS.filter(function (a) { return document.getElementById(a.id); }).map(function (a) {
-      return (a.danger ? '<div class="bp-acts-sep"></div>' : "") +
-        '<button type="button" class="bp-act' + (a.danger ? " danger" : "") + '" data-act="' + a.id + '">' +
-        icon(a.icon) + "<span>" + esc(t(a.key, null, a.text)) + "</span></button>";
-    }).join("");
-  }
-  function onActClick(e) {
-    var b = e.target.closest && e.target.closest(".bp-act");
-    if (!b) return;
-    var target = document.getElementById(b.dataset.act);
-    close();
-    if (target) target.click();
-  }
-
   function drawList() {
     if (!pop) return;
     drawHead();
-    drawActs();
     if (reorder) {
       listEl.innerHTML = work.map(function (x, i) { return rowHtml(x, i, work.length); }).join("");
       return;

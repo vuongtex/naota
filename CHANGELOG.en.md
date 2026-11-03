@@ -6,7 +6,7 @@ NAOTA release history. Newest first.
 
 ## [1.3.0] - 2026-11-03
 ### Improved
-- **A new one-column sidebar**: the brain in use at the top, a **New task** button under it, items in blocks with small names (Team, Knowledge, Connections, System).
+- **A new one-column sidebar**: a **New task** button at the top, items in blocks with small names (Team, Knowledge, Connections, System).
 - **Plainer item names in the sidebar** (Vietnamese interface): brain map, chat, to-do, assistants, data connections, model picker.
 - **The version and an Update button always show at the foot of the sidebar**; the button turns yellow when a new version is out.
 - **An account box at the bottom** holds account, updates, advanced tools, language and light or dark theme. Pages and the top bar stay as in 1.2.1.

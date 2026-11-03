@@ -1,9 +1,5 @@
 {
   "bpick.title": "Choose a brain",
-  "bpick.act_new": "New brain",
-  "bpick.act_rename": "Rename this brain",
-  "bpick.act_folder": "Open a brain from a folder",
-  "bpick.act_delete": "Delete this brain",
   "bpick.reorder_title": "Reorder brains",
   "bpick.reorder": "Reorder",
   "bpick.done": "Done",

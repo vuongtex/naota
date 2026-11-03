@@ -31,8 +31,8 @@
   <!-- Biến --ic-* cho icon dùng trong content: của CSS. Phải đứng TRƯỚC style.css
        vì style.css tham chiếu các biến này. -->
   <link rel="stylesheet" href="/static/vendor/lucide-icons.css?v=1">
-  <link rel="stylesheet" href="/static/style.css?v=163">
-  <link rel="stylesheet" href="/static/console.css?v=146">
+  <link rel="stylesheet" href="/static/style.css?v=164">
+  <link rel="stylesheet" href="/static/console.css?v=147">
   <!-- Áp tông đã lưu TRƯỚC khi vẽ để không nháy tối rồi mới đổi sang sáng.
        Giá trị cũ "dim" (tông tối-nhạt, gỡ) quy về tối; theme.js sẽ ghi đè lại.
        Chưa chọn gì thì SÁNG (NAOTA 1.0.0). Chế độ "auto" (chỉ khi người dùng tự chọn) tính theo khung giờ "HH:MM-HH:MM", cùng quy tắc với
@@ -53,16 +53,18 @@
       <!-- NHÓM TRÁI: thương hiệu + chọn brain + số liệu (bám trái) -->
       <div class="hud-top-left">
         <div class="brand"><span class="brand-icon"><img src="/brand-logo" alt="" style="width:22px;height:22px;border-radius:5px;vertical-align:middle;object-fit:cover"></span> <span class="brand-text">NAOTA</span></div>
-        <!-- 1.3.0: the brain picker sits at the top of the sidebar only (owner 03/11/2026: one place per item).
-             These four buttons stay hidden: the picker panel's rows click them, so app.js and brains-ui.js keep
-             their handlers. #graphStats stays for the code that fills it. -->
-        <span class="rb-acts" hidden>
+        <!-- Select Brain: dời từ góc graph lên navbar -->
+        <div class="orb-graph-ctl navbar-brain">
+          <i data-ic="brain" class="brain-select-ico" data-ic-title="Bộ não đang chọn" data-i18n-title="top.brain_current"></i>
+          <select id="graphSource" class="graph-select">
+            <option value="brain">Brain Default</option>
+          </select>
           <button class="graph-folder-btn" id="newBrainBtn" title="Tạo brain mới trong thư mục brains" data-i18n-title="top.brain_new"><i data-ic="plus"></i></button>
           <button class="graph-folder-btn" id="renameBrainBtn" title="Đổi tên brain đang chọn (thư mục và liên kết giữ nguyên)" data-i18n-title="top.brain_rename"><i data-ic="pencil"></i></button>
           <button class="graph-folder-btn" id="delBrainBtn" title="Xoá brain đang chọn (xác nhận gõ đúng tên)" data-i18n-title="top.brain_delete"><i data-ic="trash-2"></i></button>
           <button class="graph-folder-btn" id="pickFolderBtn" title="Chọn brain từ folder ngoài bất kỳ" data-i18n-title="top.brain_pick"><i data-ic="folder-open"></i></button>
           <span class="graph-stats" id="graphStats">-</span>
-        </span>
+        </div>
       </div>
       <!-- NHÓM GIỮA: thanh trạng thái đang quá tải nên bỏ tên workspace lẫn ngày tháng theo
            yêu cầu chủ - tên vẫn hiện trong Cài đặt; chỗ này giờ dành cho đèn báo não
@@ -665,16 +667,6 @@
            vật (xem veDauAn), nên chữ phải nằm ngoài ô đó, không thì mỗi lần đổi hình dáng hay
            bảng màu là chữ bị xoá theo. .brand .brand-icon trên thanh trên cũng cùng vai trò. -->
       <div class="rail-brand"><span class="brand-mark"><img src="/brand-logo" alt="Naota" style="width:30px;height:30px;border-radius:8px;display:block;object-fit:cover"></span><span class="rail-brand-text">NAOTA</span></div>
-      <!-- Bộ não đang dùng: trên cùng bên trái, ngay dưới logo (anh Vương 03/11/2026). One line: name, note count,
-           chevron. New / Rename / Open folder / Delete are rows at the foot of the picker panel (brain-picker.js),
-           which click the four buttons in the top bar so app.js and brains-ui.js keep their handlers.
-           Collapsed rail: only the icon, a click expands. -->
-      <div class="orb-graph-ctl navbar-brain rail-brain" @click="$store.nav.collapsed && $store.nav.toggleCollapsed()">
-        <i data-ic="brain" class="brain-select-ico" data-ic-title="Bộ não đang chọn" data-i18n-title="top.brain_current"></i>
-        <select id="graphSource" class="graph-select">
-          <option value="brain">Brain Default</option>
-        </select>
-      </div>
       <!-- Việc mới: mở trang Hội thoại với khung trống (store.nav.newTask -> app.js newChat). -->
       <button class="rail-item rail-newtask" @click="$store.nav.newTask()"
               :title="($store.nav.i18nTick, t('rail.new_task'))">
@@ -1156,7 +1148,7 @@
   <script src="/static/chat-zoom.js?v=6"></script>
   <script src="/static/brains-ui.js?v=9"></script>
   <!-- Brain picker drawn by Naota over #graphSource: after brains-ui.js and app.js. -->
-  <script src="/static/brain-picker.js?v=4"></script>
+  <script src="/static/brain-picker.js?v=5"></script>
   <script src="/static/sessions-ui.js?v=25"></script>
   <link rel="stylesheet" href="/static/improvement-candidates.css?v=3">
   <script src="/static/improvement-experiments.js?v=1"></script>
@@ -1200,7 +1192,7 @@
   <script src="/static/messenger-connect.js?v=3"></script>
   <script src="/static/voice-catalog.js?v=1"></script>
   <script src="/static/console.js?v=214"></script>
-  <script src="/static/mobile-chat.js?v=17"></script>
+  <script src="/static/mobile-chat.js?v=18"></script>
   <script src="/static/brain-view.js?v=1"></script>
   <script src="/static/push.js?v=3"></script>
   <script src="/static/install-nudge.js?v=1"></script>
