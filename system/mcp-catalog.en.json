@@ -1,6 +1,17 @@
 {
  "_doc": "English overlay for system/mcp-catalog.json. Only display text lives here (name, description, group_line, risk, guide, field labels and placeholders, wizard steps, setup link labels), keyed by connector id. The server lays it over the Vietnamese source when the device reads the interface in English (or in a language with no overlay of its own). Steps and setup links match the source by position. Add a language = add mcp-catalog.<code>.json; no code change.",
  "connectors": {
+  "webpay": {
+   "description": "Collect course fees, recurring plans and instalments by QR bank transfer. Once linked, Naota can see the shop's revenue, students, plans and billing cycles, so you can just ask \"how much came in this month?\" or \"who has not paid yet?\". All it needs is the MCP link from WebPay.",
+   "fields": {
+    "mcp_link": {
+     "label": "WebPay MCP link",
+     "placeholder": "For example: https://webpay.vn/mcp/wpm_..."
+    }
+   },
+   "guide": "One-time setup:\n1. Sign in to WebPay and open the MCP page under Connections.\n2. Copy the shop's own MCP link (it looks like https://webpay.vn/mcp/wpm_...).\n3. Paste it here and press Connect.\n\nThis link holds the key to your WebPay account, so keep it as private as a password. Naota stores it encrypted and never shows it again. If the link leaks, press the button that changes the link on WebPay's MCP page and paste the new link into Naota.",
+   "risk": "Read-only (default): Naota sees revenue, the student list, plans and billing cycles. It creates or changes nothing.\n\nDraft: also allows creating students and new recurring plans in WebPay. Nobody is charged yet.\n\nFull access: Naota can create payment links, one-off charges and start a recurring charge for a student.\nCustomers still scan the QR and pay themselves, and the money goes straight to your bank account, but a charge Naota creates is real and the customer sees it.\nOnly raise it when you really want Naota to bill customers for you."
+  },
   "composio": {
    "description": "Composio's multi-app gateway: one connection opens up 500+ apps (Gmail, Notion, Google Sheets, GitHub, Linear, Slack...). Naota finds the tool, links each app account and runs actions through Composio, with no dedicated connector needed per app. Paste an API key (ck_...) and you are done.",
    "risk": "Composio is a multi-app gateway: every action on a real app (read mail, send mail, edit a sheet, create an issue...) runs through ONE shared tool.\nNaota inspects EACH inner command by name: a read verb (LIST, GET, FETCH, SEARCH...) counts as a read, anything else counts as a write.\n\nRead-only: read data from linked apps (view calendars, read mail, list files) and see which accounts are linked. Any command that is not clearly a read is blocked.\n\nDraft: also allows linking new apps (Composio gives you a sign-in link, you sign in yourself, Naota never sees the password).\n\nFull access: Naota can run EVERY action of the apps you linked through Composio, including sending messages and editing or deleting real data.\nOnly raise it when you really need to; the reach is exactly the permissions you granted each app on Composio.",

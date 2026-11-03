@@ -143,6 +143,13 @@ def _find(d, cid):
     return next((c for c in d["connections"] if c.get("id") == cid), None)
 
 
+def _url_la_khoa(c, con=None):
+    """Connector khai `url_secret`: khoá nằm ngay trên đường dẫn (WebPay). URL đó KHÔNG lưu
+    trần vào mcp_servers.json và không trả ra frontend; `resolved()` dựng lại từ ô đã mã hoá."""
+    con = con or mcp_catalog.get((c or {}).get("connector_id"))
+    return bool((con or {}).get("url_secret") and (con or {}).get("url_template"))
+
+
 def _public(c):
     """Bản che secret trả ra frontend (giữ tên key, ẩn giá trị)."""
     h = c.get("headers") or {}
@@ -151,7 +158,8 @@ def _public(c):
     return {
         "id": c.get("id"), "connector_id": c.get("connector_id", "custom"),
         "name": c.get("label"), "label": c.get("label"), "slug": c.get("slug", ""),
-        "transport": c.get("transport"), "url": c.get("url"), "auth": c.get("auth"),
+        "transport": c.get("transport"),
+        "url": "" if _url_la_khoa(c) else c.get("url"), "auth": c.get("auth"),
         "enabled": bool(c.get("enabled")), "perm": c.get("perm") or "full",
         "deny_tools": c.get("deny_tools") or [], "is_default": bool(c.get("is_default")),
         "command": c.get("command", ""), "args": c.get("args") or [],
@@ -209,6 +217,9 @@ def add_connection(connector_id, data):
     if con and con.get("status") == "soon":
         return None, localefmt.chu("Connector này chưa mở (đang chờ xác minh endpoint)",
                                   "This connector is not open yet (waiting for endpoint verification)")
+    if _url_la_khoa({}, con) and not mcp_catalog.build_url(con, data.get("fields") or {}):
+        return None, localefmt.chu("Link MCP không đúng. Chép lại nguyên link ở trang MCP của dịch vụ rồi dán vào.",
+                                  "That MCP link is not valid. Copy the whole link from the service's MCP page and paste it again.")
     d = _load()
     label = (data.get("label") or "").strip() or (con or {}).get("name") or connector_id
     base = _slugify(label)
@@ -225,7 +236,9 @@ def add_connection(connector_id, data):
         "slug": slug,
         "transport": data.get("transport") or (con or {}).get("transport") or "http",
         # url_template ưu tiên hơn url tĩnh: connector self-host lấy địa chỉ từ ô user gõ.
-        "url": (data.get("url")
+        # Khoá nằm trên URL (url_secret) thì để trống: resolved() dựng lại từ ô đã mã hoá.
+        "url": "" if _url_la_khoa({}, con) else
+               (data.get("url")
                 or mcp_catalog.build_url(con, data.get("fields") or {})
                 or (con or {}).get("url") or "").strip(),
         "command": (data.get("command") or (con or {}).get("command") or "").strip(),
@@ -257,6 +270,8 @@ def update_connection(cid, patch):
     for k in ("label", "transport", "url", "command", "auth"):
         if patch.get(k) is not None:
             c[k] = patch[k].strip() if isinstance(patch[k], str) else patch[k]
+    if _url_la_khoa(c):
+        c["url"] = ""
     if patch.get("name") is not None:   # alias legacy
         c["label"] = str(patch["name"]).strip() or c["label"]
     if patch.get("perm") in mcp_catalog.PERM_RANK:
