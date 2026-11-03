@@ -32,7 +32,7 @@
        vì style.css tham chiếu các biến này. -->
   <link rel="stylesheet" href="/static/vendor/lucide-icons.css?v=1">
   <link rel="stylesheet" href="/static/style.css?v=164">
-  <link rel="stylesheet" href="/static/console.css?v=147">
+  <link rel="stylesheet" href="/static/console.css?v=148">
   <!-- Áp tông đã lưu TRƯỚC khi vẽ để không nháy tối rồi mới đổi sang sáng.
        Giá trị cũ "dim" (tông tối-nhạt, gỡ) quy về tối; theme.js sẽ ghi đè lại.
        Chưa chọn gì thì SÁNG (NAOTA 1.0.0). Chế độ "auto" (chỉ khi người dùng tự chọn) tính theo khung giờ "HH:MM-HH:MM", cùng quy tắc với
@@ -691,18 +691,13 @@
         </div>
       </template>
     </div>
-    <!-- Menu tài khoản: bung lên trên ô tài khoản. Tài khoản, các trang Nâng cao, ngôn ngữ, cộng đồng.
-         Cập nhật (nút cạnh số phiên bản) và sáng tối (nút mặt trời thanh trên) đã có chỗ riêng nên không lặp ở đây. -->
+    <!-- Menu Nâng cao: bung lên trên nút Nâng cao ở đáy. Các trang Nâng cao, ngôn ngữ, cộng đồng.
+         Tài khoản nằm dưới Cài đặt; Cập nhật (nút cạnh số phiên bản) và sáng tối (nút mặt trời thanh trên)
+         đã có chỗ riêng nên không lặp ở đây. x-effect đặt đáy menu ngay trên mép ô ở đáy, để menu không đè lên nó. -->
     <div class="rail-menu" id="railMenu" role="menu" x-show="$store.nav.menuOpen" x-transition.opacity.duration.120ms
+         x-effect="if ($store.nav.menuOpen) { const f = $el.parentElement.querySelector('.rail-foot'); if (f) $el.style.bottom = ($el.parentElement.clientHeight - f.offsetTop + 6) + 'px'; }"
          @click.outside="if (!$event.target.closest('.rail-acct')) $store.nav.menuOpen = false"
          @keydown.escape.window="$store.nav.menuOpen = false">
-      <template x-for="it in $store.nav.menu.main" :key="it.id">
-        <button class="rail-item" role="menuitem" :class="{ active: $store.nav.active === it.id }" @click="$store.nav.go(it.id)">
-          <span class="rail-ico" x-html="it.icon"></span>
-          <span class="rail-lbl" x-text="($store.nav.i18nTick, it.label)"></span>
-        </button>
-      </template>
-      <div class="rail-menu-lbl" x-text="($store.nav.i18nTick, t('nav.group.nang_cao'))"></div>
       <template x-for="it in $store.nav.menu.adv" :key="it.id">
         <button class="rail-item" role="menuitem" :class="{ active: $store.nav.active === it.id }" @click="$store.nav.go(it.id)">
           <span class="rail-ico" x-html="it.icon"></span>
@@ -737,18 +732,16 @@
       </div>
       <a class="rf-author" href="https://vuong.ai" target="_blank" rel="noopener">by Hoàng Ngọc Vương</a>
     </div>
-    <!-- ĐÁY cố định: ô tài khoản (mở menu trên) + nút thu/mở -->
+    <!-- ĐÁY cố định: nút Nâng cao (mở menu trên) + nút thu/mở -->
     <div class="rail-foot">
       <button class="rail-acct" type="button" :class="{ on: $store.nav.menuOpen || $store.nav.menuActive }"
               @click="$store.nav.menuOpen = !$store.nav.menuOpen" aria-haspopup="menu"
               :aria-expanded="$store.nav.menuOpen ? 'true' : 'false'"
-              :title="($store.nav.i18nTick, t('rail.menu'))" :aria-label="($store.nav.i18nTick, t('rail.menu'))">
-        <span class="rail-acct-av" x-text="$store.nav.acctInitial">N</span>
+              :title="($store.nav.i18nTick, t('nav.group.nang_cao'))" :aria-label="($store.nav.i18nTick, t('nav.group.nang_cao'))">
+        <span class="rail-acct-av"><i data-ic="ellipsis"></i></span>
         <span class="rail-acct-txt">
-          <span class="rail-acct-name" x-text="$store.nav.acctName">NAOTA</span>
-          <span class="rail-acct-sub" x-text="$store.nav.acctSub"></span>
+          <span class="rail-acct-name" data-i18n="nav.group.nang_cao">Nâng cao</span>
         </span>
-        <span class="rail-acct-dot" x-show="$store.nav.updAvail"></span>
       </button>
       <button class="rail-collapse-btn" @click="$store.nav.toggleCollapsed()"
               :title="($store.nav.i18nTick, $store.nav.collapsed ? t('rail.expand') : t('rail.collapse'))"
@@ -1185,7 +1178,7 @@
   <script src="/static/login-vault.js?v=2"></script>
   <script src="/static/messenger-connect.js?v=3"></script>
   <script src="/static/voice-catalog.js?v=1"></script>
-  <script src="/static/console.js?v=215"></script>
+  <script src="/static/console.js?v=216"></script>
   <script src="/static/mobile-chat.js?v=19"></script>
   <script src="/static/brain-view.js?v=1"></script>
   <script src="/static/push.js?v=3"></script>

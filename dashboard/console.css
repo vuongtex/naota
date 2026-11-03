@@ -405,7 +405,8 @@ body.ord-is-dragging, body.ord-is-dragging * { cursor: grabbing !important; user
 .sk-group-head .dim { color: var(--text3); font-weight: 400; margin-left: 6px; }
 
 .rail-spacer { flex: 1; }
-/* Menu tài khoản: bung lên trên ô tài khoản ở đáy thanh bên. */
+/* Menu Nâng cao: bung lên trên nút Nâng cao ở đáy thanh bên. `bottom` here is a fallback; index.html sets it
+   from the foot's real top on open, so the menu never covers the button. */
 .rail-menu {
   position: absolute; left: 8px; right: 8px; bottom: 58px; z-index: 70;
   display: flex; flex-direction: column; gap: 1px; padding: 6px;
@@ -413,7 +414,6 @@ body.ord-is-dragging, body.ord-is-dragging * { cursor: grabbing !important; user
   background: var(--panel-solid); border: 1px solid var(--glass-brd); border-radius: 12px;
   box-shadow: var(--shadow-2);
 }
-.rail-menu-lbl { font-family: var(--font-ui); font-size: 11.5px; font-weight: 600; color: var(--text3); padding: 8px 10px 3px; }
 .rail-menu-sep { height: 1px; background: var(--glass-brd); margin: 5px 4px; }
 .rail-lang {                                           /* ô đổi ngôn ngữ giao diện, trong menu tài khoản */
   display: flex; align-items: center; gap: 10px; padding: 4px 10px; color: var(--text2);
@@ -443,15 +443,10 @@ body.ord-is-dragging, body.ord-is-dragging * { cursor: grabbing !important; user
   display: flex; align-items: center; justify-content: center;
   background: var(--surface-3); color: var(--text); font-family: var(--font-ui); font-size: 13px; font-weight: 700;
 }
+.rail-acct-av svg { width: 16px; height: 16px; }
 .rail-acct-txt { display: flex; flex-direction: column; min-width: 0; }
-.rail-acct-name, .rail-acct-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-ui); }
-.rail-acct-name { font-size: 13.5px; font-weight: 600; }
-.rail-acct-sub { font-size: 11.5px; color: var(--text3); }
-.rail-acct-sub:empty { display: none; }
-.rail-acct-dot {                                        /* có bản mới: chấm nhỏ trên ảnh tài khoản */
-  position: absolute; top: 4px; left: 27px; width: 8px; height: 8px; border-radius: 50%;
-  background: var(--accent); box-shadow: 0 0 0 2px var(--rail-bg);
-}
+.rail-acct-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-ui);
+  font-size: 13.5px; font-weight: 600; }
 .rail-collapse-btn {                                   /* nút thu/mở sidebar, ghim bên phải; icon căn cỡ với icon nav */
   order: 2; display: flex; align-items: center; justify-content: center;
   width: 32px; height: 28px; padding: 0; flex: 0 0 auto;
@@ -501,7 +496,6 @@ body.ord-is-dragging, body.ord-is-dragging * { cursor: grabbing !important; user
   .rail.collapsed .rail-foot { flex-direction: column; justify-content: center; }
   .rail.collapsed .rail-acct { flex: 0 0 auto; padding: 4px; }
   .rail.collapsed .rail-acct-txt { display: none; }
-  .rail.collapsed .rail-acct-dot { left: 25px; }
   /* Menu vẫn đầy chữ, tràn ra bên phải dải icon. */
   .rail.collapsed .rail-menu { right: auto; width: 240px; bottom: 92px; }
   .rail.collapsed .rail-menu .rail-item { justify-content: flex-start; padding: 6px 10px; gap: 10px; }

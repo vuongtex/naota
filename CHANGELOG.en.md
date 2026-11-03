@@ -9,7 +9,7 @@ NAOTA release history. Newest first.
 - **A new one-column sidebar**: a **New task** button at the top, items in blocks with small names (Team, Knowledge, Connections, System).
 - **Plainer item names in the sidebar** (Vietnamese interface): brain map, chat, to-do, assistants, data connections, model picker.
 - **The version and an Update button always show at the foot of the sidebar**; the button turns yellow when a new version is out.
-- **An account box at the bottom** holds account, updates, advanced tools, language and light or dark theme. Pages and the top bar stay as in 1.2.1.
+- **An Advanced button at the bottom** holds Terminal, Plugins, Webhooks, Logins, Share links, language and community. Account sits under Settings. Pages and the top bar stay as in 1.2.1.
 
 ## [1.2.1] - 2026-11-03
 ### Improved

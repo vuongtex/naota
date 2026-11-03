@@ -169,9 +169,10 @@
     { lbl: "nav.group.nang_luc", ids: ["workspace", "teams", "conversations", "skills"] },
     { lbl: "nav.sec.kien_thuc", ids: ["learn", "files"] },
     { lbl: "nav.group.ket_noi", ids: ["mcp", "channels", "packs"] },
-    { lbl: "nav.group.he_thong", ids: ["models", "settings"] },
+    // Account sits under Settings again, as in 1.2.1 (owner 03/11/2026); the foot box is only "Advanced" now.
+    { lbl: "nav.group.he_thong", ids: ["models", "settings", "account"] },
   ];
-  const RAIL_MENU = ["account"];
+  const RAIL_MENU = [];
   const RAIL_MENU_ADV = ["terminal", "plugins", "webhooks", "logins", "share"];
   // Reached from the Update button by the version at the foot, so it sits in no list (owner 03/11/2026:
   // one place per item).
@@ -6609,7 +6610,6 @@
       const r = await saveSetting("general", { workspace_name: document.getElementById("acWs").value.trim() });
       wsStatus.innerHTML = r.ok ? OK_ICON + " " + esc(window.t("cs.ac_saved")) : WARN_ICON + " " + esc(window.t("cs.ac_err_dot"));
       const wn = document.getElementById("workspaceName"); if (wn) wn.textContent = document.getElementById("acWs").value.trim() || "NAOTA";
-      if (r.ok) Alpine.store("nav").acctName = document.getElementById("acWs").value.trim() || "NAOTA";
     };
     const acStatus = document.getElementById("acStatus");
     // HAI đường, đừng gộp: /auth/setup là đường CÔNG KHAI cho lần đầu tạo admin và nó TỪ CHỐI
@@ -8330,9 +8330,7 @@
       active: "home",
       items: RAIL_ITEMS,
       updAvail: false,   // máy chủ báo có bản mới (/version), vẽ chấm trên mục Cập nhật
-      menuOpen: false,   // menu tài khoản dưới đáy thanh bên
-      acctName: "NAOTA", // tên workspace (trang Tài khoản), dòng trên của ô tài khoản
-      acctSub: "",       // bộ não đang chọn, dòng dưới
+      menuOpen: false,   // menu Nâng cao dưới đáy thanh bên
       collapsed: (() => { try { return localStorage.getItem("naota_rail_collapsed") === "1"; } catch (e) { return false; } })(),
       collapseIcon: COLLAPSE_ICON,
       // Alpine không biết từ điển i18n đổi (nó là object thuần), nên phải có một biến
@@ -8342,8 +8340,7 @@
       get groups() { void this.i18nTick; return railGroups(); },
       get menu() { void this.i18nTick; return railMenu(); },
       get meta() { void this.i18nTick; return VIEW_META[this.active] || VIEW_META.home; },
-      get acctInitial() { return (this.acctName || "N").trim().charAt(0).toUpperCase() || "N"; },
-      // Trang đang mở nằm trong menu tài khoản: ô tài khoản sáng lên thay cho mục trên cột.
+      // Trang đang mở nằm trong menu Nâng cao: nút Nâng cao sáng lên thay cho mục trên cột.
       get menuActive() { return RAIL_MENU.includes(this.active) || RAIL_MENU_ADV.includes(this.active); },
       // Nút Việc mới: mở trang Hội thoại với một khung trống. Dùng đúng hàm của nút
       // "+ Hội thoại mới" (app.js newChat), nên lượt đang chạy ở hội thoại khác vẫn chạy tiếp.
@@ -9579,15 +9576,7 @@
     window.matchMedia("(max-width: 860px)").addEventListener("change", recomputeGraph);
     // Đổi brain (Select Brain) → nạp lại trang quản lý đang xem theo brain mới (không cần F5)
     const gs = document.getElementById("graphSource");
-    // Dòng dưới của ô tài khoản = bộ não đang chọn. Danh sách bộ não về sau (brains-ui.js đổ
-    // option vào), nên nghe cả lúc option đổi chứ không chỉ lúc người dùng chọn.
-    const veOTaiKhoan = () => {
-      const o = gs && gs.selectedOptions && gs.selectedOptions[0];
-      Alpine.store("nav").acctSub = o ? (o.dataset.brainLabel || o.textContent).trim() : "";
-    };
-    if (gs) { veOTaiKhoan(); new MutationObserver(veOTaiKhoan).observe(gs, { childList: true, subtree: true }); }
     if (gs) gs.addEventListener("change", () => {
-      veOTaiKhoan();
       const active = Alpine.store("nav").active;
       if (active !== "home") renderPage(active);
       // Cây vault ở cột trái sống ngoài hệ cview → tự làm mới theo brain mới
@@ -9650,7 +9639,6 @@
           wrap.hidden = false;
         }
       } catch (e) { /* thiếu ô thì rail vẫn sống */ }
-      Alpine.store("nav").acctName = s.workspace_name || "NAOTA";
       graphEnabled =!(s.dashboard && s.dashboard.graph_enabled === false);
       recomputeGraph();
       // Deep-link mở tab mới từ link file trong chat: #open=<đường-dẫn-vault>.
