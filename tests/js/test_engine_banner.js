@@ -65,9 +65,9 @@ if (m) {
 // ---- 4. Chi tiet ky thuat chuyen vao tooltip, khong bo di ----
 // Van can khi di hoi, chi la khong dang chiem cho tren thanh trang thai.
 check("van giu chi tiet ky thuat trong tooltip", FN.indexOf("b.title") !== -1);
-check("tooltip co nhac trang Chon AI",
+check("tooltip co nhac trang Chon Models",
   FN.indexOf('"cs.eng_gotomodels"') !== -1
-  && (VI["cs.eng_gotomodels"] || "").indexOf("trang Chọn AI") !== -1);
+  && (VI["cs.eng_gotomodels"] || "").indexOf("trang Chọn Models") !== -1);
 
 // ---- 5. Bam duoc va dan toi dung cho ----
 // Bao "chua ket noi" ma khong dua duoc nguoi ta toi cho ket noi thi chi la than phien.

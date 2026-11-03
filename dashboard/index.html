@@ -32,7 +32,7 @@
        vì style.css tham chiếu các biến này. -->
   <link rel="stylesheet" href="/static/vendor/lucide-icons.css?v=1">
   <link rel="stylesheet" href="/static/style.css?v=162">
-  <link rel="stylesheet" href="/static/console.css?v=143">
+  <link rel="stylesheet" href="/static/console.css?v=144">
   <!-- Áp tông đã lưu TRƯỚC khi vẽ để không nháy tối rồi mới đổi sang sáng.
        Giá trị cũ "dim" (tông tối-nhạt, gỡ) quy về tối; theme.js sẽ ghi đè lại.
        Chưa chọn gì thì SÁNG (NAOTA 1.0.0). Chế độ "auto" (chỉ khi người dùng tự chọn) tính theo khung giờ "HH:MM-HH:MM", cùng quy tắc với
@@ -749,10 +749,20 @@
         <span class="rail-ico"><i data-ic="users"></i></span>
         <span class="rail-lbl" data-i18n="rail.community">Cộng đồng NAOTA</span>
       </a>
-      <div class="rf-meta">
-        <div class="rf-ver" id="railVersion">v0.0.0</div>
-        <a class="rf-author" href="https://vuong.ai" target="_blank" rel="noopener">by Hoàng Ngọc Vương</a>
+    </div>
+    <!-- Version and an Update button, always in sight at the foot of the rail (anh Vương 03/11/2026:
+         like 1.2.1, the version shows at the bottom with a button to update). The button opens the
+         Update page and turns yellow when the server reports a new version. -->
+    <div class="rf-meta">
+      <div class="rf-ver-row">
+        <span class="rf-ver" id="railVersion">v0.0.0</span>
+        <button type="button" class="rf-upd" :class="{ on: $store.nav.updAvail }" @click="$store.nav.go('logs')"
+                :title="($store.nav.i18nTick, t('page.logs.label'))">
+          <i data-ic="rocket"></i>
+          <span x-text="($store.nav.i18nTick, $store.nav.updAvail ? t('rail.upd_avail') : t('page.logs.label'))">Cập nhật</span>
+        </button>
       </div>
+      <a class="rf-author" href="https://vuong.ai" target="_blank" rel="noopener">by Hoàng Ngọc Vương</a>
     </div>
     <!-- ĐÁY cố định: ô tài khoản (mở menu trên) + nút thu/mở -->
     <div class="rail-foot">

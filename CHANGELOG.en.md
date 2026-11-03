@@ -11,7 +11,8 @@ NAOTA release history. Newest first.
 - **A new chat opens with a greeting and the message box in the middle**; the first message turns it into the usual chat.
 - **A one-column sidebar** that opens a page with one click, each block under a small name (Team, Knowledge, Connections, System). **A New task button** at the top opens a fresh chat.
 - **No AI connected yet? The empty chat says so in the middle**, with a **Connect AI** button.
-- **Plainer Vietnamese words** in the Vietnamese interface: agents, the AI picker, data connections, the task page and the thinking levels.
+- **The version and an Update button always show at the foot of the sidebar**. The button turns yellow and reads **Update available** when a new version is out.
+- **Plainer Vietnamese words** in the Vietnamese interface: the brain map, the task page, agents, data connections, the model picker and the thinking levels.
 - **An account box at the bottom** holds account, advanced tools, updates, language and light or dark theme.
 - **Less yellow**: the selected item is grey, yellow stays on the main buttons only.
 

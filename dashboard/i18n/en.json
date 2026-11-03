@@ -417,6 +417,7 @@
   "lim.none_agy": "Antigravity reports no plan usage percentage. The ring turns red only when Antigravity refuses a turn for plan quota.",
   "rail.expand": "Expand sidebar",
   "rail.upd_new": "New",
+  "rail.upd_avail": "Update available",
   "rail.new_task": "New task",
   "rail.menu": "Account and settings",
   "rail.theme": "Light or dark theme",

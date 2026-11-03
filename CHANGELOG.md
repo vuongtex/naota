@@ -13,7 +13,8 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 - **Mở hội thoại mới là thấy lời chào và ô nhập ở giữa màn hình**, gõ câu đầu tiên là thành khung trò chuyện.
 - **Thanh bên một cột**, bấm là mở ngay, mỗi khúc có tên nhỏ (Đội ngũ, Kiến thức, Kết nối, Hệ thống). **Nút Việc mới** ở đầu cột mở hội thoại mới.
 - **Chưa kết nối AI thì báo ngay giữa màn hình chat**, kèm nút **Kết nối AI**.
-- **Chữ dễ hiểu hơn**: Cộng sự thành **Trợ lý**, Models AI thành **Chọn AI**, Nguồn dữ liệu thành **Kết nối dữ liệu**, trang Nhiệm vụ thống nhất tên **Việc cần làm**, mức suy nghĩ ghi bằng tiếng Việt (Không nghĩ, Nghĩ nhẹ, Nghĩ kỹ...).
+- **Số phiên bản và nút Cập nhật luôn hiện dưới đáy thanh bên**. Có bản mới thì nút chuyển vàng, ghi **Có bản mới**.
+- **Chữ dễ hiểu hơn**: Sơ đồ thành **Bản đồ bộ não**, Bảng việc thành **Việc cần làm** (trang Nhiệm vụ cũng cùng tên này), Cộng sự thành **Trợ lý**, Nguồn dữ liệu thành **Kết nối dữ liệu**, Models AI thành **Chọn Models**, mức suy nghĩ ghi bằng tiếng Việt (Không nghĩ, Nghĩ nhẹ, Nghĩ kỹ...).
 - **Ô tài khoản dưới đáy** gom tài khoản, nâng cao, cập nhật, ngôn ngữ và giao diện sáng tối.
 - **Bớt màu vàng**: mục đang chọn tô xám, vàng chỉ còn ở nút bấm chính.
 
