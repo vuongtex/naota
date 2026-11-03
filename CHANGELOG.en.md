@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.4.0] - 2026-11-03
+### Added
+- In progress: time zone, no freezing while answering, the 5-hour limit, no stalls on a small server, lighter Claude limit use, Windows fixes.
+
 ## [1.3.6] - 2026-11-03
 ### Fixed
 - **On a phone, the Update button at the foot of the menu closes the menu**, so the Update page shows right away. The page used to change behind a menu that stayed open.

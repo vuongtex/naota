@@ -6,6 +6,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.4.0] - 2026-11-03
+### Thêm mới
+- Đang làm: múi giờ, hết đơ khi trả lời, hạn mức 5 giờ, máy chủ nhỏ không đứng hình, đỡ tốn hạn mức Claude, sửa lỗi Windows.
+
 ## [1.3.6] - 2026-11-03
 ### Sửa lỗi
 - **Trên điện thoại, bấm nút Cập nhật ở đáy menu thì menu tự đóng**, trang Cập nhật hiện ra ngay. Trước đây trang đã chuyển nhưng menu vẫn che.
