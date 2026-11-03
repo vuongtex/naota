@@ -67,10 +67,11 @@
       sysBtns = document.createElement("div");
       sysBtns.className = "rail-sys-btns";
       sysHost.appendChild(sysBtns);
-      // Above the version row, so the version stays next to the account box as on a computer.
-      var foot = railEl.querySelector(".rf-meta") || railEl.querySelector(".rail-foot");
-      if (foot) foot.parentNode.insertBefore(sysHost, foot);
-      else railEl.appendChild(sysHost);
+      // 1.3.1 (owner): at the top of the drawer, right under the logo, so opening the menu shows
+      // which brain every page is reading before any item.
+      var nav = railEl.querySelector(".rail-nav");
+      if (nav) nav.parentNode.insertBefore(sysHost, nav);
+      else railEl.insertBefore(sysHost, railEl.firstChild);
     }
     // `toFoot` (owner): the light/dark switch goes to the drawer's foot, just left of the collapse button,
     // instead of a row of its own under the "System" label.
