@@ -8194,7 +8194,7 @@
         if (!g || !s) return false;
         if (s.collapsed) s.toggleCollapsed();   // đang thu gọn thì bung ra, không thì mục vẫn vô hình
         const trongMenu = [...RAIL_MENU, ...RAIL_MENU_ADV];
-        if ((g.ids || []).some(id => trongMenu.includes(id))) s.menuOpen = true;
+        if ((g.ids || []).some(id => trongMenu.includes(id))) s.advOpen = true;
         return true;
       },
       setCollapsed(thu) {
@@ -8330,7 +8330,7 @@
       active: "home",
       items: RAIL_ITEMS,
       updAvail: false,   // máy chủ báo có bản mới (/version), vẽ chấm trên mục Cập nhật
-      menuOpen: false,   // menu Nâng cao dưới đáy thanh bên
+      advOpen: false,    // danh sách Nâng cao (dưới Tài khoản) đang xổ
       collapsed: (() => { try { return localStorage.getItem("naota_rail_collapsed") === "1"; } catch (e) { return false; } })(),
       collapseIcon: COLLAPSE_ICON,
       // Alpine không biết từ điển i18n đổi (nó là object thuần), nên phải có một biến
@@ -8340,14 +8340,16 @@
       get groups() { void this.i18nTick; return railGroups(); },
       get menu() { void this.i18nTick; return railMenu(); },
       get meta() { void this.i18nTick; return VIEW_META[this.active] || VIEW_META.home; },
-      // Trang đang mở nằm trong menu Nâng cao: nút Nâng cao sáng lên thay cho mục trên cột.
+      // Trang đang mở là một trang Nâng cao: khi danh sách gập, dòng Nâng cao sáng lên thay cho nó.
       get menuActive() { return RAIL_MENU.includes(this.active) || RAIL_MENU_ADV.includes(this.active); },
-      // Nút Việc mới: mở trang Hội thoại với một khung trống. Dùng đúng hàm của nút
-      // "+ Hội thoại mới" (app.js newChat), nên lượt đang chạy ở hội thoại khác vẫn chạy tiếp.
-      newTask() {
-        this.menuOpen = false;
-        navigateTo("chat");
-        try { if (window.NaotaSessions) window.NaotaSessions.new(); } catch (e) {}
+      // Xổ/gập Nâng cao. Xổ ra thì cuộn cột tới dòng cuối (Cộng đồng NAOTA), kẻo nó nằm khuất dưới hàng phiên bản.
+      toggleAdv(btn) {
+        this.advOpen = !this.advOpen;
+        if (!this.advOpen || !btn) return;
+        setTimeout(() => {
+          const last = btn.parentElement && btn.parentElement.querySelector(".rail-adv-items > :last-child");
+          if (last) last.scrollIntoView({ block: "nearest" });
+        }, 60);
       },
       toggleCollapsed() {   // thu/mở sidebar: thu → chỉ còn icon; mở → đầy chữ. Nhớ lựa chọn qua localStorage.
         this.collapsed = !this.collapsed;
@@ -8355,7 +8357,7 @@
       },
       go(id) {
         const item = RAIL_ITEMS.find(i => i.id === id);
-        this.menuOpen = false;
+        if (RAIL_MENU_ADV.includes(id)) this.advOpen = true;   // mở trang Nâng cao từ chỗ khác: cho thấy nó nằm đâu
         if (item && item.launch) { item.launch(); recomputeGraph(); return; }  // launcher: không đổi view
         navigateTo(id);
       },
@@ -9470,10 +9472,9 @@
       }
     } catch (e) { /* dựng lại hỏng thì giữ khung cũ, phần quét nhãn tĩnh bên dưới vẫn phải chạy */ }
     try { window.NaotaI18n && NaotaI18n.applyDom(); } catch (e) { /* noop */ }
-    // Hai ô chọn ngôn ngữ (đáy rail + trang Cài đặt) phải chỉ cùng một giá trị: đổi ở đâu
-    // thì ô kia tự nhảy theo, không cần F5.
+    // Ô chọn ngôn ngữ ở trang Cài đặt (1.3.0: chỗ duy nhất) đi theo ngôn ngữ đang dùng, không cần F5.
     try {
-      for (const id of ["railLang", "vpUiLang"]) {
+      for (const id of ["vpUiLang"]) {
         const sel = document.getElementById(id);
         if (sel && window.NaotaI18n && sel.value !== NaotaI18n.lang()) sel.value = NaotaI18n.lang();
       }
@@ -9619,26 +9620,6 @@
           }
         }
       } catch (e) { /* lỗi thì giữ ngôn ngữ đang hiện, không chặn phần còn lại */ }
-      // Ô đổi ngôn ngữ giao diện dưới đáy rail. Danh sách từ sổ đăng ký phía server
-      // (s.lang_list) - cùng nguồn với trang Cài đặt, không khai lại ở client. Chỉ hiện khi
-      // có từ 2 ngôn ngữ: một ngôn ngữ thì ô chọn là đồ trang trí.
-      try {
-        const wrap = document.getElementById("railLangWrap");
-        const sel = document.getElementById("railLang");
-        const langs = uiLangChoices(s);
-        if (wrap && sel && langs.length > 1) {
-          const cur = (window.NaotaI18n && NaotaI18n.lang()) || "vi";
-          sel.innerHTML = langs.map(l =>
-            `<option value="${esc(l.ma)}"${l.ma === cur ? " selected" : ""}>${esc(l.ten)}</option>`).join("");
-          sel.onchange = async () => {
-            // Đổi NGAY trên máy này trước rồi mới lưu lên server - ngôn ngữ giao diện là lựa
-            // chọn theo thiết bị, trải nghiệm không được chờ mạng (giống ô ở trang Cài đặt).
-            try { await NaotaI18n.setLang(sel.value); } catch (e) { /* noop */ }
-            saveSetting("locale", { ui_lang: uiLangForServer(sel.value, s) });
-          };
-          wrap.hidden = false;
-        }
-      } catch (e) { /* thiếu ô thì rail vẫn sống */ }
       graphEnabled =!(s.dashboard && s.dashboard.graph_enabled === false);
       recomputeGraph();
       // Deep-link mở tab mới từ link file trong chat: #open=<đường-dẫn-vault>.

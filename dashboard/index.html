@@ -32,7 +32,7 @@
        vì style.css tham chiếu các biến này. -->
   <link rel="stylesheet" href="/static/vendor/lucide-icons.css?v=1">
   <link rel="stylesheet" href="/static/style.css?v=164">
-  <link rel="stylesheet" href="/static/console.css?v=148">
+  <link rel="stylesheet" href="/static/console.css?v=149">
   <!-- Áp tông đã lưu TRƯỚC khi vẽ để không nháy tối rồi mới đổi sang sáng.
        Giá trị cũ "dim" (tông tối-nhạt, gỡ) quy về tối; theme.js sẽ ghi đè lại.
        Chưa chọn gì thì SÁNG (NAOTA 1.0.0). Chế độ "auto" (chỉ khi người dùng tự chọn) tính theo khung giờ "HH:MM-HH:MM", cùng quy tắc với
@@ -667,12 +667,6 @@
            vật (xem veDauAn), nên chữ phải nằm ngoài ô đó, không thì mỗi lần đổi hình dáng hay
            bảng màu là chữ bị xoá theo. .brand .brand-icon trên thanh trên cũng cùng vai trò. -->
       <div class="rail-brand"><span class="brand-mark"><img src="/brand-logo" alt="Naota" style="width:30px;height:30px;border-radius:8px;display:block;object-fit:cover"></span><span class="rail-brand-text">NAOTA</span></div>
-      <!-- Việc mới: mở trang Hội thoại với khung trống (store.nav.newTask -> app.js newChat). -->
-      <button class="rail-item rail-newtask" @click="$store.nav.newTask()"
-              :title="($store.nav.i18nTick, t('rail.new_task'))">
-        <span class="rail-ico"><i data-ic="square-pen"></i></span>
-        <span class="rail-lbl" data-i18n="rail.new_task">Việc mới</span>
-      </button>
     </div>
     <!-- GIỮA cuộn được: một cột phẳng, mỗi khúc có tên nhỏ màu nhạt (RAIL_SECTIONS trong console.js) -->
     <div class="rail-nav">
@@ -690,33 +684,30 @@
           </div>
         </div>
       </template>
-    </div>
-    <!-- Menu Nâng cao: bung lên trên nút Nâng cao ở đáy. Các trang Nâng cao, ngôn ngữ, cộng đồng.
-         Tài khoản nằm dưới Cài đặt; Cập nhật (nút cạnh số phiên bản) và sáng tối (nút mặt trời thanh trên)
-         đã có chỗ riêng nên không lặp ở đây. x-effect đặt đáy menu ngay trên mép ô ở đáy, để menu không đè lên nó. -->
-    <div class="rail-menu" id="railMenu" role="menu" x-show="$store.nav.menuOpen" x-transition.opacity.duration.120ms
-         x-effect="if ($store.nav.menuOpen) { const f = $el.parentElement.querySelector('.rail-foot'); if (f) $el.style.bottom = ($el.parentElement.clientHeight - f.offsetTop + 6) + 'px'; }"
-         @click.outside="if (!$event.target.closest('.rail-acct')) $store.nav.menuOpen = false"
-         @keydown.escape.window="$store.nav.menuOpen = false">
-      <template x-for="it in $store.nav.menu.adv" :key="it.id">
-        <button class="rail-item" role="menuitem" :class="{ active: $store.nav.active === it.id }" @click="$store.nav.go(it.id)">
-          <span class="rail-ico" x-html="it.icon"></span>
-          <span class="rail-lbl" x-text="($store.nav.i18nTick, it.label)"></span>
+      <!-- Nâng cao: last row of the System block, right under Account (owner 03/11/2026). A click unfolds the
+           advanced pages in place, with the NAOTA community link last. Language lives in Settings only. -->
+      <div class="rail-adv" :class="{ open: $store.nav.advOpen }">
+        <button class="rail-item rail-adv-btn" :class="{ 'has-active': $store.nav.menuActive && !$store.nav.advOpen }"
+                @click="$store.nav.toggleAdv($el)" :aria-expanded="$store.nav.advOpen ? 'true' : 'false'"
+                :title="($store.nav.i18nTick, t('nav.group.nang_cao'))">
+          <span class="rail-ico"><i data-ic="ellipsis"></i></span>
+          <span class="rail-lbl" data-i18n="nav.group.nang_cao">Nâng cao</span>
+          <span class="rail-adv-chev"><i data-ic="chevron-down"></i></span>
         </button>
-      </template>
-      <div class="rail-menu-sep"></div>
-      <!-- Ô đổi ngôn ngữ GIAO DIỆN: console.js đổ danh sách từ /settings (lang_list - sổ đăng ký
-           phía server, cùng nguồn với trang Cài đặt). Đổi là NaotaI18n.setLang áp NGAY trên máy
-           này rồi mới lưu ui_lang lên server. Ẩn cho tới khi có danh sách để không hiện một ô
-           select trống. -->
-      <div class="rail-lang" id="railLangWrap" hidden>
-        <i data-ic="globe"></i>
-        <select id="railLang" class="rail-lang-sel" aria-label="Ngôn ngữ giao diện" data-i18n-aria="settings.ui_lang.title"></select>
+        <div class="rail-adv-items" x-show="$store.nav.advOpen">
+          <template x-for="it in $store.nav.menu.adv" :key="it.id">
+            <button class="rail-item" :class="{ active: $store.nav.active === it.id }" @click="$store.nav.go(it.id)" :title="it.label">
+              <span class="rail-ico" x-html="it.icon"></span>
+              <span class="rail-lbl" x-text="($store.nav.i18nTick, it.label)"></span>
+            </button>
+          </template>
+          <a class="rail-item" href="https://github.com/vuongtex/naota" target="_blank" rel="noopener"
+             :title="($store.nav.i18nTick, t('rail.community'))">
+            <span class="rail-ico"><i data-ic="users"></i></span>
+            <span class="rail-lbl" data-i18n="rail.community">Cộng đồng NAOTA</span>
+          </a>
+        </div>
       </div>
-      <a class="rail-item" role="menuitem" href="https://github.com/vuongtex/naota" target="_blank" rel="noopener">
-        <span class="rail-ico"><i data-ic="users"></i></span>
-        <span class="rail-lbl" data-i18n="rail.community">Cộng đồng NAOTA</span>
-      </a>
     </div>
     <!-- Version and an Update button, always in sight at the foot of the rail (anh Vương 03/11/2026:
          like 1.2.1, the version shows at the bottom with a button to update). The button opens the
@@ -732,17 +723,8 @@
       </div>
       <a class="rf-author" href="https://vuong.ai" target="_blank" rel="noopener">by Hoàng Ngọc Vương</a>
     </div>
-    <!-- ĐÁY cố định: nút Nâng cao (mở menu trên) + nút thu/mở -->
+    <!-- ĐÁY cố định: nút thu/mở (Tặng sao được star-nudge.js gắn vào đây) -->
     <div class="rail-foot">
-      <button class="rail-acct" type="button" :class="{ on: $store.nav.menuOpen || $store.nav.menuActive }"
-              @click="$store.nav.menuOpen = !$store.nav.menuOpen" aria-haspopup="menu"
-              :aria-expanded="$store.nav.menuOpen ? 'true' : 'false'"
-              :title="($store.nav.i18nTick, t('nav.group.nang_cao'))" :aria-label="($store.nav.i18nTick, t('nav.group.nang_cao'))">
-        <span class="rail-acct-av"><i data-ic="ellipsis"></i></span>
-        <span class="rail-acct-txt">
-          <span class="rail-acct-name" data-i18n="nav.group.nang_cao">Nâng cao</span>
-        </span>
-      </button>
       <button class="rail-collapse-btn" @click="$store.nav.toggleCollapsed()"
               :title="($store.nav.i18nTick, $store.nav.collapsed ? t('rail.expand') : t('rail.collapse'))"
               x-html="$store.nav.collapseIcon"></button>
@@ -1178,7 +1160,7 @@
   <script src="/static/login-vault.js?v=2"></script>
   <script src="/static/messenger-connect.js?v=3"></script>
   <script src="/static/voice-catalog.js?v=1"></script>
-  <script src="/static/console.js?v=216"></script>
+  <script src="/static/console.js?v=218"></script>
   <script src="/static/mobile-chat.js?v=19"></script>
   <script src="/static/brain-view.js?v=1"></script>
   <script src="/static/push.js?v=3"></script>
