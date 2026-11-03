@@ -163,7 +163,9 @@
     if (backdrop) backdrop.addEventListener("click", closeByTap);
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeNav(); });
     if (railEl) railEl.addEventListener("click", function (e) {
-      if (e.target.closest(".rail-item") && mq.matches) closeNav();  // chọn mục điều hướng -> đóng
+      // Chọn mục điều hướng -> đóng. Nút Cập nhật ở đáy (.rf-upd) cũng mở một trang nên cũng đóng;
+      // còn nút "Nâng cao" chỉ bung danh sách con, đóng ngăn kéo thì người ta không chọn được gì.
+      if (e.target.closest(".rail-item:not(.rail-adv-btn), .rf-upd") && mq.matches) closeNav();
     });
 
     // ---- 6) Bung/thu khoang não (mobile-only) ----

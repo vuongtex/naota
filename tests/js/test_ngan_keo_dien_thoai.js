@@ -82,5 +82,19 @@ check("trình duyệt báo đổi khổ mà vẫn là điện thoại: ngăn ké
 mq.matches = false; mqListeners.forEach(function (f) { f(); });
 check("sang màn rộng thì đóng", !open());
 
+// Bấm gì trong ngăn kéo thì đóng nó. Lỗi đã gặp (03/11/2026, điện thoại): bấm nút Cập nhật ở đáy, trang Cập nhật mở
+// ra nhưng menu vẫn che. Nút đó không phải .rail-item nên lọt khỏi bộ chọn đóng ngăn kéo.
+var sel = (SRC.match(/e\.target\.closest\("([^"]+)"\) && mq\.matches\) closeNav\(\)/) || [])[1] || "";
+check("tìm thấy bộ chọn đóng ngăn kéo", !!sel);
+function khop(cls) {   // đủ cho dạng ".a" và ".a:not(.b)" mà bộ chọn này dùng
+  return sel.split(",").some(function (p) {
+    var m = p.trim().match(/^\.([\w-]+)(?::not\(\.([\w-]+)\))?$/);
+    return !!m && cls.indexOf(m[1]) >= 0 && !(m[2] && cls.indexOf(m[2]) >= 0);
+  });
+}
+check("bấm một mục trên menu thì đóng", khop(["rail-item"]));
+check("bấm nút Cập nhật ở đáy thì đóng", khop(["rf-upd"]));
+check("bấm Nâng cao (chỉ bung danh sách con) thì KHÔNG đóng", !khop(["rail-item", "rail-adv-btn"]));
+
 if (fails.length) { console.log("\nFAIL " + fails.length + ": " + fails.join(", ")); process.exit(1); }
 console.log("\nOK - test_ngan_keo_dien_thoai: all pass");
