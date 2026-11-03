@@ -8322,7 +8322,8 @@
       items: RAIL_ITEMS,
       updAvail: false,   // máy chủ báo có bản mới (/version), vẽ chấm trên mục Cập nhật
       menuOpen: false,   // menu tài khoản dưới đáy thanh bên
-      acctName: "NAOTA", // tên workspace (trang Tài khoản) trên ô tài khoản; bộ não đã ở đầu thanh bên
+      acctName: "NAOTA", // tên workspace (trang Tài khoản), dòng trên của ô tài khoản
+      acctSub: "",       // bộ não đang chọn, dòng dưới
       collapsed: (() => { try { return localStorage.getItem("naota_rail_collapsed") === "1"; } catch (e) { return false; } })(),
       collapseIcon: COLLAPSE_ICON,
       // Alpine không biết từ điển i18n đổi (nó là object thuần), nên phải có một biến
@@ -9570,7 +9571,15 @@
     window.matchMedia("(max-width: 860px)").addEventListener("change", recomputeGraph);
     // Đổi brain (Select Brain) → nạp lại trang quản lý đang xem theo brain mới (không cần F5)
     const gs = document.getElementById("graphSource");
+    // Dòng dưới của ô tài khoản = bộ não đang chọn. Danh sách bộ não về sau (brains-ui.js đổ
+    // option vào), nên nghe cả lúc option đổi chứ không chỉ lúc người dùng chọn.
+    const veOTaiKhoan = () => {
+      const o = gs && gs.selectedOptions && gs.selectedOptions[0];
+      Alpine.store("nav").acctSub = o ? (o.dataset.brainLabel || o.textContent).trim() : "";
+    };
+    if (gs) { veOTaiKhoan(); new MutationObserver(veOTaiKhoan).observe(gs, { childList: true, subtree: true }); }
     if (gs) gs.addEventListener("change", () => {
+      veOTaiKhoan();
       const active = Alpine.store("nav").active;
       if (active !== "home") renderPage(active);
       // Cây vault ở cột trái sống ngoài hệ cview → tự làm mới theo brain mới

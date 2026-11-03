@@ -56,7 +56,10 @@ body.in-console .hud-actions { display: none; }
 /* Quầng sáng cam ở trên ô DẤU ẤN, không ở cả khối. filter của cha ăn xuống toàn bộ cây con,
    và `filter:none` của con KHÔNG gỡ được nó - để nguyên ở .rail-brand là chữ "NAOTA"
    cũng phát sáng cam theo. */
-.rail-brand .brand-mark { display: flex; flex: none; }
+.rail-brand .brand-mark {
+  display: flex; flex: none;
+  filter: drop-shadow(0 0 8px rgba(252, 203, 29, 0.55));
+}
 /* Chữ hiệu: cùng kiểu với .brand-text trên thanh trên (Montserrat đậm, nghiêng, như logo
    VUONG.AI) để hai chỗ là một thương hiệu chứ không phải hai. "OS" nhạt hơn. */
 .rail-brand-text {
@@ -100,13 +103,8 @@ body.in-console .hud-actions { display: none; }
 .rail-brain .bp-btn { flex: 1 1 auto; width: 100%; max-width: none; height: 40px; padding: 0 10px 0 12px; font-size: 14.5px;
   background: transparent; border: 1px solid var(--hairline); border-radius: 10px; }
 .rail-brain .bp-btn:hover, .rail-brain .bp-btn[aria-expanded="true"] { background: var(--surface-2); border-color: var(--accent-line); }
-.rail-brain .bp-btn-n { display: none; }                 /* counts live in the panel and on the brain map */
 .rail-brain .bp-btn-chev { margin-left: auto; }
 .rail-brain .rb-acts[hidden] { display: none; }
-/* Note and link counts of the brain: top left of the brain map (moved off the rail in 1.3.0). */
-.hud-center .graph-stats-map { position: absolute; top: 16px; left: 18px; z-index: 5; font-size: 13px; color: var(--text3);
-  transition: opacity .24s ease, visibility .24s ease; }
-.hud-center.brain-overlays-hidden .graph-stats-map { opacity: 0; visibility: hidden; }
 
 /* Desktop: the top bar is part of the warm frame, no line under it. */
 @media (min-width: 861px) {
@@ -443,8 +441,10 @@ body.ord-is-dragging, body.ord-is-dragging * { cursor: grabbing !important; user
   background: var(--surface-3); color: var(--text); font-family: var(--font-ui); font-size: 13px; font-weight: 700;
 }
 .rail-acct-txt { display: flex; flex-direction: column; min-width: 0; }
-.rail-acct-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-ui); }
+.rail-acct-name, .rail-acct-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-ui); }
 .rail-acct-name { font-size: 13.5px; font-weight: 600; }
+.rail-acct-sub { font-size: 11.5px; color: var(--text3); }
+.rail-acct-sub:empty { display: none; }
 .rail-acct-dot {                                        /* có bản mới: chấm nhỏ trên ảnh tài khoản */
   position: absolute; top: 4px; left: 27px; width: 8px; height: 8px; border-radius: 50%;
   background: var(--accent); box-shadow: 0 0 0 2px var(--rail-bg);
@@ -518,13 +518,13 @@ body.has-rail .hud { margin-left: var(--rail-w); width: calc(100% - var(--rail-w
 @media (min-width: 861px) {
   .cview { right: 10px; bottom: 10px; border: 1px solid var(--hairline); border-radius: 14px; box-shadow: var(--shadow-1); }
 }
-/* Page header: a large title and one quiet line under it, no rule, no icon. */
+/* Page header: a large title with its icon and one quiet line under it, no rule. */
 .cview-head {
   display: flex; align-items: center; gap: 12px;
   padding: 26px 32px 4px;
 }
 .cview-title { font-family: var(--font-head); font-size: 28px; font-weight: 600; letter-spacing: 0.2px; line-height: 1.2; }
-.cview-title .ico { display: none; }
+.cview-title .ico { color: var(--accent-ink); margin-right: 8px; }
 .cview-sub { font-size: 14.5px; color: var(--text3); margin-top: 4px; }
 .cview-body { flex: 1; overflow-y: auto; padding: 18px 32px 28px; }
 

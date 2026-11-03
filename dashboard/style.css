@@ -333,13 +333,15 @@ h2, h3, .fm-head { font-family: var(--font-head); font-weight: 600; letter-spaci
   width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8;
   stroke-linecap: round; stroke-linejoin: round;
 }
-/* Unread: the yellow count badge is the signal; the button itself stays quiet (1.3.0). */
+/* Unread: yellow border, glow and pulse ring. These stay yellow on purpose although the --accent-wash/-line
+   tints went grey in 1.3.0 (owner wants the unread signal kept as it was). */
 .notification-trigger.has-unread {
-  color: var(--text-hi); border-color: var(--accent-line);
-  background: var(--accent-wash-2);
+  color: var(--text-hi); border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  box-shadow: var(--accent-ring);
 }
 .notification-trigger.has-unread::before {
-  content: ""; position: absolute; inset: -2px; border: 1px solid var(--accent-line);
+  content: ""; position: absolute; inset: -2px; border: 1px solid rgba(252, 203, 29, 0.55);
   border-radius: 11px; pointer-events: none;
   animation: notiPulse 2.2s ease-out infinite;
 }

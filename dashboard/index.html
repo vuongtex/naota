@@ -31,8 +31,8 @@
   <!-- Biến --ic-* cho icon dùng trong content: của CSS. Phải đứng TRƯỚC style.css
        vì style.css tham chiếu các biến này. -->
   <link rel="stylesheet" href="/static/vendor/lucide-icons.css?v=1">
-  <link rel="stylesheet" href="/static/style.css?v=161">
-  <link rel="stylesheet" href="/static/console.css?v=141">
+  <link rel="stylesheet" href="/static/style.css?v=162">
+  <link rel="stylesheet" href="/static/console.css?v=142">
   <!-- Áp tông đã lưu TRƯỚC khi vẽ để không nháy tối rồi mới đổi sang sáng.
        Giá trị cũ "dim" (tông tối-nhạt, gỡ) quy về tối; theme.js sẽ ghi đè lại.
        Chưa chọn gì thì SÁNG (NAOTA 1.0.0). Chế độ "auto" (chỉ khi người dùng tự chọn) tính theo khung giờ "HH:MM-HH:MM", cùng quy tắc với
@@ -53,7 +53,9 @@
       <!-- NHÓM TRÁI: thương hiệu + chọn brain + số liệu (bám trái) -->
       <div class="hud-top-left">
         <div class="brand"><span class="brand-icon"><img src="/brand-logo" alt="" style="width:22px;height:22px;border-radius:5px;vertical-align:middle;object-fit:cover"></span> <span class="brand-text">NAOTA</span></div>
-        <!-- 1.3.0: the brain picker moved to the top of the left rail (.rail-brain). -->
+        <!-- 1.3.0: the brain picker moved to the top of the left rail (.rail-brain); its
+             "ghi chú · liên kết" line stays here in the top bar on every page. -->
+        <span class="graph-stats" id="graphStats">-</span>
       </div>
       <!-- NHÓM GIỮA: thanh trạng thái đang quá tải nên bỏ tên workspace lẫn ngày tháng theo
            yêu cầu chủ - tên vẫn hiện trong Cài đặt; chỗ này giờ dành cho đèn báo não
@@ -260,7 +262,6 @@
         </button>
 
         <!-- Số ghi chú và liên kết của bộ não: góc trên bên trái bản đồ (1.3.0, trước nằm dưới ô chọn bộ não). -->
-        <span class="graph-stats graph-stats-map" id="graphStats">-</span>
 
         <!-- Lớp Agentic: số agent / skill / workflow - bấm mở Studio -->
         <div class="brain-stats" id="brainStats">
@@ -750,6 +751,7 @@
         <span class="rail-acct-av" x-text="$store.nav.acctInitial">N</span>
         <span class="rail-acct-txt">
           <span class="rail-acct-name" x-text="$store.nav.acctName">NAOTA</span>
+          <span class="rail-acct-sub" x-text="$store.nav.acctSub"></span>
         </span>
         <span class="rail-acct-dot" x-show="$store.nav.updAvail"></span>
       </button>
@@ -1188,14 +1190,14 @@
   <script src="/static/login-vault.js?v=2"></script>
   <script src="/static/messenger-connect.js?v=3"></script>
   <script src="/static/voice-catalog.js?v=1"></script>
-  <script src="/static/console.js?v=211"></script>
+  <script src="/static/console.js?v=212"></script>
   <script src="/static/mobile-chat.js?v=17"></script>
   <script src="/static/brain-view.js?v=1"></script>
   <script src="/static/push.js?v=3"></script>
   <script src="/static/install-nudge.js?v=1"></script>
   <!-- Mời tặng sao GitHub: thẻ hiện ở khoảnh khắc vui, xem server/star_nudge.py. -->
-  <link rel="stylesheet" href="/static/star-nudge.css?v=5">
-  <script src="/static/star-nudge.js?v=3"></script>
+  <link rel="stylesheet" href="/static/star-nudge.css?v=6">
+  <script src="/static/star-nudge.js?v=4"></script>
   <script src="/static/notifications.js?v=11"></script>
   <!-- Linh vật ở mép màn hình. Nạp SAU app.js vì nó chỉ được app.js gọi vào
        (setOrbState -> NaotaPet.setState), và sau console.js để trang Cài đặt vẽ được thẻ chọn. -->
