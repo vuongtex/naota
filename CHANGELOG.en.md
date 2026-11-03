@@ -4,6 +4,11 @@
 
 NAOTA release history. Newest first.
 
+## [1.3.5] - 2026-11-03
+### Added
+- **WebPay sits first on the Connections page.** Paste the MCP link from WebPay (**Kết nối** > **MCP**) and NAOTA can read the shop's revenue, customers, plans and billing cycles. Read-only by default. Creating a payment link or starting a recurring charge needs **Full access**.
+- The MCP link carries its key inside the address, so NAOTA stores it like a password and never shows it on the page again.
+
 ## [1.3.4] - 2026-11-03
 ### Fixed
 - **The Zalo bot notices when it is tagged in a group by the account's Zalo name**, even right after a server restart. NAOTA used to forget that name on every restart, so a tag that did not match the connection name got no answer.
