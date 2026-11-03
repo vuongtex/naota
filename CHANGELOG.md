@@ -8,9 +8,11 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 ## [1.3.0] - 2026-11-03
 ### Cải thiện
-- **Thanh bên mới, gọn như các app AI lớn.** Mọi mục nằm trên một cột, bấm là mở ngay, không còn nhóm phải mở ra.
-- **Nút Việc mới** ở đầu thanh bên: bấm là mở hội thoại mới.
-- **Ô tài khoản dưới đáy** gom bộ não, tài khoản, nâng cao, cập nhật, ngôn ngữ và giao diện sáng tối.
+- **Giao diện mới, gọn như các app AI lớn.** Mỗi trang nằm trong một khung trắng trên nền xám ấm, tiêu đề trang to và rõ.
+- **Bộ não đang dùng ở trên cùng bên trái**, ngay dưới logo. Thêm, đổi tên, xoá bộ não nằm cạnh đó.
+- **Thanh bên một cột**, bấm là mở ngay. **Nút Việc mới** ở đầu cột mở hội thoại mới.
+- **Ô tài khoản dưới đáy** gom tài khoản, nâng cao, cập nhật, ngôn ngữ và giao diện sáng tối.
+- **Bớt màu vàng**: mục đang chọn tô xám, vàng chỉ còn ở nút bấm chính.
 
 ## [1.2.1] - 2026-11-03
 ### Cải thiện

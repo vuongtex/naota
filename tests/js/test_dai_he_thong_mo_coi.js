@@ -4,20 +4,18 @@
 
    Lỗi đã gặp: "thi thoảng chữ hệ thống to lại hiện ra trong khi chỗ đó đáng
    nhẽ là không có gì" - một nhãn "Hệ thống" cỡ lớn nằm giữa ô chọn ngôn ngữ và hàng version,
-   bên dưới trống trơn.
+   bên dưới trống trơn. Nguyên nhân: `mobile-chat.js` dựng một khung `.rail-sys` (nhãn + chỗ chứa)
+   để mượn ô chọn brain và nút sáng tối, rồi quên dọn khi khung rỗng.
 
-   Nguyên nhân: trên màn hẹp `mobile-chat.js` dựng một khung `.rail-sys` (nhãn + chỗ chứa) rồi
-   mượn ba thứ từ HUD bỏ vào (chọn brain, đổi tông, dải VỪA GỌI). Khi quay về desktop nó TRẢ
-   ba thứ đó về chỗ cũ - nhưng KHÔNG dọn cái khung. `ensureSysHost` lại giữ tham chiếu và
-   thoát sớm nếu đã dựng, nên cái nhãn ở lại vĩnh viễn, đứng trên một khoảng trống.
-
-   Đây là loại lỗi chỉ lộ ra khi ĐỔI BỀ NGANG, nên đọc code một lượt rất dễ bỏ qua: nhánh
-   mobile hoàn toàn đúng, chỉ nhánh quay về là thiếu một dòng. */
+   1.3.0: ô chọn bộ não nằm sẵn ở đầu thanh bên trên mọi màn, nên không còn khung "Hệ thống" nào
+   để mồ côi. Chỉ còn nút sáng tối được mượn xuống đáy ngăn kéo trên điện thoại. Test canh rằng
+   khung cũ không quay lại, và nút sáng tối đi đúng hai chiều. */
 const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..", "..");
 const JS = fs.readFileSync(path.join(ROOT, "dashboard", "mobile-chat.js"), "utf8");
+const IDX = fs.readFileSync(path.join(ROOT, "dashboard", "index.html"), "utf8");
 
 const fails = [];
 const check = (name, cond, them) => {
@@ -28,42 +26,24 @@ const check = (name, cond, them) => {
 const place = (JS.match(/function placeSystem\(\)[\s\S]*?\n    \}/) || [""])[0];
 check("tìm được placeSystem", place.length > 100);
 
-// ---- 1. Có hàm dọn, và nó dọn CẢ tham chiếu ----
-const bo = (JS.match(/function boSysHost\(\)[\s\S]*?\n    \}/) || [""])[0];
-check("có hàm gỡ khung khỏi rail", bo.length > 20, bo);
-check("gỡ khỏi DOM", /removeChild\(sysHost\)/.test(bo), bo);
-// Chỉ removeChild mà giữ biến là lần sau ensureSysHost thoát sớm, khung không bao giờ dựng lại
-// -> quay về màn hẹp thì mất luôn nhóm Hệ thống. Phải xoá cả tham chiếu.
-check("và xoá cả tham chiếu để lần sau dựng lại được",
-  /sysHost = null/.test(bo) && /sysBtns = null/.test(bo), bo);
+// ---- 1. Khung "Hệ thống" không còn ----
+check("không dựng khung .rail-sys nữa", !/rail-sys/.test(JS));
+check("không mượn ô chọn brain nữa", !/navbar-brain/.test(JS));
 
-// ---- 2. Quay về desktop thì dọn ----
-check("trả nút về desktop xong là dọn khung",
-  /moved = \[\];\s*\n\s*boSysHost\(\)/.test(place), place);
-// Nhánh desktop mà `moved` rỗng (khung dựng hụt, hoặc nút bị vẽ lại mất) trước đây không làm
-// gì cả - đúng ca để lại nhãn mồ côi.
-check("desktop mà moved rỗng vẫn dọn (ca để lại nhãn mồ côi)",
-  /\} else \{\s*\n\s*boSysHost\(\)/.test(place), place);
+// ---- 2. Bộ não nằm ở đầu thanh bên ----
+const top = (IDX.match(/<div class="rail-top">[\s\S]*?<div class="rail-nav">/) || [""])[0];
+check("ô chọn bộ não ở đầu thanh bên, dưới logo",
+  /class="rail-brand"[\s\S]*class="orb-graph-ctl navbar-brain rail-brain"/.test(top) && /id="graphSource"/.test(top));
+check("đủ bốn nút của bộ não", ["newBrainBtn", "renameBrainBtn", "delBrainBtn", "pickFolderBtn"].every((id) => top.includes('id="' + id + '"')));
+check("thanh trên không còn ô chọn bộ não", (IDX.match(/id="graphSource"/g) || []).length === 1);
 
-// ---- 3. Màn hẹp: nhãn không được đứng một mình ----
-check("màn hẹp mà khung không còn nút nào thì cũng dọn",
-  /sysHost && !sysHost\.querySelector\(/.test(place), place);
-// Dải VỪA GỌI (#sysBar) đã bỏ, nên chỉ còn hai thứ được mượn.
-check("soi đúng hai thứ được mượn vào khung",
-  /querySelector\("\.navbar-brain, #themeToggle"\)/.test(place), place);
-check("dọn xong thì reset moved để lần sau mượn lại được",
-  /!sysHost\.querySelector\([\s\S]{0,80}moved = \[\];/.test(place), place);
-
-// ---- 4. Nhánh mobile vốn đúng thì giữ nguyên ----
-check("màn hẹp vẫn mượn đủ hai thứ",
-  /moveEl\(document\.querySelector\("\.navbar-brain"\)/.test(place)
-  && /moveEl\(document\.getElementById\("themeToggle"\)/.test(place), place);
+// ---- 3. Nút sáng tối: xuống đáy ngăn kéo, quay về khi màn rộng ----
+check("màn hẹp: nút sáng tối xuống đáy, cạnh nút thu mở",
+  /foot\.insertBefore\(el, foot\.querySelector\("\.rail-collapse-btn"\)\)/.test(place));
+check("chỉ mượn khi chưa nằm ở đáy (không mượn chồng)", /if \(el\.parentElement !== foot\)/.test(place), place);
+check("màn rộng: trả về đúng chỗ cũ", /themeHome\.parent\.insertBefore\(el, themeHome\.next\)/.test(place)
+  && /themeHome = null/.test(place), place);
 check("không còn mượn dải VỪA GỌI đã bỏ", !/sysBar/.test(JS));
-// On phones the light/dark switch sits in the drawer foot, left of the collapse button.
-check("nút sáng tối xuống đáy ngăn kéo, cạnh nút thu mở",
-  /moveEl\(document\.getElementById\("themeToggle"\), true, true\)/.test(place)
-  && /foot\.insertBefore\(el, foot\.querySelector\("\.rail-collapse-btn"\)\)/.test(JS));
-check("và chỉ mượn khi chưa mượn (không mượn chồng)", /if \(!moved\.length\)/.test(place), place);
 
 console.log();
 if (fails.length) {

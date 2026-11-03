@@ -6,9 +6,11 @@ NAOTA release history. Newest first.
 
 ## [1.3.0] - 2026-11-03
 ### Improved
-- **A new sidebar, as clean as the big AI apps.** Every item sits in one column and opens with one click, no groups to expand.
-- **A New task button** at the top of the sidebar opens a fresh chat.
-- **An account box at the bottom** holds the brain, account, advanced tools, updates, language and light or dark theme.
+- **A new look, as clean as the big AI apps.** Every page sits in a white card on a warm grey frame, with a large clear title.
+- **The brain in use sits at the top left**, right under the logo. Add, rename and delete a brain from there.
+- **A one-column sidebar** that opens a page with one click. **A New task button** at the top opens a fresh chat.
+- **An account box at the bottom** holds account, advanced tools, updates, language and light or dark theme.
+- **Less yellow**: the selected item is grey, yellow stays on the main buttons only.
 
 ## [1.2.1] - 2026-11-03
 ### Improved

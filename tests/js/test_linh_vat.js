@@ -118,10 +118,10 @@ check("index.html: .rail-brand có ô dấu ấn riêng và chữ NAOTA",
   && /<span class="rail-brand-text">NAOTA<\/span>/.test(html));
 check("css: thu gọn thanh bên thì giấu chữ, chỉ còn dấu ấn",
   /\.rail\.collapsed \.rail-brand-text \{ display: none; \}/.test(railCss));
-// Quầng sáng cam phải ở ô DẤU ẤN chứ không ở cả khối: filter của cha ăn xuống cả cây con và
-// con không gỡ được, để ở .rail-brand là chữ cũng phát sáng cam theo.
-check("css: quầng sáng nằm trên .brand-mark, không trên .rail-brand",
-  /\.rail-brand \.brand-mark \{[\s\S]{0,120}drop-shadow/.test(railCss)
+// 1.3.0: the rail is plain, no yellow (owner 03/11/2026), so the orange glow behind the mark is gone.
+// It must never come back on the whole .rail-brand either: a parent's filter also lights up the "NAOTA" text.
+check("css: thanh bên không còn quầng sáng vàng quanh logo",
+  !/\.rail-brand \.brand-mark \{[^}]*drop-shadow/.test(railCss)
   && !/\.rail-brand \{[^}]*drop-shadow/.test(railCss));
 check("branding.js báo cho pet khi đổi logo", /NaotaPet\.setLogoRieng\(rieng\)/.test(branding));
 check("branding.js truyền đúng true khi tải lên, false khi khôi phục",
