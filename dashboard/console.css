@@ -47,7 +47,11 @@ body.in-console .hud-actions { display: none; }
 .rail-nav { scrollbar-width: none; }
 /* One flat column like Claude's sidebar: no group names, a thin line between sections. */
 .rail-group { display: flex; flex-direction: column; }
-.rail-group + .rail-group { border-top: 1px solid var(--glass-brd); margin-top: 5px; padding-top: 5px; }
+.rail-group + .rail-group { margin-top: 10px; }
+/* Section name over each block after the first: small and quiet, it only tells what belongs together. */
+.rail-sec-lbl { font-family: var(--font-ui); font-size: 11.5px; font-weight: 600; color: var(--text3); padding: 2px 10px 4px; }
+.rail.collapsed .rail-sec-lbl { display: none; }
+.rail.collapsed .rail-group + .rail-group { border-top: 1px solid var(--glass-brd); margin-top: 5px; padding-top: 5px; }
 .rail-grp-items { display: flex; flex-direction: column; gap: 1px; }
 .rail-brand {
   height: 42px; display: flex; align-items: center; justify-content: flex-start; gap: 9px;
@@ -1822,6 +1826,20 @@ body.has-rail .hud { margin-left: var(--rail-w); width: calc(100% - var(--rail-w
    trang Cộng sự dùng chung node chat mà thiếu, nên lỗi chỉ hiện ra ở đây. */
 .ws-slot .transcript { flex: 1 1 auto; min-height: 0; max-height: none; }
 .ws-slot .bg-strip, .ws-slot .attach-bar, .ws-slot .model-bar, .ws-slot .hud-voice { flex: none; }
+/* "No AI connected yet" card over the empty chat: one sentence and the one button that fixes it. */
+.no-ai-card { flex: none; display: flex; align-items: center; gap: 14px; width: calc(100% - 32px); max-width: 760px;
+  align-self: center; margin: 12px 16px; padding: 14px 16px; border-radius: 14px;
+  background: var(--surface-2); border: 1px solid var(--accent-line); }
+.no-ai-card[hidden], .no-ai-card:has(~ #chatArea:not(:empty)) { display: none; }
+.nac-ico { flex: none; width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center;
+  background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--text); }
+.nac-ico svg { width: 19px; height: 19px; }
+.nac-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: left; }
+.nac-txt b { font-size: 15px; font-weight: 600; color: var(--text); }
+.nac-txt span { font-size: 13.5px; color: var(--text2); }
+.nac-btn { flex: none; padding: 9px 16px; border-radius: 10px; border: 0; cursor: pointer;
+  background: var(--accent); color: #0e1116; font-weight: 700; font-size: 14px; }
+.nac-btn:hover { background: #ffb100; }
 /* Empty conversation, Claude-style (desktop): a large greeting and the composer sit together in the middle.
    Pure CSS on #chatArea:empty, so the first message turns the page back into the usual chat with the
    composer at the foot; nothing to keep in sync. The greeting comes from the dictionary (data-i18n-hello). */
@@ -1836,6 +1854,7 @@ body.has-rail .hud { margin-left: var(--rail-w); width: calc(100% - var(--rail-w
     font-family: var(--font-head); font-size: clamp(28px, 3vw, 40px); font-weight: 600; line-height: 1.2;
   }
   .ws-slot > #chatArea:empty::after, .chatpage-slot > #chatArea:empty::after { font-size: 15px; font-style: normal; }
+  .ws-slot:has(> #chatArea:empty) > .no-ai-card, .chatpage-slot:has(> #chatArea:empty) > .no-ai-card { margin-bottom: 22px; }
   .ws-slot:has(> #chatArea:empty) > .hud-voice, .chatpage-slot:has(> #chatArea:empty) > .hud-voice {
     width: 100%; max-width: 760px; align-self: center;
   }

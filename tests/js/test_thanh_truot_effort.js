@@ -19,8 +19,10 @@ check("ratioFromLevel is the inverse, unknown levels map to 0", S.ratioFromLevel
 check("an Antigravity name ending in -high is a locked model", S.isLocked("antigravity-cli", "gemini-3.8-flash-high") === true);
 check("an Antigravity name without a level suffix is not locked", S.isLocked("antigravity-cli", "claude-sonnet-4-6") === false);
 check("other providers are never locked", S.isLocked("openai-oauth", "gpt-6.1-sol-high") === false);
+// English keeps the short English words; Vietnamese says it in plain Vietnamese (owner 03/11/2026).
 const labels = { off: "Off", low: "Light", medium: "Medium", high: "High", xhigh: "Extra", ultra: "Ultra" };
-Object.keys(labels).forEach(k => check("label " + k + " = " + labels[k] + " in both vi and en", vi["eff." + k] === labels[k] && en["eff." + k] === labels[k]));
+const labelsVi = { off: "Không nghĩ", low: "Nghĩ nhẹ", medium: "Nghĩ vừa", high: "Nghĩ kỹ", xhigh: "Rất kỹ", ultra: "Tối đa" };
+Object.keys(labels).forEach(k => check("label " + k + " = " + labels[k] + " / " + labelsVi[k], vi["eff." + k] === labelsVi[k] && en["eff." + k] === labels[k]));
 check("model-picker.js keeps all 6 quoted values", ["off", "low", "medium", "high", "xhigh", "ultra"].every(v => picker.indexOf('"' + v + '"') !== -1));
 check("the model chip no longer says 'Effort:'", picker.indexOf('"Effort: "') === -1 && picker.indexOf("mb-eff-row") === -1);
 check("outside click: the model picker closes even for clicks in the button row (+, mic, send)", picker.indexOf('e.target.closest("#modelBar")') === -1);

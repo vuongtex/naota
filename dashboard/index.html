@@ -32,7 +32,7 @@
        vì style.css tham chiếu các biến này. -->
   <link rel="stylesheet" href="/static/vendor/lucide-icons.css?v=1">
   <link rel="stylesheet" href="/static/style.css?v=162">
-  <link rel="stylesheet" href="/static/console.css?v=142">
+  <link rel="stylesheet" href="/static/console.css?v=143">
   <!-- Áp tông đã lưu TRƯỚC khi vẽ để không nháy tối rồi mới đổi sang sáng.
        Giá trị cũ "dim" (tông tối-nhạt, gỡ) quy về tối; theme.js sẽ ghi đè lại.
        Chưa chọn gì thì SÁNG (NAOTA 1.0.0). Chế độ "auto" (chỉ khi người dùng tự chọn) tính theo khung giờ "HH:MM-HH:MM", cùng quy tắc với
@@ -319,6 +319,17 @@
         <!-- Thanh gọi (call-bar.js): hiện khi bấm mic gọi Naota. Nằm trong CHAT_NODE_IDS
              (console.js) nên sang trang Trò chuyện là đi theo khung chat. -->
         <div class="call-bar" id="callBar" hidden></div>
+        <!-- No AI connected yet: told in the middle of the empty chat, with the one button that fixes it
+             (console.js refreshEngineBanner shows it with the top bar's red pill). Travels with the chat
+             (CHAT_NODE_IDS) and hides once the conversation has a message. -->
+        <div class="no-ai-card" id="noAiCard" hidden>
+          <span class="nac-ico"><i data-ic="plug"></i></span>
+          <span class="nac-txt">
+            <b data-i18n="chat.noai_title">Naota chưa có AI để trả lời</b>
+            <span data-i18n="chat.noai_sub">Kết nối gói Claude, ChatGPT bạn đang dùng hoặc một API key là dùng được ngay.</span>
+          </span>
+          <button type="button" class="nac-btn" id="noAiBtn" data-i18n="chat.noai_btn">Kết nối AI</button>
+        </div>
         <div class="transcript" id="chatArea" data-i18n-empty="chat.empty_hint" data-empty-hint="Nói hoặc gõ để bắt đầu hội thoại với Naota."
              data-i18n-hello="chat.hello" data-hello="Hôm nay mình làm gì?"></div>
         <!-- Thanh #toolBar cũ ĐÃ BỎ: trạng thái "đang suy nghĩ / gọi tool" giờ hiện bằng
@@ -684,10 +695,11 @@
         <span class="rail-lbl" data-i18n="rail.new_task">Việc mới</span>
       </button>
     </div>
-    <!-- GIỮA cuộn được: một cột phẳng, vạch mảnh giữa các khúc (RAIL_SECTIONS trong console.js) -->
+    <!-- GIỮA cuộn được: một cột phẳng, mỗi khúc có tên nhỏ màu nhạt (RAIL_SECTIONS trong console.js) -->
     <div class="rail-nav">
       <template x-for="(g, gi) in $store.nav.groups" :key="gi">
         <div class="rail-group">
+          <div class="rail-sec-lbl" x-show="g.label" x-text="($store.nav.i18nTick, g.label)"></div>
           <div class="rail-grp-items">
             <template x-for="it in g.items" :key="it.id">
               <button class="rail-item" :class="{ active: $store.nav.active === it.id }"
@@ -1190,7 +1202,7 @@
   <script src="/static/login-vault.js?v=2"></script>
   <script src="/static/messenger-connect.js?v=3"></script>
   <script src="/static/voice-catalog.js?v=1"></script>
-  <script src="/static/console.js?v=212"></script>
+  <script src="/static/console.js?v=213"></script>
   <script src="/static/mobile-chat.js?v=17"></script>
   <script src="/static/brain-view.js?v=1"></script>
   <script src="/static/push.js?v=3"></script>

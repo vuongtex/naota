@@ -56,9 +56,10 @@ assert.equal(clock(3725), '1:02:05');
 const app = read('dashboard/app.js');
 const html = read('dashboard/index.html');
 const con = read('dashboard/console.js');
-assert.match(html, /<div class="call-bar" id="callBar" hidden><\/div>\s*<div class="transcript" id="chatArea"[^>]*>/, 'call bar sits right above the chat');
+// The "no AI connected" card (#noAiCard) may sit between them; the call bar still comes first.
+assert.match(html, /<div class="call-bar" id="callBar" hidden><\/div>\s*(<!--[\s\S]*?-->\s*<div class="no-ai-card" id="noAiCard" hidden>[\s\S]*?<\/button>\s*<\/div>\s*)?<div class="transcript" id="chatArea"[^>]*>/, 'call bar sits right above the chat');
 assert.match(html, /call-bar\.js\?v=\d+"><\/script>\s*<script src="\/static\/app\.js/, 'call-bar.js loads before app.js');
-assert.match(con, /CHAT_NODE_IDS = \["callBar", "chatArea"/, 'call bar follows the chat to the Chat page');
+assert.match(con, /CHAT_NODE_IDS = \["callBar", ("noAiCard", )?"chatArea"/, 'call bar follows the chat to the Chat page');
 assert.ok(!/e\.code === "Space"/.test(app), 'Space no longer opens the mic');
 assert.match(app, /if \(e\.code === "Escape"\) \{\s*\n[\s\S]{0,400}tatRanhTay\(\)/, 'Esc still hangs up');
 assert.match(app, /fetch\("\/voice\/call"\)/, 'mode comes from the call engine');

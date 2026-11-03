@@ -11,7 +11,9 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 - **Giao diện mới, gọn như các app AI lớn.** Mỗi trang nằm trong một khung trắng trên nền xám ấm, tiêu đề trang to và rõ.
 - **Bộ não đang dùng ở trên cùng bên trái**, ngay dưới logo. Thêm, đổi tên, xoá bộ não nằm cạnh đó. **Bản đồ bộ não** đứng đầu thanh bên.
 - **Mở hội thoại mới là thấy lời chào và ô nhập ở giữa màn hình**, gõ câu đầu tiên là thành khung trò chuyện.
-- **Thanh bên một cột**, bấm là mở ngay. **Nút Việc mới** ở đầu cột mở hội thoại mới.
+- **Thanh bên một cột**, bấm là mở ngay, mỗi khúc có tên nhỏ (Đội ngũ, Kiến thức, Kết nối, Hệ thống). **Nút Việc mới** ở đầu cột mở hội thoại mới.
+- **Chưa kết nối AI thì báo ngay giữa màn hình chat**, kèm nút **Kết nối AI**.
+- **Chữ dễ hiểu hơn**: Cộng sự thành **Trợ lý**, Models AI thành **Chọn AI**, Nguồn dữ liệu thành **Kết nối dữ liệu**, trang Nhiệm vụ thống nhất tên **Việc cần làm**, mức suy nghĩ ghi bằng tiếng Việt (Không nghĩ, Nghĩ nhẹ, Nghĩ kỹ...).
 - **Ô tài khoản dưới đáy** gom tài khoản, nâng cao, cập nhật, ngôn ngữ và giao diện sáng tối.
 - **Bớt màu vàng**: mục đang chọn tô xám, vàng chỉ còn ở nút bấm chính.
 

@@ -9,7 +9,9 @@ NAOTA release history. Newest first.
 - **A new look, as clean as the big AI apps.** Every page sits in a white card on a warm grey frame, with a large clear title.
 - **The brain in use sits at the top left**, right under the logo. Add, rename and delete a brain from there. **Brain map** leads the sidebar.
 - **A new chat opens with a greeting and the message box in the middle**; the first message turns it into the usual chat.
-- **A one-column sidebar** that opens a page with one click. **A New task button** at the top opens a fresh chat.
+- **A one-column sidebar** that opens a page with one click, each block under a small name (Team, Knowledge, Connections, System). **A New task button** at the top opens a fresh chat.
+- **No AI connected yet? The empty chat says so in the middle**, with a **Connect AI** button.
+- **Plainer Vietnamese words** in the Vietnamese interface: agents, the AI picker, data connections, the task page and the thinking levels.
 - **An account box at the bottom** holds account, advanced tools, updates, language and light or dark theme.
 - **Less yellow**: the selected item is grey, yellow stays on the main buttons only.
 

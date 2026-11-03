@@ -156,27 +156,31 @@
   // THẤY có bản mới thì mới cập nhật đều, nên nó không còn là một tab chìm trong Cài đặt.
   const RAIL_AN = new Set(["chatbots", "usage", "pet", "coding"]);
 
-  // What the rail DRAWS, top to bottom: one flat column, a thin line between sections, no group
-  // names and nothing to unfold (owner 03/11/2026: as plain as Claude). RAIL_GROUPS above still
-  // names the groups for voice commands (open_group). Pages in RAIL_MENU sit in the account menu
-  // at the foot of the rail instead, the advanced ones under their own small label there.
+  // What the rail DRAWS, top to bottom: one flat column, nothing to unfold (owner 03/11/2026: as
+  // plain as Claude), with a small quiet name over each section after the first so a newcomer sees
+  // what belongs together. RAIL_GROUPS above still names the groups for voice commands
+  // (open_group). Pages in RAIL_MENU sit in the account menu at the foot of the rail instead, the
+  // advanced ones under their own small label there.
   // The brain map leads the column (owner 03/11/2026: the brain is what matters, top left).
   const RAIL_SECTIONS = [
-    ["home", "chat", "tasks"],
-    ["workspace", "teams", "conversations", "skills"],
-    ["learn", "files"],
-    ["mcp", "channels", "packs"],
-    ["models", "settings"],
+    { ids: ["home", "chat", "tasks"] },
+    { lbl: "nav.group.nang_luc", ids: ["workspace", "teams", "conversations", "skills"] },
+    { lbl: "nav.sec.kien_thuc", ids: ["learn", "files"] },
+    { lbl: "nav.group.ket_noi", ids: ["mcp", "channels", "packs"] },
+    { lbl: "nav.group.he_thong", ids: ["models", "settings"] },
   ];
   const RAIL_MENU = ["account", "logs"];
   const RAIL_MENU_ADV = ["terminal", "plugins", "webhooks", "logins", "share"];
   const _railPick = (ids, seen) => ids
     .map(id => { if (seen) seen.add(id); return RAIL_AN.has(id) ? null : RAIL_BY_ID[id]; })
     .filter(Boolean);
-  // Trả về [{items:[...]}], bỏ id không tồn tại. Mục nào chưa xếp chỗ → dồn vào khúc cuối.
+  // Trả về [{label, items:[...]}], bỏ id không tồn tại. Mục nào chưa xếp chỗ → dồn vào khúc cuối.
   function railGroups() {
     const seen = new Set([...RAIL_MENU, ...RAIL_MENU_ADV]);
-    const groups = RAIL_SECTIONS.map(ids => ({ items: _railPick(ids, seen) })).filter(g => g.items.length);
+    const groups = RAIL_SECTIONS.map(s => ({
+      get label() { return s.lbl ? t(s.lbl) : ""; },
+      items: _railPick(s.ids, seen),
+    })).filter(g => g.items.length);
     // Mục chưa xếp nhóm cũng phải đi qua RAIL_AN. Thiếu chỗ này là một lỗi thật, sống từ
     // Trước đây `chatbots` nằm trong RAIL_AN nhưng KHÔNG nằm trong `ids` của nhóm
     // nào, nên `seen` không bao giờ chứa nó, nên nó rơi vào nhánh "dồn vào nhóm cuối" và
@@ -7802,7 +7806,7 @@
   // rời trang. Cùng một cuộc trò chuyện hiển thị ở cả màn Naota lẫn tab này.
   // ============================================
   // attachBar lives INSIDE #hudVoice so it is no longer borrowed on its own.
-  const CHAT_NODE_IDS = ["callBar", "chatArea", "bgStrip", "goalBar", "modelBar", "hudVoice"];
+  const CHAT_NODE_IDS = ["callBar", "noAiCard", "chatArea", "bgStrip", "goalBar", "modelBar", "hudVoice"];
   let _chatSlots = [];        // vị trí gốc từng node để trả về đúng chỗ trong HUD
 
   function _injectChatCss() {
@@ -9520,6 +9524,8 @@
       d = await r.json();
     } catch (e) { return; }
     const dead = Object.entries(d.engines || {}).filter(([, rec]) => rec && rec.ok === false);
+    const card = document.getElementById("noAiCard");
+    if (card) card.hidden = !dead.length;
     if (!dead.length) { b.hidden = true; return; }
     b.innerHTML = WARN_ICON + " " + esc(window.t("cs.eng_nomodel"));
     // Chi tiết kỹ thuật (engine nào, lỗi gì) chuyển vào tooltip: cần khi đi hỏi, nhưng
@@ -9550,6 +9556,8 @@
     // Báo "chưa kết nối" mà không đưa được người ta tới chỗ kết nối thì chỉ là than phiền.
     const _eb = document.getElementById("engineBanner");
     if (_eb) _eb.addEventListener("click", () => navigateTo("models"));
+    const _nab = document.getElementById("noAiBtn");
+    if (_nab) _nab.addEventListener("click", () => navigateTo("models"));
     const ver = document.getElementById("railVersion");
     if (ver) {
       // Hiện tạm, thay ngay bằng phiên bản thật từ server. Số tạm lấy từ khối naota-fresh mà index.html (luôn mới) mang
