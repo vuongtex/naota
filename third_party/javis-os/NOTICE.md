@@ -1,9 +1,6 @@
-# Third-party notices
+# javis-os
 
-Parts of NAOTA are adapted from other open-source software. Their licenses ask that the notice below
-travel with the code.
-
-## javis-os
+Parts of NAOTA are adapted from this project. Its MIT license asks that the notice below travel with the code.
 
 Source: https://github.com/blogminhquy/javis-os
 
