@@ -1071,6 +1071,59 @@ _NONG: Dict[str, float] = {}        # conn_id -> giờ thấy tin khách chat ri
 _SEQ: Dict[tuple, int] = {}         # (conn_id, thread) -> số tin khách chat riêng CÓ CHỮ đã thấy (xem "Câu trả lời đã cũ")
 _BO_DO: Dict[tuple, dict] = {}      # (conn_id, thread) -> {"texts": [...], "n": số lần bỏ, "luc": giờ}: tin khách của câu trả lời đã bỏ
 _ID_MINH: Dict[str, dict] = {}      # conn_id -> {"uid", "ten"} của CHÍNH nick này, học từ tin của nó
+_ID_MINH_NAP = False
+
+
+def _file_danh_tinh():
+    from pathlib import Path
+    return Path(cfgmod.STATE_DIR) / "zalo_self.json"
+
+
+def _nap_danh_tinh() -> None:
+    """Nạp danh tính đã học từ đĩa, một lần mỗi tiến trình.
+
+    Trước đây `_ID_MINH` chỉ sống trong bộ nhớ: khởi động lại server là quên, và nick chưa tự gửi
+    tin nào sau đó thì bot không biết tên Zalo của chính mình. Tag "@<tên Zalo>" trong nhóm khi ấy
+    không khớp gì (nhãn kết nối thường đặt khác tên Zalo), bot coi là "không ai gọi" và im - lỗi
+    chủ đã gặp ngày 03/11/2026 với nhãn "Naota Cường", tên Zalo "Tly Hoàng Ngọc Vương"."""
+    global _ID_MINH_NAP
+    if _ID_MINH_NAP:
+        return
+    _ID_MINH_NAP = True
+    try:
+        f = _file_danh_tinh()
+        d = json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
+    except Exception as e:      # noqa: BLE001 - file hỏng thì học lại từ tin như cũ
+        print(f"[zalo-personal] đọc danh tính đã học lỗi: {type(e).__name__}", file=sys.stderr)
+        return
+    for cid, v in (d.items() if isinstance(d, dict) else ()):
+        if not isinstance(v, dict) or str(cid) in _ID_MINH:
+            continue
+        cu: dict = {}
+        uid = str(v.get("uid") or "").strip()
+        if uid:
+            cu["uid"], cu["_da_thay"] = uid, {uid}
+        if str(v.get("ten") or "").strip():
+            cu["ten"] = str(v["ten"]).strip()
+        if cu:
+            _ID_MINH[str(cid)] = cu
+
+
+def _luu_danh_tinh() -> None:
+    d = {cid: {k: v[k] for k in ("uid", "ten") if v.get(k)} for cid, v in _ID_MINH.items()}
+    try:
+        f = _file_danh_tinh()
+        tmp = f.with_suffix(".tmp")
+        tmp.write_text(json.dumps(d, ensure_ascii=False, indent=1), encoding="utf-8")
+        tmp.replace(f)
+    except Exception as e:      # noqa: BLE001 - không lưu được thì vẫn dùng bản trong bộ nhớ
+        print(f"[zalo-personal] lưu danh tính lỗi: {type(e).__name__}", file=sys.stderr)
+
+
+def danh_tinh(conn_id: str) -> dict:
+    """{"uid", "ten"} đã học của nick `conn_id` (nạp từ đĩa nếu tiến trình vừa khởi động)."""
+    _nap_danh_tinh()
+    return _ID_MINH.get(str(conn_id)) or {}
 
 
 def _hoc_danh_tinh(conn_id: str, msg: dict) -> None:
@@ -1086,13 +1139,17 @@ def _hoc_danh_tinh(conn_id: str, msg: dict) -> None:
     uid = str(_lay(msg, "from", "senderId", "sender_id", "uidFrom", mac_dinh="") or "").strip()
     thread = str(_lay(msg, "threadId", "thread_id", "chatId", mac_dinh="") or "").strip()
     ten = str(_lay(msg, "senderName", "sender_name", "fromName", "dName", mac_dinh="") or "").strip()
+    _nap_danh_tinh()
     cu = _ID_MINH.setdefault(str(conn_id), {})
+    truoc = (cu.get("uid"), cu.get("ten"))
     if uid and uid != thread:
         thay = cu.setdefault("_da_thay", set())
         thay.add(uid)
         cu["uid"] = uid if len(thay) == 1 else ""
     if ten:
         cu["ten"] = ten
+    if (cu.get("uid"), cu.get("ten")) != truoc:
+        _luu_danh_tinh()
 
 
 def _chuan_ten(s: Any) -> str:
@@ -1115,7 +1172,7 @@ def nhan_dien_goi(conn_id: str, ev: dict, ten_khac=()) -> tuple:
     KHÔNG dùng tên Agent/bot: "@Lan" trong nhóm thường là một thành viên tên Lan.
     Không nhận ra thì cùng lắm chế độ Tự đánh giá vẫn bắt được câu hỏi thuộc tài liệu.
     """
-    minh = _ID_MINH.get(str(conn_id)) or {}
+    minh = danh_tinh(conn_id)
     uid = str(minh.get("uid") or "").strip()
     ten = {_chuan_ten(x) for x in (list(ten_khac or ()) + [minh.get("ten")]) if x}
     ten.discard("")
