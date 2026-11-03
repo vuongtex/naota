@@ -104,7 +104,7 @@ Nếu tool bị chặn vì mức quyền, câu trả lời sẽ chứa nguyên v
 
 | Tên trên thẻ | slug | Tool cung cấp | Quyền tối thiểu | Mặc định |
 |---|---|---|---|---|
-| Thời gian & ngày (VN) | `datetime-vn` | `naota_now`, `naota_date_add` | chỉ đọc | Bật |
+| Thời gian & ngày (múi giờ chọn ở Cài đặt) | `datetime-vn` | `naota_now`, `naota_date_add` | chỉ đọc | Bật |
 | Đặt việc định kỳ & nhắc hẹn | `naota-schedule` | `naota_schedule` | ghi (safe) | Bật |
 | Giao việc Kanban | `naota-task` | `naota_task` | ghi (safe) | Bật |
 | Quản lý nhóm chat | `naota-team` | `naota_team` | ghi (safe), chỉ chủ | Bật |
