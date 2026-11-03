@@ -4745,6 +4745,17 @@ a.cp-mi.gh-more-conn { text-decoration: none; color: inherit; }
 .bp-btn-chev { flex: none; display: inline-flex; color: var(--text2); }
 .bp-btn-chev svg { width: 15px; height: 15px; }
 
+/* Brain actions at the foot of the panel; Delete last, red, below a rule. */
+.bp-acts { flex: none; border-top: 1px solid var(--border); padding: 6px; display: flex; flex-direction: column; }
+.bp-acts[hidden] { display: none; }
+.bp-act { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border: 0; border-radius: 8px;
+  background: transparent; color: var(--text2); font: inherit; font-size: 14px; text-align: left; cursor: pointer; }
+.bp-act svg { width: 16px; height: 16px; flex: none; }
+.bp-act:hover, .bp-act:focus-visible { background: var(--surface-2); color: var(--text); }
+.bp-act.danger { color: var(--red); }
+.bp-act.danger:hover { background: color-mix(in srgb, var(--red) 10%, transparent); color: var(--red); }
+.bp-acts-sep { height: 1px; background: var(--border); margin: 4px 6px; }
+
 .bp-shade { position: fixed; inset: 0; z-index: 1000; display: none; }
 .bp-shade.open { display: block; }
 .bp-pop { position: fixed; z-index: 1001; display: none; flex-direction: column; max-height: min(70vh, 520px);
