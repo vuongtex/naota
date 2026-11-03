@@ -4,10 +4,14 @@
 
 NAOTA release history. Newest first.
 
-## [1.3.1] - 2026-11-03
+## [1.3.2] - 2026-11-03
 ### Improved
 - **Page titles match the sidebar names**: Brain map, Tasks, Partners, Connections, Models.
 - **On phones the brain picker sits at the top of the menu**, so you see which brain you are in as soon as you open it.
+
+## [1.3.1] - 2026-11-03
+### Improved
+- Version number only. The two changes meant for this release are in 1.3.2.
 
 ## [1.3.0] - 2026-11-03
 ### Improved
