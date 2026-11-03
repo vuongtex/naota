@@ -159,8 +159,9 @@ check("console.js: không còn nhóm tro_ly", !/id: "tro_ly"/.test(console_js));
 check("console.js: home và chat nằm trong nhóm Bộ não",
   /ids: \["home", "chat", "files", "learn"\]/.test(console_js));
 check("i18n: không còn khoá nhóm tro_ly", vi["nav.group.tro_ly"] === undefined && en["nav.group.tro_ly"] === undefined);
-check("i18n: trang home đổi tên thành Sơ đồ / Graph",
-  vi["page.home.label"] === "Sơ đồ" && en["page.home.label"] === "Graph");
+// Owner 03/11/2026: only the sidebar takes the new name; the page keeps its 1.2.1 title.
+check("i18n: thanh bên gọi home là Bản đồ bộ não / Brain map",
+  vi["rail.lbl.home"] === "Bản đồ bộ não" && en["rail.lbl.home"] === "Brain map");
 
 // ---- 8. Nạp file và từ điển ----
 const iApp = html.indexOf("/static/app.js"), iPet = html.indexOf("/static/pet.js");

@@ -43,6 +43,7 @@ check("nút Tặng sao là hàng riêng, không nằm trong cột phiên bản",
   /\.rail-foot \.rf-star \{[^}]*flex: 1 0 100%/.test(CSS));
 check("chữ nút một dòng", /\.rail-foot \.rf-star \{[^}]*white-space: nowrap/.test(CSS));
 check("thanh thu gọn: chỉ còn ngôi sao", /\.rail\.collapsed \.rail-foot \.rf-star-chu \{ display: none; \}/.test(CSS));
+check("menu tài khoản có thêm Cộng đồng NAOTA", /data-i18n="rail\.community"/.test(IDX) && VI["rail.community"] && EN["rail.community"]);
 check("index nạp css và js", /\/static\/star-nudge\.css\?v=\d+/.test(IDX) && /\/static\/star-nudge\.js\?v=\d+/.test(IDX));
 
 // 2. Không làm phiền

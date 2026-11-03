@@ -4,6 +4,13 @@
 
 NAOTA release history. Newest first.
 
+## [1.3.0] - 2026-11-03
+### Improved
+- **A new one-column sidebar**: items in blocks with small names (Team, Knowledge, Connections, System).
+- **Plainer item names in the sidebar** (Vietnamese interface): brain map, chat, to-do, assistants, data connections, model picker.
+- **The version and an Update button always show at the foot of the sidebar**; the button turns yellow when a new version is out.
+- **Advanced sits under Account** and unfolds Terminal, Plugins, Webhooks, Logins, Share links and the NAOTA community. Language is picked in Settings. Pages and the top bar stay as in 1.2.1.
+
 ## [1.2.1] - 2026-11-03
 ### Improved
 - **The Store has Naota Gate**: ChatGPT and Claude connect to Naota through one pack, read and post into your chats, and keep a log. Machines with the **Naota in ChatGPT** pack see Gate as an update, no need to reconnect.

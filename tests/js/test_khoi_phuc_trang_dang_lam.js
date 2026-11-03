@@ -28,7 +28,7 @@ function storage(seed = {}) {
 // First launch opens the graph. Only chat/workspace can become the next launch target.
 function navCase(seed, expected) {
   const localStorage = storage(seed);
-  const route = { active: "home", openGroup: "" };
+  const route = { active: "home" };
   const rendered = [];
   const classes = new Set();
   const ctx = {
@@ -37,7 +37,6 @@ function navCase(seed, expected) {
     RAIL_BY_ID: { home: {}, chat: {}, workspace: {}, settings: {} },
     TRANG_GOP: { agents: "workspace" },
     TRANG_CUOI_KEY: "naota_last_page",
-    groupLabelOf: id => "group:" + id,
     document: { body: { classList: {
       toggle: (c, on) => on ? classes.add(c) : classes.delete(c),
     } } },
@@ -51,7 +50,6 @@ function navCase(seed, expected) {
   ctx.khoiPhucTrang();
   assert.equal(route.active, expected);
   assert.equal(rendered.at(-1), expected === "home" ? undefined : expected);
-  assert.equal(route.openGroup, "group:" + expected);
   assert.equal(classes.has("in-console"), expected !== "home");
   ctx.navigateTo("chat");
   assert.equal(localStorage.data.naota_last_page, "chat");

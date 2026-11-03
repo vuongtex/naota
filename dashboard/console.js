@@ -111,11 +111,12 @@
     "home", "chat", "settings", "workspace", "teams", "skills", "chatbots", "conversations", "files",
     "terminal", "coding", "tasks", "webhooks", "learn", "models", "channels", "mcp", "plugins",
     "packs", "logs", "account", "usage", "logins", "pet", "share",
-  ].map(id => ({ id, icon: ICON[id], get label() { return t(`page.${id}.label`); } }));
+  ].map(id => ({ id, icon: ICON[id], get label() { return t(`page.${id}.label`); },
+    // The sidebar may carry its own shorter name (rail.lbl.<id>); page titles keep page.<id>.label.
+    get railLabel() { const k = `rail.lbl.${id}`, v = t(k); return v === k ? this.label : v; } }));
 
-  // ---- Gom rail thành nhóm theo chức năng (dễ tìm hơn danh sách phẳng 18 mục) ----
-  // Nhóm cuối (foot:true) được ghim xuống ĐÁY rail; các nhóm còn lại cuộn ở giữa.
-  // Thứ tự & thành viên đổi ở đây; RAIL_ITEMS vẫn là nguồn icon/label + tra cứu cho go().
+  // ---- Nhóm theo chức năng, cho lệnh bằng lời (open_group). Thanh bên vẽ theo RAIL_SECTIONS. ----
+  // RAIL_ITEMS vẫn là nguồn icon/label + tra cứu cho go().
   const RAIL_GROUPS = [
     // `id` là tên máy đọc của nhóm, dùng cho lệnh bằng lời (`naota_ui` action open_group).
     // Nhãn đổi theo ngôn ngữ nên KHÔNG dùng nhãn làm khoá tra cứu được.
@@ -132,11 +133,9 @@
     { id: "nang_luc", get label() { return t("nav.group.nang_luc"); },    icon: GICON.nang_luc,    ids: ["workspace", "teams", "conversations", "skills"] },
     { id: "viec", get label() { return t("nav.group.viec"); },        icon: GICON.viec,        ids: ["tasks"] },
     { id: "ket_noi", get label() { return t("nav.group.ket_noi"); },     icon: GICON.ket_noi,     ids: ["mcp", "packs", "channels"] },
-    // The rail shows every item at once (no accordion), so the pages a beginner rarely opens sit
-    // in this one folded group to keep the rail on one screen. It unfolds by itself when one of
-    // its pages is open.
-    { id: "nang_cao", get label() { return t("nav.group.nang_cao"); },    icon: GICON.nang_cao,    ids: ["terminal", "plugins", "webhooks", "logins", "share"], fold: true },
-    { id: "he_thong", get label() { return t("nav.group.he_thong"); },    icon: GICON.he_thong,    ids: ["models", "settings", "account", "logs"], foot: true },
+    // The pages a beginner rarely opens: they sit in the account menu (RAIL_MENU_ADV below).
+    { id: "nang_cao", get label() { return t("nav.group.nang_cao"); },    icon: GICON.nang_cao,    ids: ["terminal", "plugins", "webhooks", "logins", "share"] },
+    { id: "he_thong", get label() { return t("nav.group.he_thong"); },    icon: GICON.he_thong,    ids: ["models", "settings", "account", "logs"] },
   ];
   const RAIL_BY_ID = Object.fromEntries(RAIL_ITEMS.map(i => [i.id, i]));
 
@@ -158,32 +157,47 @@
   // "logs" (Cập nhật) ra lại thanh bên dưới Tài khoản (anh Vương 02/11/2026): người dùng phải
   // THẤY có bản mới thì mới cập nhật đều, nên nó không còn là một tab chìm trong Cài đặt.
   const RAIL_AN = new Set(["chatbots", "usage", "pet", "coding"]);
-  // Trả về [{label, foot, items:[...]}], bỏ id không tồn tại. Mục nào chưa xếp nhóm → dồn vào "Khác".
+
+  // What the rail DRAWS, top to bottom: one flat column, nothing to unfold (owner 03/11/2026: as
+  // plain as Claude), with a small quiet name over each section after the first so a newcomer sees
+  // what belongs together. RAIL_GROUPS above still names the groups for voice commands
+  // (open_group). Pages in RAIL_MENU sit in the account menu at the foot of the rail instead, the
+  // advanced ones under their own small label there.
+  // The brain map leads the column (owner 03/11/2026: the brain is what matters, top left).
+  const RAIL_SECTIONS = [
+    { ids: ["home", "chat", "tasks"] },
+    { lbl: "nav.group.nang_luc", ids: ["workspace", "teams", "conversations", "skills"] },
+    { lbl: "nav.sec.kien_thuc", ids: ["learn", "files"] },
+    { lbl: "nav.group.ket_noi", ids: ["mcp", "channels", "packs"] },
+    // Account sits under Settings again, as in 1.2.1 (owner 03/11/2026); the foot box is only "Advanced" now.
+    { lbl: "nav.group.he_thong", ids: ["models", "settings", "account"] },
+  ];
+  const RAIL_MENU = [];
+  const RAIL_MENU_ADV = ["terminal", "plugins", "webhooks", "logins", "share"];
+  // Reached from the Update button by the version at the foot, so it sits in no list (owner 03/11/2026:
+  // one place per item).
+  const RAIL_FOOT = ["logs"];
+  const _railPick = (ids, seen) => ids
+    .map(id => { if (seen) seen.add(id); return RAIL_AN.has(id) ? null : RAIL_BY_ID[id]; })
+    .filter(Boolean);
+  // Trả về [{label, items:[...]}], bỏ id không tồn tại. Mục nào chưa xếp chỗ → dồn vào khúc cuối.
   function railGroups() {
-    const seen = new Set();
-    const groups = RAIL_GROUPS.map(g => {
-      const items = (g.ids || [])
-        .map(id => { seen.add(id); return RAIL_AN.has(id) ? null : RAIL_BY_ID[id]; })
-        .filter(Boolean);
-      return { label: g.label, icon: g.icon || "", foot: !!g.foot, fold: !!g.fold, items };
-    }).filter(g => g.items.length);
+    const seen = new Set([...RAIL_MENU, ...RAIL_MENU_ADV, ...RAIL_FOOT]);
+    const groups = RAIL_SECTIONS.map(s => ({
+      get label() { return s.lbl ? t(s.lbl) : ""; },
+      items: _railPick(s.ids, seen),
+    })).filter(g => g.items.length);
     // Mục chưa xếp nhóm cũng phải đi qua RAIL_AN. Thiếu chỗ này là một lỗi thật, sống từ
     // Trước đây `chatbots` nằm trong RAIL_AN nhưng KHÔNG nằm trong `ids` của nhóm
     // nào, nên `seen` không bao giờ chứa nó, nên nó rơi vào nhánh "dồn vào nhóm cuối" và
     // hiện ra ở cuối nhóm Hệ thống - đúng chỗ chẳng ai ngờ . Chú thích
     // của RAIL_AN thì vẫn khẳng định nó đã bị ẩn.
     const rest = RAIL_ITEMS.filter(i => !seen.has(i.id) && !RAIL_AN.has(i.id));
-    if (rest.length) {
-      const foot = groups.find(g => g.foot);
-      if (foot) foot.items.push(...rest); else groups.push({ label: t("nav.group.khac"), foot: false, items: rest });
-    }
+    if (rest.length) groups[groups.length - 1].items.push(...rest);
     return groups;
   }
-  // Nhãn nhóm chứa một mục id (cho accordion: mở đúng nhóm của trang đang xem).
-  function groupLabelOf(id) {
-    if (["pet", "usage", "runtime"].includes(id)) id = "settings";
-    const g = RAIL_GROUPS.find(gr => (gr.ids || []).includes(id));
-    return g ? g.label : (RAIL_GROUPS[0] && RAIL_GROUPS[0].label) || "";
+  function railMenu() {
+    return { main: _railPick(RAIL_MENU), adv: _railPick(RAIL_MENU_ADV) };
   }
 
   // icon lấy từ VIEW_ICON ở đầu file - đừng khai icon riêng ở đây, hai bảng
@@ -341,8 +355,6 @@
       const resolved = TRANG_GOP[saved] || saved;
       if (resolved === "chat" || resolved === "workspace") id = resolved;
     } catch (e) {}
-    const store = Alpine.store("nav");
-    store.openGroup = groupLabelOf(id);
     navigateTo(id, true);
   }
   function navigateTo(id) {
@@ -8173,13 +8185,16 @@
     }
     window.NaotaNav = {
       go(id) { const s = _navStore(); if (s && typeof s.go === "function") s.go(id); else navigateTo(id); },
-      // Bung một NHÓM trên thanh bên mà KHÔNG đổi trang. Trả false nếu không có nhóm đó.
+      // Cho THẤY một nhóm trên thanh bên mà KHÔNG đổi trang. Mọi mục đã nằm sẵn trên cột trái,
+      // nên chỉ cần bung thanh bên; nhóm có trang nằm trong menu tài khoản (Nâng cao, Hệ thống)
+      // thì mở menu đó. Trả false nếu không có nhóm đó.
       openGroup(groupId) {
         const g = RAIL_GROUPS.find(gr => gr.id === groupId);
         const s = _navStore();
         if (!g || !s) return false;
-        s.openGroup = g.label;
-        if (s.collapsed) s.toggleCollapsed();   // đang thu gọn thì bung ra, không thì mở nhóm cũng vô hình
+        if (s.collapsed) s.toggleCollapsed();   // đang thu gọn thì bung ra, không thì mục vẫn vô hình
+        const trongMenu = [...RAIL_MENU, ...RAIL_MENU_ADV];
+        if ((g.ids || []).some(id => trongMenu.includes(id))) s.advOpen = true;
         return true;
       },
       setCollapsed(thu) {
@@ -8315,9 +8330,7 @@
       active: "home",
       items: RAIL_ITEMS,
       updAvail: false,   // máy chủ báo có bản mới (/version), vẽ chấm trên mục Cập nhật
-      // Only a `fold` group (Advanced) opens and shuts; every other group is always open, so the
-      // whole rail shows without a click. Holds the label of the fold group that is open, if any.
-      openGroup: groupLabelOf("home"),
+      advOpen: false,    // danh sách Nâng cao (dưới Tài khoản) đang xổ
       collapsed: (() => { try { return localStorage.getItem("naota_rail_collapsed") === "1"; } catch (e) { return false; } })(),
       collapseIcon: COLLAPSE_ICON,
       // Alpine không biết từ điển i18n đổi (nó là object thuần), nên phải có một biến
@@ -8325,22 +8338,27 @@
       // cho tới khi F5 - một kiểu hỏng nhìn như "lưu không ăn".
       i18nTick: 0,
       get groups() { void this.i18nTick; return railGroups(); },
+      get menu() { void this.i18nTick; return railMenu(); },
       get meta() { void this.i18nTick; return VIEW_META[this.active] || VIEW_META.home; },
-      isOpen(label) {
-        const g = RAIL_GROUPS.find(gr => gr.label === label);
-        return !(g && g.fold) || this.openGroup === label;
+      // Trang đang mở là một trang Nâng cao: khi danh sách gập, dòng Nâng cao sáng lên thay cho nó.
+      get menuActive() { return RAIL_MENU.includes(this.active) || RAIL_MENU_ADV.includes(this.active); },
+      // Xổ/gập Nâng cao. Xổ ra thì cuộn cột tới dòng cuối (Cộng đồng NAOTA), kẻo nó nằm khuất dưới hàng phiên bản.
+      toggleAdv(btn) {
+        this.advOpen = !this.advOpen;
+        if (!this.advOpen || !btn) return;
+        setTimeout(() => {
+          const last = btn.parentElement && btn.parentElement.querySelector(".rail-adv-items > :last-child");
+          if (last) last.scrollIntoView({ block: "nearest" });
+        }, 60);
       },
-      toggleGroup(label) { this.openGroup = (this.openGroup === label) ? null : label; },
       toggleCollapsed() {   // thu/mở sidebar: thu → chỉ còn icon; mở → đầy chữ. Nhớ lựa chọn qua localStorage.
         this.collapsed = !this.collapsed;
         try { localStorage.setItem("naota_rail_collapsed", this.collapsed ? "1" : "0"); } catch (e) {}
       },
       go(id) {
         const item = RAIL_ITEMS.find(i => i.id === id);
+        if (RAIL_MENU_ADV.includes(id)) this.advOpen = true;   // mở trang Nâng cao từ chỗ khác: cho thấy nó nằm đâu
         if (item && item.launch) { item.launch(); recomputeGraph(); return; }  // launcher: không đổi view
-        // A page inside the fold group unfolds it; opening any other page leaves it as it was.
-        const fg = RAIL_GROUPS.find(gr => gr.fold && (gr.ids || []).includes(id));
-        if (fg) this.openGroup = fg.label;
         navigateTo(id);
       },
     });
@@ -9454,10 +9472,9 @@
       }
     } catch (e) { /* dựng lại hỏng thì giữ khung cũ, phần quét nhãn tĩnh bên dưới vẫn phải chạy */ }
     try { window.NaotaI18n && NaotaI18n.applyDom(); } catch (e) { /* noop */ }
-    // Hai ô chọn ngôn ngữ (đáy rail + trang Cài đặt) phải chỉ cùng một giá trị: đổi ở đâu
-    // thì ô kia tự nhảy theo, không cần F5.
+    // Ô chọn ngôn ngữ ở trang Cài đặt (1.3.0: chỗ duy nhất) đi theo ngôn ngữ đang dùng, không cần F5.
     try {
-      for (const id of ["railLang", "vpUiLang"]) {
+      for (const id of ["vpUiLang"]) {
         const sel = document.getElementById(id);
         if (sel && window.NaotaI18n && sel.value !== NaotaI18n.lang()) sel.value = NaotaI18n.lang();
       }
@@ -9539,8 +9556,7 @@
     setInterval(refreshEngineBanner, 90000);
     // Báo "chưa kết nối" mà không đưa được người ta tới chỗ kết nối thì chỉ là than phiền.
     const _eb = document.getElementById("engineBanner");
-    if (_eb) _eb.addEventListener("click", () => navigateTo("models"));
-    const ver = document.getElementById("railVersion");
+    if (_eb) _eb.addEventListener("click", () => navigateTo("models"));    const ver = document.getElementById("railVersion");
     if (ver) {
       // Hiện tạm, thay ngay bằng phiên bản thật từ server. Số tạm lấy từ khối naota-fresh mà index.html (luôn mới) mang
       // theo: /version mà trượt (máy chủ đang khởi động) thì vẫn đúng số, không phải con số dự phòng cũ như từng thấy.
@@ -9604,27 +9620,7 @@
           }
         }
       } catch (e) { /* lỗi thì giữ ngôn ngữ đang hiện, không chặn phần còn lại */ }
-      // Ô đổi ngôn ngữ giao diện dưới đáy rail. Danh sách từ sổ đăng ký phía server
-      // (s.lang_list) - cùng nguồn với trang Cài đặt, không khai lại ở client. Chỉ hiện khi
-      // có từ 2 ngôn ngữ: một ngôn ngữ thì ô chọn là đồ trang trí.
-      try {
-        const wrap = document.getElementById("railLangWrap");
-        const sel = document.getElementById("railLang");
-        const langs = uiLangChoices(s);
-        if (wrap && sel && langs.length > 1) {
-          const cur = (window.NaotaI18n && NaotaI18n.lang()) || "vi";
-          sel.innerHTML = langs.map(l =>
-            `<option value="${esc(l.ma)}"${l.ma === cur ? " selected" : ""}>${esc(l.ten)}</option>`).join("");
-          sel.onchange = async () => {
-            // Đổi NGAY trên máy này trước rồi mới lưu lên server - ngôn ngữ giao diện là lựa
-            // chọn theo thiết bị, trải nghiệm không được chờ mạng (giống ô ở trang Cài đặt).
-            try { await NaotaI18n.setLang(sel.value); } catch (e) { /* noop */ }
-            saveSetting("locale", { ui_lang: uiLangForServer(sel.value, s) });
-          };
-          wrap.hidden = false;
-        }
-      } catch (e) { /* thiếu ô thì rail vẫn sống */ }
-      graphEnabled = !(s.dashboard && s.dashboard.graph_enabled === false);
+      graphEnabled =!(s.dashboard && s.dashboard.graph_enabled === false);
       recomputeGraph();
       // Deep-link mở tab mới từ link file trong chat: #open=<đường-dẫn-vault>.
       // Đi qua openVaultPath chứ KHÔNG phải openFilesAt: file sửa được thì mở thẳng trình sửa,

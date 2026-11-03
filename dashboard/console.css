@@ -4,7 +4,7 @@
    Cockpit (.hud) giữ nguyên; layer này bọc thêm bên ngoài.
    ============================================ */
 :root {
-  --rail-w: 160px;
+  --rail-w: 232px;
   --rail-w-collapsed: 60px;
   --font-ui: var(--font);
   --rail-bg: rgba(14, 14, 22, 0.72);
@@ -33,10 +33,10 @@ body.in-console .hud-actions { display: none; }
   width: var(--rail-w);
   display: flex; flex-direction: column; align-items: stretch;
   padding: 10px 8px; gap: 0;
-  background: var(--rail-bg);
-  backdrop-filter: blur(18px) saturate(1.2);
-  -webkit-backdrop-filter: blur(18px) saturate(1.2);
-  border-right: 1px solid var(--glass-brd);
+  /* 1.3.0: the rail and the top bar are one warm "frame" (the page background); the pages sit on it as a
+     white card (.cview below), the way Linear, Notion and Claude lay out a workspace. */
+  background: var(--bg);
+  border-right: 0;
 }
 .rail-top { flex: 0 0 auto; }                         /* đỉnh cố định */
 .rail-nav {                                           /* giữa: cuộn dọc */
@@ -45,48 +45,17 @@ body.in-console .hud-actions { display: none; }
 }
 .rail-nav::-webkit-scrollbar { width: 0; }            /* ẩn thanh cuộn cho gọn */
 .rail-nav { scrollbar-width: none; }
-/* Every group is always open: its name is a small grey section label and all its items show
-   below it. Only the .fold group (Advanced) is a button that folds. The .foot group sits at the bottom. */
+/* One flat column like Claude's sidebar: no group names, a thin line between sections. */
 .rail-group { display: flex; flex-direction: column; }
-.rail-group.foot { margin-top: auto; }                /* đẩy Hệ thống xuống đáy rail */
-@media (min-width: 861px) {                           /* System stays in view while the middle scrolls */
-  .rail-group.foot { position: sticky; bottom: -4px; padding-bottom: 4px; background: var(--rail-bg);
-    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
-}
-.rail-grp-lbl {
-  display: flex; align-items: center; width: 100%;
-  background: transparent; border: 0;
-  font-family: var(--font-ui); font-size: 11.5px; font-weight: 600; letter-spacing: 0.3px;
-  color: var(--text3); text-align: left; white-space: nowrap;
-  padding: 10px 8px 3px 10px; border-radius: 9px; user-select: none;
-}
-.rail-group:first-child > .rail-grp-lbl { padding-top: 2px; }
-button.rail-grp-lbl {                                  /* the fold group's label: clickable, with an arrow */
-  cursor: pointer; padding: 7px 8px 7px 10px; margin-top: 6px;
-  font-size: 13.5px; font-weight: 400; letter-spacing: 0.1px;
-  transition: color var(--rail-anim), background var(--rail-anim);
-}
-button.rail-grp-lbl::after {                           /* ▸ after the name, turns to ▾ when open */
-  content: ""; flex: 0 0 auto; margin-left: auto;
-  width: 0; height: 0; border-left: 4px solid currentColor;
-  border-top: 4px solid transparent; border-bottom: 4px solid transparent;
-  opacity: 0.55; transition: transform var(--rail-anim);
-}
-.rail-grp-ico { flex: 0 0 auto; display: flex; align-items: center; margin-right: 10px; }
-.rail-grp-ico svg { width: 19px; height: 19px; }
-.rail-group.open > button.rail-grp-lbl::after { transform: rotate(90deg); }
-button.rail-grp-lbl:hover { color: var(--text); background: var(--surface-2); }
-.rail-group.has-active:not(.open) > .rail-grp-lbl { color: var(--accent-ink); }   /* nhóm gập nhưng đang chứa trang hiện tại → hé màu cam */
-.rail-group.foot .rail-grp-lbl { border-top: 1px solid var(--glass-brd); border-radius: 0; margin-top: 6px; padding-top: 10px; }
-.rail-grp-items {
-  display: flex; flex-direction: column; gap: 1px;
-  transition: max-height var(--rail-anim), opacity var(--rail-anim);
-}
-.rail-group.fold > .rail-grp-items { max-height: 340px; overflow: hidden; }
-.rail-group.fold:not(.open) > .rail-grp-items { max-height: 0; opacity: 0; }
+.rail-group + .rail-group { margin-top: 10px; }
+/* Section name over each block after the first: small and quiet, it only tells what belongs together. */
+.rail-sec-lbl { font-family: var(--font-ui); font-size: 11.5px; font-weight: 600; color: var(--text3); padding: 2px 10px 4px; }
+.rail.collapsed .rail-sec-lbl { display: none; }
+.rail.collapsed .rail-group + .rail-group { border-top: 1px solid var(--glass-brd); margin-top: 5px; padding-top: 5px; }
+.rail-grp-items { display: flex; flex-direction: column; gap: 1px; }
 .rail-brand {
-  height: 42px; display: flex; align-items: center; justify-content: center; gap: 9px;
-  color: var(--accent-ink); font-size: 22px;
+  height: 42px; display: flex; align-items: center; justify-content: flex-start; gap: 9px;
+  padding: 0 6px; color: var(--accent-ink); font-size: 22px;
 }
 /* Quầng sáng cam ở trên ô DẤU ẤN, không ở cả khối. filter của cha ăn xuống toàn bộ cây con,
    và `filter:none` của con KHÔNG gỡ được nó - để nguyên ở .rail-brand là chữ "NAOTA"
@@ -102,15 +71,15 @@ button.rail-grp-lbl:hover { color: var(--text); background: var(--surface-2); }
   letter-spacing: 0.5px; color: var(--text); white-space: nowrap; filter: none;
 }
 .rail-item {
-  position: relative; background: transparent; border: 0; cursor: pointer;
-  color: var(--text3); border-radius: 9px; padding: 6px 8px 6px 10px;
+  position: relative; background: transparent; border: 0; cursor: pointer; text-decoration: none;
+  color: var(--text2); border-radius: 9px; padding: 6px 10px;
   display: flex; flex-direction: row; align-items: center; gap: 10px;
   transition: color var(--rail-anim), background var(--rail-anim);
 }
 .rail-item .rail-ico { flex: 0 0 auto; line-height: 0; display: flex; align-items: center; justify-content: center; }
-.rail-item .rail-ico svg { width: 19px; height: 19px; }
+.rail-item .rail-ico svg { width: 18px; height: 18px; }
 .rail-item .rail-lbl {
-  font-family: var(--font-ui); font-size: 13.5px; letter-spacing: 0.1px; opacity: 0.95;
+  font-family: var(--font-ui); font-size: 14px; letter-spacing: 0.1px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 /* Chấm "Mới" trên mục Cập nhật khi máy chủ báo có bản mới. Thu gọn thanh bên thì chỉ còn chấm tròn. */
@@ -122,12 +91,8 @@ button.rail-grp-lbl:hover { color: var(--text); background: var(--surface-2); }
   position: absolute; top: 4px; right: 8px; padding: 0; width: 8px; height: 8px; font-size: 0;
 }
 .rail-item:hover { color: var(--text); background: var(--surface-2); }
-.rail-item.active { color: var(--accent-ink); background: var(--accent-wash-2); }
-.rail-item.active::before {
-  content: ""; position: absolute; left: -8px; top: 18%; bottom: 18%;
-  width: 3px; border-radius: 0 3px 3px 0; background: var(--accent);
-  box-shadow: 0 0 10px var(--accent);
-}
+/* Trang đang mở: nền xám nhẹ, chữ đậm. Không vàng, không vạch sáng (anh Vương 03/11/2026). */
+.rail-item.active { color: var(--text); background: var(--surface-3); font-weight: 600; }
 /* Select Brain - dời lên navbar (header trái), dùng dropdown sẵn có (.orb-graph-ctl) */
 .hud-top .navbar-brain { position: static; z-index: auto; gap: 8px; }
 .hud-top .navbar-brain .graph-select { max-width: 200px; }
@@ -137,6 +102,12 @@ button.rail-grp-lbl:hover { color: var(--text); background: var(--surface-2); }
 @media (max-width: 860px) {
   .hud-top .navbar-brain .graph-stats { display: none; }   /* mobile: ẩn stats cho gọn */
 }
+/* The new sidebar keeps its own neutral tints (selected items grey, not yellow); the rest of the app keeps
+   the 1.2.1 colours (owner 03/11/2026: new left column, old middle). */
+.rail { --accent-ink: #ffffff; --accent-wash: rgba(255, 255, 255, 0.045); --accent-wash-2: rgba(255, 255, 255, 0.085);
+  --accent-line: rgba(255, 255, 255, 0.2); }
+:root[data-theme="light"] .rail { --accent-ink: #0e1116; --accent-wash: rgba(14, 17, 22, 0.045);
+  --accent-wash-2: rgba(14, 17, 22, 0.075); --accent-line: rgba(14, 17, 22, 0.2); }
 
 /* Form trong card (Channels / Account / provider key) */
 .js-lbl { display: block; font-size: 13px; color: var(--text2); margin: 12px 0 5px; font-family: var(--font); }
@@ -429,22 +400,18 @@ body.ord-is-dragging, body.ord-is-dragging * { cursor: grabbing !important; user
 .sk-group-head .dim { color: var(--text3); font-weight: 400; margin-left: 6px; }
 
 .rail-spacer { flex: 1; }
-.rail-lang {                                           /* ô đổi ngôn ngữ giao diện, ngay trên hàng version */
-  display: flex; align-items: center; gap: 6px; padding: 8px 6px 0;
-  border-top: 1px solid var(--glass-brd); color: var(--text3);
-}
-.rail-lang svg { width: 14px; height: 14px; flex: 0 0 auto; }
-.rail-lang-sel {
-  flex: 1; min-width: 0; background: transparent; color: var(--text2);
-  border: 1px solid var(--glass-brd); border-radius: 8px;
-  font-family: var(--font-ui); font-size: 12px; padding: 4px 6px; cursor: pointer;
-}
-.rail-lang-sel:hover { color: var(--text); background: var(--surface-2); }
-.rail-lang-sel option { background: var(--panel-solid); color: var(--text); }
-.rail-foot {                                           /* version/tác giả bên TRÁI, nút thu/mở bên PHẢI */
-  font-family: var(--font); line-height: 1.35; padding: 8px 6px 0;
+/* Nâng cao: the last row of the System block. A chevron says it unfolds; the pages sit under it, indented. */
+.rail-adv-btn .rail-adv-chev { margin-left: auto; display: inline-flex; color: var(--text3); transition: transform var(--rail-anim); }
+.rail-adv-btn .rail-adv-chev svg { width: 14px; height: 14px; }
+.rail-adv.open .rail-adv-chev { transform: rotate(180deg); }
+.rail-adv-btn.has-active { color: var(--text); background: var(--surface-3); font-weight: 600; }
+.rail-adv-items { display: flex; flex-direction: column; gap: 1px; padding-left: 12px; }
+.rail.collapsed .rail-adv-chev { display: none; }
+.rail.collapsed .rail-adv-items { padding-left: 0; }
+.rail-foot {                                           /* nút thu/mở, rồi Tặng sao (star-nudge.js) */
+  font-family: var(--font); line-height: 1.35; padding: 8px 0 0;
   border-top: 1px solid var(--glass-brd);
-  display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 8px;
+  display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 6px;
 }
 .rail-collapse-btn {                                   /* nút thu/mở sidebar, ghim bên phải; icon căn cỡ với icon nav */
   order: 2; display: flex; align-items: center; justify-content: center;
@@ -455,10 +422,22 @@ body.ord-is-dragging, body.ord-is-dragging * { cursor: grabbing !important; user
 }
 .rail-collapse-btn:hover { color: var(--text); background: var(--surface-2); }
 .rail-collapse-btn svg { width: 18px; height: 18px; }
-.rail-foot .rf-meta { order: 1; text-align: left; min-width: 0; }
-.rail-foot .rf-ver { font-size: 11px; color: var(--text2); }
-.rail-foot .rf-author { display: block; margin-top: 2px; font-size: 8.5px; color: var(--accent-ink); text-decoration: none; }
-.rail-foot .rf-author:hover { text-decoration: underline; }
+.rf-meta { flex: none; text-align: left; min-width: 0; padding: 8px 10px 4px; font-family: var(--font); line-height: 1.35; }
+.rf-ver-row { display: flex; align-items: center; gap: 8px; }
+.rf-meta .rf-ver { font-size: 13px; font-weight: 600; color: var(--text2); font-variant-numeric: tabular-nums; }
+/* Update button beside the version: quiet, yellow once a new version is out. */
+.rf-upd { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 8px;
+  border: 1px solid var(--hairline); background: transparent; color: var(--text2); font: 600 12px var(--font-ui); cursor: pointer; }
+.rf-upd svg { width: 13px; height: 13px; }
+.rf-upd:hover { background: var(--surface-2); color: var(--text); }
+.rf-upd.on { background: var(--accent); border-color: var(--accent); color: #0e1116; }
+.rf-upd.on:hover { background: #ffb100; }
+.rail.collapsed .rf-meta { padding: 6px 0; }
+.rail.collapsed .rf-meta .rf-ver, .rail.collapsed .rf-meta .rf-author, .rail.collapsed .rf-upd span { display: none; }
+.rail.collapsed .rf-ver-row { justify-content: center; }
+.rail.collapsed .rf-upd { margin: 0; padding: 6px; }
+.rf-meta .rf-author { display: block; margin-top: 2px; font-size: 10px; color: var(--text3); text-decoration: none; }
+.rf-meta .rf-author:hover { text-decoration: underline; }
 
 /* Tooltip nhanh cho rail thu gọn (JS đặt vị trí; body-level nên không bị overflow rail cắt) */
 .rail-tip {
@@ -475,20 +454,13 @@ body.ord-is-dragging, body.ord-is-dragging * { cursor: grabbing !important; user
 /* ===== Chế độ THU GỌN sidebar (chỉ desktop): còn mỗi icon, tên hiện qua tooltip ===== */
 @media (min-width: 861px) {
   body.rail-collapsed { --rail-w: var(--rail-w-collapsed); }
-  .rail.collapsed .rail-grp-lbl { display: none; }              /* ẩn header nhóm */
-  .rail.collapsed .rail-grp-items {                             /* hiện HẾT mục (bỏ accordion), icon xếp dọc */
-    max-height: none; opacity: 1; overflow: visible; padding: 0;
-  }
-  .rail.collapsed .rail-group.fold > .rail-grp-items { max-height: none; opacity: 1; }  /* no label to unfold it here */
-  .rail.collapsed .rail-group + .rail-group > .rail-grp-items { /* vạch ngăn mờ giữa các nhóm */
-    border-top: 1px solid var(--glass-brd); margin-top: 5px; padding-top: 5px;
-  }
   .rail.collapsed .rail-item { justify-content: center; padding: 9px 0; gap: 0; }
   .rail.collapsed .rail-item .rail-lbl { display: none; }       /* giấu chữ, chỉ còn icon */
+  .rail.collapsed .rail-brand { justify-content: center; padding: 0; }
   .rail.collapsed .rail-brand-text { display: none; }           /* thu gọn: chỉ còn dấu ấn, chữ không vừa */
-  .rail.collapsed .rf-meta { display: none; }                   /* giấu version/tác giả cho vừa bề ngang hẹp, chỉ còn nút */
-  .rail.collapsed .rail-lang { display: none; }                 /* ô ngôn ngữ cũng không vừa bề ngang thu gọn */
-  .rail.collapsed .rail-foot { justify-content: center; }       /* thu: chỉ còn nút, căn giữa */
+  /* Thu gọn: ô tài khoản chỉ còn ảnh tròn, nằm trên nút thu/mở. */
+  .rail.collapsed .rail-foot { flex-direction: column; justify-content: center; }
+  /* Menu vẫn đầy chữ, tràn ra bên phải dải icon. */
 }
 
 /* ===== Đẩy cockpit sang phải để chừa rail ===== */
@@ -883,10 +855,8 @@ body.has-rail .hud { margin-left: var(--rail-w); width: calc(100% - var(--rail-w
      list spilled its last items over the language, brain and version rows below it. The drawer scrolls instead. */
   .rail-nav { flex: 0 0 auto; flex-direction: column; overflow: visible; gap: 2px; padding: 0; }
   .rail-group, .rail-grp-items { display: block; }
-  .rail-grp-lbl { display: flex; }
-  .rail-item { flex: none; flex-direction: row; gap: 10px; padding: 9px 10px; border-radius: 9px; }
-  .rail-item .rail-lbl { font-size: 13px; }
-  .rail-item.active::before { left: 0; right: auto; top: 15%; bottom: 15%; width: 3px; height: auto; }
+  .rail-item { flex: none; width: 100%; flex-direction: row; gap: 10px; padding: 9px 10px; border-radius: 9px; }
+  .rail-item .rail-lbl { font-size: 14px; }
 
   /* Mục "Hệ thống" ở đáy ngăn kéo: chọn brain, đổi tông, loa và trạng thái; Cài đặt dùng mục rail duy nhất. */
   .rail-sys { margin-top: 8px; padding: 10px 6px 4px; border-top: 1px solid var(--glass-brd);
@@ -897,6 +867,7 @@ body.has-rail .hud { margin-left: var(--rail-w); width: calc(100% - var(--rail-w
   .rail-sys-btns { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
   .rail-sys-btns .hud-icon-btn { display: inline-flex; }
   .rail-sys-btns:empty { display: none; }
+
   /* Light/dark switch in the drawer's foot, beside the collapse button: same size and outline, so the
      two read as one pair of small controls on the version row. */
   .rail-foot #themeToggle { order: 2; margin-left: auto; display: inline-flex; align-items: center;
