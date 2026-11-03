@@ -4,6 +4,11 @@
 
 NAOTA release history. Newest first.
 
+## [1.3.6] - 2026-11-03
+### Fixed
+- **On a phone, the Update button at the foot of the menu closes the menu**, so the Update page shows right away. The page used to change behind a menu that stayed open.
+- **Tapping Advanced on a phone no longer closes the menu**, so the items inside can be picked.
+
 ## [1.3.4] - 2026-11-03
 ### Fixed
 - **The Zalo bot notices when it is tagged in a group by the account's Zalo name**, even right after a server restart. NAOTA used to forget that name on every restart, so a tag that did not match the connection name got no answer.
