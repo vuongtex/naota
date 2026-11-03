@@ -108,21 +108,13 @@ body.in-console .hud-actions { display: none; }
   background: transparent; border: 1px solid var(--hairline); border-radius: 10px; }
 .rail-brain .bp-btn:hover, .rail-brain .bp-btn[aria-expanded="true"] { background: var(--surface-2); border-color: var(--accent-line); }
 .rail-brain .bp-btn-chev { margin-left: auto; }
-.rail-brain .rb-acts[hidden] { display: none; }
+.rb-acts[hidden] { display: none; }
 /* The new sidebar keeps its own neutral tints (selected items grey, not yellow); the rest of the app keeps
    the 1.2.1 colours (owner 03/11/2026: new left column, old middle). */
 .rail { --accent-ink: #ffffff; --accent-wash: rgba(255, 255, 255, 0.045); --accent-wash-2: rgba(255, 255, 255, 0.085);
   --accent-line: rgba(255, 255, 255, 0.2); }
 :root[data-theme="light"] .rail { --accent-ink: #0e1116; --accent-wash: rgba(14, 17, 22, 0.045);
   --accent-wash-2: rgba(14, 17, 22, 0.075); --accent-line: rgba(14, 17, 22, 0.2); }
-/* Top bar, as in 1.2.1: brain icon, the brain button (a mirror of the sidebar picker), the four brain buttons
-   and the note/link counts. */
-.hud-top .navbar-brain { position: static; z-index: auto; gap: 8px; }
-.hud-top .navbar-brain .graph-select { max-width: 200px; }
-.navbar-brain .brain-select-ico { color: var(--accent-ink); font-size: 17px; }
-@media (max-width: 860px) {
-  .hud-top .navbar-brain .graph-stats { display: none; }   /* mobile: ẩn stats cho gọn */
-}
 
 /* Form trong card (Channels / Account / provider key) */
 .js-lbl { display: block; font-size: 13px; color: var(--text2); margin: 12px 0 5px; font-family: var(--font); }

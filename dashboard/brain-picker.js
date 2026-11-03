@@ -91,17 +91,6 @@
       '<span class="bp-btn-chev">' + icon("chevron-down") + "</span>";
     btn.title = c.label + (c.notes ? " · " + notesText(c.notes) : "");
     btn.setAttribute("aria-label", t("bpick.title", null, "Choose a brain") + ": " + c.label);
-    drawMirrors();
-  }
-  // Mirrors of this button elsewhere (.bp-mirror: the top bar keeps its 1.2.1 brain button while the sidebar
-  // has this one). Same face; a click opens this same panel under the mirror.
-  var anchor = null;
-  function drawMirrors() {
-    document.querySelectorAll(".bp-mirror").forEach(function (m) {
-      m.innerHTML = btn.innerHTML;
-      m.title = btn.title;
-      m.setAttribute("aria-label", btn.getAttribute("aria-label") || "");
-    });
   }
   drawButton();
   sel.addEventListener("change", drawButton);
@@ -243,7 +232,7 @@
   function place() {
     if (isPhone()) { pop.classList.add("sheet"); pop.style.left = pop.style.top = pop.style.width = ""; return; }
     pop.classList.remove("sheet");
-    var r = (anchor || btn).getBoundingClientRect();
+    var r = btn.getBoundingClientRect();
     var w = Math.max(300, Math.min(380, r.width + 120));
     var left = Math.min(Math.max(8, r.left), root.innerWidth - w - 8);
     pop.style.width = w + "px";
@@ -275,17 +264,9 @@
     btn.setAttribute("aria-expanded", "false");
     document.removeEventListener("keydown", onKey, true);
     root.removeEventListener("resize", place);
-    if (!isPhone()) (anchor || btn).focus();
-    anchor = null;
+    if (!isPhone()) btn.focus();
   }
-  btn.addEventListener("click", function () { anchor = null; if (open) close(); else show(); });
-  document.addEventListener("click", function (e) {
-    var m = e.target && e.target.closest && e.target.closest(".bp-mirror");
-    if (!m) return;
-    if (open) { close(); return; }
-    anchor = m;
-    show();
-  });
+  btn.addEventListener("click", function () { if (open) close(); else show(); });
 
   function pick(value) {
     close();
