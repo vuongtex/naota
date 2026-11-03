@@ -6,7 +6,17 @@ NAOTA release history. Newest first.
 
 ## [1.4.0] - 2026-11-03
 ### Added
-- In progress: time zone, no freezing while answering, the 5-hour limit, no stalls on a small server, lighter Claude limit use, Windows fixes.
+- **Pick a time zone** in **Settings** (the Language and time zone block) and in the last step of first-run setup. "Today", "yesterday", reminders and report numbers follow it, even when the server runs on UTC. The default is Vietnam time.
+
+### Fixed
+- **No more freezing while NAOTA is answering**, and no more "Reconnecting" over and over on a slow device or network.
+- **A small server (1-2 vCPU VPS) no longer stalls** because a few slow jobs blocked the whole app. The voice-note listener leaves one core to the server.
+- **The Claude 5-hour limit notice shows the reset time in your time zone**, not UTC.
+- Windows: `npx` connections no longer break when a path has a space, and `/C:/...` links in answers open.
+
+### Improved
+- **New Claude Code chats use less of your plan limit**: the system prompt stays identical between chats, so it is read back from the cache.
+- Tables with 4 or more columns in Chat get more width on a computer, while ordinary text keeps an easy line length.
 
 ## [1.3.6] - 2026-11-03
 ### Fixed

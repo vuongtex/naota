@@ -104,7 +104,7 @@ These ship with the app (the **Bundled** label). All are on by default except `t
 
 | Name on the card | slug | Tools provided | Minimum level | Default |
 |---|---|---|---|---|
-| Time and date (VN) | `datetime-vn` | `naota_now`, `naota_date_add` | read only | On |
+| Time and date (timezone picked in Settings) | `datetime-vn` | `naota_now`, `naota_date_add` | read only | On |
 | Recurring jobs and reminders | `naota-schedule` | `naota_schedule` | write (safe) | On |
 | Queue Kanban work | `naota-task` | `naota_task` | write (safe) | On |
 | Attach another MCP | `naota-connect` | `naota_add_mcp` | write (safe) | On |
