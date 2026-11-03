@@ -35,7 +35,9 @@ check("brain actions are labelled rows in the panel, Delete last", () => {
   assert.ok(/id: "delBrainBtn"[^}]*danger: true/.test(src), "Delete is marked danger");
   assert.ok(src.includes("if (target) target.click();"), "a row clicks the original button");
   const html = read("index.html");
-  assert.ok(/<span class="rb-acts" hidden>/.test(html), "the bare icon row is hidden");
+  // Owner 03/11/2026 (new sidebar, old middle): the four buttons stay in the 1.2.1 top bar, beside a mirror of the picker.
+  assert.ok(/class="bp-btn bp-mirror"/.test(html), "the top bar shows a mirror of the picker");
+  assert.ok(src.includes('closest(".bp-mirror")'), "a mirror opens the same panel");
   ["bpick.act_new", "bpick.act_rename", "bpick.act_folder", "bpick.act_delete"].forEach((k) => {
     assert.ok(JSON.parse(read("i18n/vi.json"))[k] && JSON.parse(read("i18n/en.json"))[k], k);
   });

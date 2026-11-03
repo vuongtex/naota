@@ -109,10 +109,19 @@ body.in-console .hud-actions { display: none; }
 .rail-brain .bp-btn:hover, .rail-brain .bp-btn[aria-expanded="true"] { background: var(--surface-2); border-color: var(--accent-line); }
 .rail-brain .bp-btn-chev { margin-left: auto; }
 .rail-brain .rb-acts[hidden] { display: none; }
-
-/* Desktop: the top bar is part of the warm frame, no line under it. */
-@media (min-width: 861px) {
-  .hud-top { background: var(--bg); border-bottom-color: transparent; }
+/* The new sidebar keeps its own neutral tints (selected items grey, not yellow); the rest of the app keeps
+   the 1.2.1 colours (owner 03/11/2026: new left column, old middle). */
+.rail { --accent-ink: #ffffff; --accent-wash: rgba(255, 255, 255, 0.045); --accent-wash-2: rgba(255, 255, 255, 0.085);
+  --accent-line: rgba(255, 255, 255, 0.2); }
+:root[data-theme="light"] .rail { --accent-ink: #0e1116; --accent-wash: rgba(14, 17, 22, 0.045);
+  --accent-wash-2: rgba(14, 17, 22, 0.075); --accent-line: rgba(14, 17, 22, 0.2); }
+/* Top bar, as in 1.2.1: brain icon, the brain button (a mirror of the sidebar picker), the four brain buttons
+   and the note/link counts. */
+.hud-top .navbar-brain { position: static; z-index: auto; gap: 8px; }
+.hud-top .navbar-brain .graph-select { max-width: 200px; }
+.navbar-brain .brain-select-ico { color: var(--accent-ink); font-size: 17px; }
+@media (max-width: 860px) {
+  .hud-top .navbar-brain .graph-stats { display: none; }   /* mobile: ẩn stats cho gọn */
 }
 
 /* Form trong card (Channels / Account / provider key) */
@@ -516,33 +525,25 @@ body.ord-is-dragging, body.ord-is-dragging * { cursor: grabbing !important; user
 
 /* ===== Đẩy cockpit sang phải để chừa rail ===== */
 body.has-rail .hud { margin-left: var(--rail-w); width: calc(100% - var(--rail-w)); }
-/* The brain map (cockpit) sits in the same white card as every other page; the composer stays on the frame. */
-@media (min-width: 861px) {
-  body.has-rail .hud-body { margin: 0 10px 0 0; border: 1px solid var(--hairline); border-radius: 14px;
-    overflow: hidden; background: var(--bg2); box-shadow: var(--shadow-1); }
-}
 
 /* ===== Console view (vùng trang quản lý) - bắt đầu DƯỚI header toàn cục ===== */
 .cview {
   position: fixed; top: var(--topbar-h); right: 0; bottom: 0; left: var(--rail-w); z-index: 40;
   display: flex; flex-direction: column;
-  background: var(--bg2);
+  background:
+    radial-gradient(1200px 600px at 80% -10%, var(--accent2-wash), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, var(--accent-wash), transparent 60%),
+    var(--bg);
   overflow: hidden;
 }
-/* Desktop: the page is a white card on the warm frame (rail + top bar), like Linear, Notion or Claude.
-   Phones keep the full-bleed page. */
-@media (min-width: 861px) {
-  .cview { right: 10px; bottom: 10px; border: 1px solid var(--hairline); border-radius: 14px; box-shadow: var(--shadow-1); }
-}
-/* Page header: a large title with its icon and one quiet line under it, no rule. */
 .cview-head {
   display: flex; align-items: center; gap: 12px;
-  padding: 26px 32px 4px;
+  padding: 16px 26px; border-bottom: 1px solid var(--glass-brd);
 }
-.cview-title { font-family: var(--font-head); font-size: 28px; font-weight: 600; letter-spacing: 0.2px; line-height: 1.2; }
+.cview-title { font-family: var(--font-head); font-size: 20px; font-weight: 600; letter-spacing: 0.5px; }
 .cview-title .ico { color: var(--accent-ink); margin-right: 8px; }
-.cview-sub { font-size: 14.5px; color: var(--text3); margin-top: 4px; }
-.cview-body { flex: 1; overflow-y: auto; padding: 18px 32px 28px; }
+.cview-sub { font-size: 14px; color: var(--text2); }
+.cview-body { flex: 1; overflow-y: auto; padding: 24px 26px; }
 
 /* ===== Cards chung ===== */
 .cgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
@@ -553,7 +554,7 @@ body.has-rail .hud { margin-left: var(--rail-w); width: calc(100% - var(--rail-w
   transition: transform 0.18s, border-color 0.18s;
 }
 .gcard:hover { transform: translateY(-2px); border-color: var(--accent-line); }
-.gcard.current { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.gcard.current { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 8px 30px rgba(252, 203, 29, 0.18); }
 .gcard-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .gcard-name { font-family: var(--font); font-weight: 700; font-size: 16px; }
 .gcard-tag {
@@ -1607,8 +1608,8 @@ body.has-rail .hud { margin-left: var(--rail-w); width: calc(100% - var(--rail-w
   border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 13px; cursor: pointer;
   opacity: .85; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .tab-kho:hover { opacity: 1; }
-.tab-kho.on { border-color: var(--accent-line); color: var(--accent-ink); font-weight: 600; opacity: 1;
-  background: var(--accent-wash-2); }
+.tab-kho.on { border-color: var(--accent); color: var(--accent-ink); font-weight: 600; opacity: 1;
+  background: color-mix(in srgb, var(--accent) 8%, transparent); }
 
 /* ============================================================
    Hộp thoại cài gói (.pkm) - dùng cho cả "cài từ tệp .zip" và "cài từ kho"
@@ -1838,39 +1839,6 @@ body.has-rail .hud { margin-left: var(--rail-w); width: calc(100% - var(--rail-w
    trang Cộng sự dùng chung node chat mà thiếu, nên lỗi chỉ hiện ra ở đây. */
 .ws-slot .transcript { flex: 1 1 auto; min-height: 0; max-height: none; }
 .ws-slot .bg-strip, .ws-slot .attach-bar, .ws-slot .model-bar, .ws-slot .hud-voice { flex: none; }
-/* "No AI connected yet" card over the empty chat: one sentence and the one button that fixes it. */
-.no-ai-card { flex: none; display: flex; align-items: center; gap: 14px; width: calc(100% - 32px); max-width: 760px;
-  align-self: center; margin: 12px 16px; padding: 14px 16px; border-radius: 14px;
-  background: var(--surface-2); border: 1px solid var(--accent-line); }
-.no-ai-card[hidden], .no-ai-card:has(~ #chatArea:not(:empty)) { display: none; }
-.nac-ico { flex: none; width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center;
-  background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--text); }
-.nac-ico svg { width: 19px; height: 19px; }
-.nac-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: left; }
-.nac-txt b { font-size: 15px; font-weight: 600; color: var(--text); }
-.nac-txt span { font-size: 13.5px; color: var(--text2); }
-.nac-btn { flex: none; padding: 9px 16px; border-radius: 10px; border: 0; cursor: pointer;
-  background: var(--accent); color: #0e1116; font-weight: 700; font-size: 14px; }
-.nac-btn:hover { background: #ffb100; }
-/* Empty conversation, Claude-style (desktop): a large greeting and the composer sit together in the middle.
-   Pure CSS on #chatArea:empty, so the first message turns the page back into the usual chat with the
-   composer at the foot; nothing to keep in sync. The greeting comes from the dictionary (data-i18n-hello). */
-@media (min-width: 861px) {
-  .ws-slot:has(> #chatArea:empty), .chatpage-slot:has(> #chatArea:empty) { justify-content: center; padding-bottom: 12vh; }
-  .ws-slot > #chatArea:empty, .chatpage-slot > #chatArea:empty {
-    flex: 0 0 auto; min-height: 0; overflow: visible; gap: 8px;
-    align-items: center; text-align: center; padding: 0 16px 18px;
-  }
-  .ws-slot > #chatArea:empty::before, .chatpage-slot > #chatArea:empty::before {
-    content: attr(data-hello); color: var(--text);
-    font-family: var(--font-head); font-size: clamp(28px, 3vw, 40px); font-weight: 600; line-height: 1.2;
-  }
-  .ws-slot > #chatArea:empty::after, .chatpage-slot > #chatArea:empty::after { font-size: 15px; font-style: normal; }
-  .ws-slot:has(> #chatArea:empty) > .no-ai-card, .chatpage-slot:has(> #chatArea:empty) > .no-ai-card { margin-bottom: 22px; }
-  .ws-slot:has(> #chatArea:empty) > .hud-voice, .chatpage-slot:has(> #chatArea:empty) > .hud-voice {
-    width: 100%; max-width: 760px; align-self: center;
-  }
-}
 /* Trình sửa file mở từ chat / từ tab Thư mục. Mở ra là nó chiếm TRỌN khoang giữa ở mọi khổ
    màn - khung chat ẩn đi (xem khối bên dưới).
    `flex: 1 1 auto` để trình sửa cao hết cột: thiếu nó thì nó chỉ cao bằng nội dung, nằm lửng
@@ -1931,7 +1899,7 @@ body.has-rail .hud { margin-left: var(--rail-w); width: calc(100% - var(--rail-w
   border: 1px solid var(--border); background: none; color: var(--text2); cursor: pointer;
   font-family: var(--font); font-size: 13px; font-weight: 700; white-space: nowrap; }
 .ws-seg button:hover { color: var(--accent-ink); border-color: var(--accent); }
-.ws-seg button.on { color: var(--text); border-color: var(--accent-line); background: var(--accent-wash-2); }
+.ws-seg button.on { color: var(--accent-ink); border-color: var(--accent-line); background: rgba(252, 203, 29, .12); }
 .ws-search, .ws-group { width: 100%; box-sizing: border-box; padding: 7px 9px; border-radius: 9px;
   border: 1px solid var(--border); background: none; color: var(--text); font-family: var(--font);
   font-size: 13px; }
@@ -1960,7 +1928,7 @@ body.has-rail .hud { margin-left: var(--rail-w); width: calc(100% - var(--rail-w
   padding: 7px 9px; border-radius: 9px; border: 1px solid transparent; background: none;
   color: var(--text2); cursor: pointer; font-family: var(--font); }
 .ws-item:hover { background: var(--surface-1); color: var(--text); }
-.ws-item.on { border-color: var(--accent-line); background: var(--accent-wash-2); color: var(--text); }
+.ws-item.on { border-color: var(--accent-line); background: rgba(252, 203, 29, .12); color: var(--text); }
 .ws-item-ic { flex: none; opacity: .8; }
 .ws-item-text { min-width: 0; display: flex; flex-direction: column; }
 .ws-item-text strong { font-size: 13.5px; font-weight: 600; overflow: hidden;
@@ -2064,7 +2032,7 @@ body.has-rail .hud { margin-left: var(--rail-w); width: calc(100% - var(--rail-w
 .ws-step.loi { border-color: #ff8b8b; }
 .ws-step.loi .ws-num, .ws-step.loi small { color: #ff8b8b; }
 .ws-wait { margin-top: 8px; padding: 8px; border-radius: 9px; border: 1px solid var(--accent-line);
-  background: var(--accent-wash); font-size: 12.5px; }
+  background: rgba(252, 203, 29, .1); font-size: 12.5px; }
 .ws-wait small { display: block; margin-top: 4px; font-size: 11px; color: var(--text3); }
 
 /* Tab Lịch sử gắn CHÍNH cột lịch sử của trang Trò chuyện (sessions-ui.js, chế độ gọn). Khung
@@ -3744,7 +3712,7 @@ span.tmp-lead { cursor: default; }
 /* Naota Core, the system assistant. A small System badge on its row and on its card; the row keeps the
    accent edge like a pinned one. */
 .ws-sys { flex: 0 0 auto; padding: 1px 7px; border-radius: 999px; font-size: 11.5px; font-weight: 600; line-height: 1.5;
-  color: var(--text2); background: var(--accent-wash); border: 1px solid var(--accent-line); }
+  color: var(--accent-ink); background: var(--accent-wash); border: 1px solid var(--accent); }
 .ws-item-wrap.he > .ws-item { border-left: 3px solid var(--accent); border-radius: 9px; }
 .ws-core-card { padding: 4px 2px 12px; }
 .ws-core-head { display: flex; align-items: center; gap: 10px; }

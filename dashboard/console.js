@@ -111,7 +111,9 @@
     "home", "chat", "settings", "workspace", "teams", "skills", "chatbots", "conversations", "files",
     "terminal", "coding", "tasks", "webhooks", "learn", "models", "channels", "mcp", "plugins",
     "packs", "logs", "account", "usage", "logins", "pet", "share",
-  ].map(id => ({ id, icon: ICON[id], get label() { return t(`page.${id}.label`); } }));
+  ].map(id => ({ id, icon: ICON[id], get label() { return t(`page.${id}.label`); },
+    // The sidebar may carry its own shorter name (rail.lbl.<id>); page titles keep page.<id>.label.
+    get railLabel() { const k = `rail.lbl.${id}`, v = t(k); return v === k ? this.label : v; } }));
 
   // ---- Nhóm theo chức năng, cho lệnh bằng lời (open_group). Thanh bên vẽ theo RAIL_SECTIONS. ----
   // RAIL_ITEMS vẫn là nguồn icon/label + tra cứu cho go().
@@ -7806,7 +7808,7 @@
   // rời trang. Cùng một cuộc trò chuyện hiển thị ở cả màn Naota lẫn tab này.
   // ============================================
   // attachBar lives INSIDE #hudVoice so it is no longer borrowed on its own.
-  const CHAT_NODE_IDS = ["callBar", "noAiCard", "chatArea", "bgStrip", "goalBar", "modelBar", "hudVoice"];
+  const CHAT_NODE_IDS = ["callBar", "chatArea", "bgStrip", "goalBar", "modelBar", "hudVoice"];
   let _chatSlots = [];        // vị trí gốc từng node để trả về đúng chỗ trong HUD
 
   function _injectChatCss() {
@@ -9524,8 +9526,6 @@
       d = await r.json();
     } catch (e) { return; }
     const dead = Object.entries(d.engines || {}).filter(([, rec]) => rec && rec.ok === false);
-    const card = document.getElementById("noAiCard");
-    if (card) card.hidden = !dead.length;
     if (!dead.length) { b.hidden = true; return; }
     b.innerHTML = WARN_ICON + " " + esc(window.t("cs.eng_nomodel"));
     // Chi tiết kỹ thuật (engine nào, lỗi gì) chuyển vào tooltip: cần khi đi hỏi, nhưng
@@ -9555,10 +9555,7 @@
     setInterval(refreshEngineBanner, 90000);
     // Báo "chưa kết nối" mà không đưa được người ta tới chỗ kết nối thì chỉ là than phiền.
     const _eb = document.getElementById("engineBanner");
-    if (_eb) _eb.addEventListener("click", () => navigateTo("models"));
-    const _nab = document.getElementById("noAiBtn");
-    if (_nab) _nab.addEventListener("click", () => navigateTo("models"));
-    const ver = document.getElementById("railVersion");
+    if (_eb) _eb.addEventListener("click", () => navigateTo("models"));    const ver = document.getElementById("railVersion");
     if (ver) {
       // Hiện tạm, thay ngay bằng phiên bản thật từ server. Số tạm lấy từ khối naota-fresh mà index.html (luôn mới) mang
       // theo: /version mà trượt (máy chủ đang khởi động) thì vẫn đúng số, không phải con số dự phòng cũ như từng thấy.

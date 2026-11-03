@@ -8,15 +8,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 ## [1.3.0] - 2026-11-03
 ### Cải thiện
-- **Giao diện mới, gọn như các app AI lớn.** Mỗi trang nằm trong một khung trắng trên nền xám ấm, tiêu đề trang to và rõ.
-- **Bộ não đang dùng ở trên cùng bên trái**, ngay dưới logo. Thêm, đổi tên, xoá bộ não nằm cạnh đó. **Bản đồ bộ não** đứng đầu thanh bên.
-- **Mở hội thoại mới là thấy lời chào và ô nhập ở giữa màn hình**, gõ câu đầu tiên là thành khung trò chuyện.
-- **Thanh bên một cột**, bấm là mở ngay, mỗi khúc có tên nhỏ (Đội ngũ, Kiến thức, Kết nối, Hệ thống). **Nút Việc mới** ở đầu cột mở hội thoại mới.
-- **Chưa kết nối AI thì báo ngay giữa màn hình chat**, kèm nút **Kết nối AI**.
-- **Số phiên bản và nút Cập nhật luôn hiện dưới đáy thanh bên**. Có bản mới thì nút chuyển vàng, ghi **Có bản mới**.
-- **Chữ dễ hiểu hơn**: Sơ đồ thành **Bản đồ bộ não**, Bảng việc thành **Việc cần làm** (trang Nhiệm vụ cũng cùng tên này), Cộng sự thành **Trợ lý**, Nguồn dữ liệu thành **Kết nối dữ liệu**, Models AI thành **Chọn Models**, mức suy nghĩ ghi bằng tiếng Việt (Không nghĩ, Nghĩ nhẹ, Nghĩ kỹ...).
-- **Ô tài khoản dưới đáy** gom tài khoản, nâng cao, cập nhật, ngôn ngữ và giao diện sáng tối.
-- **Bớt màu vàng**: mục đang chọn tô xám, vàng chỉ còn ở nút bấm chính.
+- **Thanh bên mới một cột**: bộ não đang dùng ở trên cùng, nút **Việc mới** ngay dưới, các mục chia khúc có tên nhỏ (Đội ngũ, Kiến thức, Kết nối, Hệ thống).
+- **Tên mục dễ hiểu hơn trên thanh bên**: Bản đồ bộ não, Trò chuyện, Việc cần làm, Trợ lý, Kết nối dữ liệu, Chọn Models.
+- **Số phiên bản và nút Cập nhật luôn hiện dưới đáy thanh bên**, có bản mới thì nút chuyển vàng.
+- **Ô tài khoản dưới đáy** gom tài khoản, cập nhật, nâng cao, ngôn ngữ và giao diện sáng tối. Các trang và thanh trên giữ nguyên như 1.2.1.
 
 ## [1.2.1] - 2026-11-03
 ### Cải thiện

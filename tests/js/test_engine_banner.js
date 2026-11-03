@@ -39,12 +39,9 @@ check("khong ghep cau bao loi cua server vao dai bao",
   FN.indexOf("rec.message") === -1 || FN.indexOf("b.title") !== -1);
 
 // ---- 2. Phai noi dung viec can lam ----
-check("noi ro la chua ket noi AI",
+check("noi ro la chua ket noi Model AI",
   FN.indexOf('"cs.eng_nomodel"') !== -1
-  && (VI["cs.eng_nomodel"] || "").indexOf("Chưa kết nối AI") !== -1);
-// Cung luc do, the giua khung chat trong co nut Ket noi AI dan toi trang Chon AI.
-check("the giua chat trong hien cung dai bao",
-  FN.indexOf('getElementById("noAiCard")') !== -1 && FN.indexOf("card.hidden = !dead.length") !== -1);
+  && (VI["cs.eng_nomodel"] || "").indexOf("Chưa kết nối Model AI") !== -1);
 check("moi nguoi dung bam",
   FN.indexOf('"cs.eng_nomodel"') !== -1
   && (VI["cs.eng_nomodel"] || "").indexOf("bấm để kết nối") !== -1);
@@ -65,9 +62,9 @@ if (m) {
 // ---- 4. Chi tiet ky thuat chuyen vao tooltip, khong bo di ----
 // Van can khi di hoi, chi la khong dang chiem cho tren thanh trang thai.
 check("van giu chi tiet ky thuat trong tooltip", FN.indexOf("b.title") !== -1);
-check("tooltip co nhac trang Chon Models",
+check("tooltip co nhac trang Models",
   FN.indexOf('"cs.eng_gotomodels"') !== -1
-  && (VI["cs.eng_gotomodels"] || "").indexOf("trang Chọn Models") !== -1);
+  && (VI["cs.eng_gotomodels"] || "").indexOf("trang Models") !== -1);
 
 // ---- 5. Bam duoc va dan toi dung cho ----
 // Bao "chua ket noi" ma khong dua duoc nguoi ta toi cho ket noi thi chi la than phien.

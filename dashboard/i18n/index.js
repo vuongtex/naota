@@ -84,7 +84,6 @@
    *   data-i18n-aria   -> nhãn cho trình đọc màn hình
    *   data-i18n-ph     -> placeholder của ô nhập
  *   data-i18n-empty  -> data-empty-hint, câu CSS vẽ khi khung còn trống
- *   data-i18n-hello  -> data-hello, lời chào lớn CSS vẽ trên ô nhập khi hội thoại còn trống
    * Cố ý dùng textContent chứ không innerHTML: xem luật 3 ở đầu file. */
   function applyDom(goc) {
     var root = goc || document;
@@ -115,10 +114,6 @@
     root.querySelectorAll("[data-i18n-empty]").forEach(function (el) {
       var v = tra(el, "data-i18n-empty");
       if (v !== null) el.setAttribute("data-empty-hint", v);
-    });
-    root.querySelectorAll("[data-i18n-hello]").forEach(function (el) {
-      var v = tra(el, "data-i18n-hello");
-      if (v !== null) el.setAttribute("data-hello", v);
     });
   }
 

@@ -34,7 +34,10 @@ check("không mượn ô chọn brain nữa", !/navbar-brain/.test(JS));
 const top = (IDX.match(/<div class="rail-top">[\s\S]*?<div class="rail-nav">/) || [""])[0];
 check("ô chọn bộ não ở đầu thanh bên, dưới logo",
   /class="rail-brand"[\s\S]*class="orb-graph-ctl navbar-brain rail-brain"/.test(top) && /id="graphSource"/.test(top));
-check("đủ bốn nút của bộ não", ["newBrainBtn", "renameBrainBtn", "delBrainBtn", "pickFolderBtn"].every((id) => top.includes('id="' + id + '"')));
+// Owner 03/11/2026: new sidebar, old middle, so the four buttons stay in the 1.2.1 top bar next to a mirror of the picker.
+const hudTop = (IDX.match(/<div class="hud-top-left">[\s\S]*?<\/div>\s*<\/div>/) || [""])[0];
+check("đủ bốn nút của bộ não ở thanh trên, cạnh ô bộ não soi gương", /bp-mirror/.test(hudTop) &&
+  ["newBrainBtn", "renameBrainBtn", "delBrainBtn", "pickFolderBtn"].every((id) => hudTop.includes('id="' + id + '"')));
 check("thanh trên không còn ô chọn bộ não", (IDX.match(/id="graphSource"/g) || []).length === 1);
 
 // ---- 3. Nút sáng tối: xuống đáy ngăn kéo, quay về khi màn rộng ----

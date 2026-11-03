@@ -6,15 +6,10 @@ NAOTA release history. Newest first.
 
 ## [1.3.0] - 2026-11-03
 ### Improved
-- **A new look, as clean as the big AI apps.** Every page sits in a white card on a warm grey frame, with a large clear title.
-- **The brain in use sits at the top left**, right under the logo. Add, rename and delete a brain from there. **Brain map** leads the sidebar.
-- **A new chat opens with a greeting and the message box in the middle**; the first message turns it into the usual chat.
-- **A one-column sidebar** that opens a page with one click, each block under a small name (Team, Knowledge, Connections, System). **A New task button** at the top opens a fresh chat.
-- **No AI connected yet? The empty chat says so in the middle**, with a **Connect AI** button.
-- **The version and an Update button always show at the foot of the sidebar**. The button turns yellow and reads **Update available** when a new version is out.
-- **Plainer Vietnamese words** in the Vietnamese interface: the brain map, the task page, agents, data connections, the model picker and the thinking levels.
-- **An account box at the bottom** holds account, advanced tools, updates, language and light or dark theme.
-- **Less yellow**: the selected item is grey, yellow stays on the main buttons only.
+- **A new one-column sidebar**: the brain in use at the top, a **New task** button under it, items in blocks with small names (Team, Knowledge, Connections, System).
+- **Plainer item names in the sidebar** (Vietnamese interface): brain map, chat, to-do, assistants, data connections, model picker.
+- **The version and an Update button always show at the foot of the sidebar**; the button turns yellow when a new version is out.
+- **An account box at the bottom** holds account, updates, advanced tools, language and light or dark theme. Pages and the top bar stay as in 1.2.1.
 
 ## [1.2.1] - 2026-11-03
 ### Improved

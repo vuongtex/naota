@@ -39,8 +39,7 @@
          quầng sáng). Trên nền tối chữ nhấn phải sáng hơn nền; trên nền trắng nó
          phải đậm hơn hẳn, nếu bê nguyên #ff7a3c sang chỉ đạt 3.4:1 - đọc mỏi. --- */
   --text-hi: #ffffff;              /* chữ bật lên khi hover/chọn */
-  /* 1.3.0: selected text is plain strong text, not yellow; yellow is for solid accents only. */
-  --accent-ink: #ffffff;
+  --accent-ink: #fccb1d;
   --accent2-ink: #5cc6f5;
   /* Cam để TÔ ĐẶC nút có chữ đè lên. Tách khỏi --accent vì tương phản là ĐỐI XỨNG:
      một màu vừa nổi trên nền trắng vừa đỡ được chữ trắng là bất khả. --accent giữ
@@ -62,11 +61,10 @@
   --shadow-veil: rgba(0, 0, 0, 0.5);          /* MÀU bóng (không phải cả box-shadow) cho
                                                  mép ngăn kéo trượt - cần tự đặt offset */
 
-  /* --- Vùng nhuộm màu nhấn (nền cảnh báo, thẻ chưa đọc, nút chính) ---
-     1.3.0: tints are neutral grey. Yellow stays for solid accents only (buttons, badges, ticks). */
-  --accent-wash: rgba(255, 255, 255, 0.045);
-  --accent-wash-2: rgba(255, 255, 255, 0.085);
-  --accent-line: rgba(255, 255, 255, 0.2);
+  /* --- Vùng nhuộm màu nhấn (nền cảnh báo, thẻ chưa đọc, nút chính) --- */
+  --accent-wash: rgba(252, 203, 29, 0.07);
+  --accent-wash-2: rgba(252, 203, 29, 0.13);
+  --accent-line: rgba(252, 203, 29, 0.38);
   --accent-ring: 0 0 16px rgba(252, 203, 29, 0.20);
   --accent2-wash: rgba(0, 159, 227, 0.12);
   --accent2-wash-2: rgba(0, 159, 227, 0.22);
@@ -163,7 +161,7 @@
   --yellow: #96590a;
 
   --text-hi: #000000;
-  --accent-ink: #0e1116;
+  --accent-ink: #7a5a00;
   --accent2-ink: #006b9e;
   --accent-solid: #fccb1d;   /* chữ trắng đặt lên đạt 5.2:1 */
 
@@ -180,9 +178,9 @@
   --shadow-3: 0 22px 58px rgba(14, 17, 22, 0.15);
   --shadow-veil: rgba(14, 17, 22, 0.15);
 
-  --accent-wash: rgba(14, 17, 22, 0.045);
-  --accent-wash-2: rgba(14, 17, 22, 0.075);
-  --accent-line: rgba(14, 17, 22, 0.2);
+  --accent-wash: rgba(252, 203, 29, 0.14);
+  --accent-wash-2: rgba(252, 203, 29, 0.26);
+  --accent-line: rgba(196, 150, 0, 0.55);
   /* Quầng toả sáng vô nghĩa trên giấy - đổi thành vòng đặc ôm sát viền. */
   --accent-ring: 0 0 0 3px rgba(252, 203, 29, 0.45);
   --accent2-wash: rgba(0, 159, 227, 0.09);
@@ -333,15 +331,13 @@ h2, h3, .fm-head { font-family: var(--font-head); font-weight: 600; letter-spaci
   width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8;
   stroke-linecap: round; stroke-linejoin: round;
 }
-/* Unread: yellow border, glow and pulse ring. These stay yellow on purpose although the --accent-wash/-line
-   tints went grey in 1.3.0 (owner wants the unread signal kept as it was). */
 .notification-trigger.has-unread {
   color: var(--text-hi); border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  background: var(--accent-wash-2);
   box-shadow: var(--accent-ring);
 }
 .notification-trigger.has-unread::before {
-  content: ""; position: absolute; inset: -2px; border: 1px solid rgba(252, 203, 29, 0.55);
+  content: ""; position: absolute; inset: -2px; border: 1px solid var(--accent-line);
   border-radius: 11px; pointer-events: none;
   animation: notiPulse 2.2s ease-out infinite;
 }
