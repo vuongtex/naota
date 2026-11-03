@@ -66,7 +66,7 @@ bad, why = chatbot_store.create_bot({"name": "Bot", "brain": "shop"})
 check("tạo thiếu Agent -> từ chối", bad is None and "agent" in why.lower())
 
 bad, why = chatbot_store.create_bot({"name": "Bot", "agent_slug": "cskh"})
-check("tạo thiếu brain -> từ chối", bad is None and "brain" in why.lower())
+check("tạo thiếu brain -> từ chối", bad is None and ("bộ não" in why.lower() or "brain" in why.lower()))
 
 # Slug Agent = TÊN FILE trong Naota/agents, và tên đó do người dùng đặt. Rào ở đây canh AN
 # TOÀN ĐƯỜNG DẪN chứ không canh hình dạng: khuôn cũ chỉ nhận ASCII nên nó chặn đúng những
