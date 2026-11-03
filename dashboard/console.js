@@ -171,14 +171,17 @@
     { lbl: "nav.group.ket_noi", ids: ["mcp", "channels", "packs"] },
     { lbl: "nav.group.he_thong", ids: ["models", "settings"] },
   ];
-  const RAIL_MENU = ["account", "logs"];
+  const RAIL_MENU = ["account"];
   const RAIL_MENU_ADV = ["terminal", "plugins", "webhooks", "logins", "share"];
+  // Reached from the Update button by the version at the foot, so it sits in no list (owner 03/11/2026:
+  // one place per item).
+  const RAIL_FOOT = ["logs"];
   const _railPick = (ids, seen) => ids
     .map(id => { if (seen) seen.add(id); return RAIL_AN.has(id) ? null : RAIL_BY_ID[id]; })
     .filter(Boolean);
   // Trả về [{label, items:[...]}], bỏ id không tồn tại. Mục nào chưa xếp chỗ → dồn vào khúc cuối.
   function railGroups() {
-    const seen = new Set([...RAIL_MENU, ...RAIL_MENU_ADV]);
+    const seen = new Set([...RAIL_MENU, ...RAIL_MENU_ADV, ...RAIL_FOOT]);
     const groups = RAIL_SECTIONS.map(s => ({
       get label() { return s.lbl ? t(s.lbl) : ""; },
       items: _railPick(s.ids, seen),

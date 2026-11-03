@@ -61,13 +61,16 @@
       sysHost.className = "rail-sys";
       sysLbl = document.createElement("div");
       sysLbl.className = "rail-sys-lbl";
-      sysLbl.textContent = window.t("nav.group.he_thong");
+      // 1.3.0: the sidebar has its own "System" block, so this one is named after what it holds, the brain.
+      sysLbl.textContent = window.t("nav.group.bo_nao");
       sysHost.appendChild(sysLbl);
       sysBtns = document.createElement("div");
       sysBtns.className = "rail-sys-btns";
       sysHost.appendChild(sysBtns);
-      var foot = railEl.querySelector(".rail-foot");
-      railEl.insertBefore(sysHost, foot || null);
+      // Above the version row, so the version stays next to the account box as on a computer.
+      var foot = railEl.querySelector(".rf-meta") || railEl.querySelector(".rail-foot");
+      if (foot) foot.parentNode.insertBefore(sysHost, foot);
+      else railEl.appendChild(sysHost);
     }
     // `toFoot` (owner): the light/dark switch goes to the drawer's foot, just left of the collapse button,
     // instead of a row of its own under the "System" label.
@@ -271,7 +274,7 @@
     // vẽ bằng window.t() ở trên đều chạy TRƯỚC khi có từ điển. Vẽ lại đúng những chỗ đó.
     window.addEventListener("naota:i18n", function () {
       setPlaceholder();
-      if (sysLbl) sysLbl.textContent = window.t("nav.group.he_thong");
+      if (sysLbl) sysLbl.textContent = window.t("nav.group.bo_nao");
       if (brainMaxBtn) {
         var dangBung = document.body.classList.contains("brain-max");
         brainMaxBtn.title = dangBung ? window.t("mchat.brain_min_title") : window.t("orb.max_title");

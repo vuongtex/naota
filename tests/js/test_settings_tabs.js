@@ -10,9 +10,10 @@ const railCtx = { ICON: {}, GICON: {}, t: k => k };
 vm.createContext(railCtx);
 vm.runInContext(src.slice(src.indexOf("  const RAIL_ITEMS ="), src.indexOf("  // icon lấy từ VIEW_ICON")) +
   "\nglobalThis.groups = railGroups(); globalThis.menu = railMenu();", railCtx);
-// 1.3.0: one flat column; Models and Settings close it, Account and Update moved to the account menu.
+// 1.3.0: one flat column; Models and Settings close it, Account moved to the account menu. Update is only the
+// button by the version at the foot (one place per item), so it is in no list at all.
 assert.deepEqual(Array.from(railCtx.groups.at(-1).items, i => i.id), ["models", "settings"]);
-assert.deepEqual(Array.from(railCtx.menu.main, i => i.id), ["account", "logs"]);
+assert.deepEqual(Array.from(railCtx.menu.main, i => i.id), ["account"]);
 assert.deepEqual(Array.from(railCtx.menu.adv, i => i.id), ["terminal", "plugins", "webhooks", "logins", "share"]);
 const onRail = railCtx.groups.flatMap(g => g.items).map(i => i.id);
 assert.ok(!onRail.some(id => ["pet", "usage", "chatbots"].includes(id)),
