@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.6.0] - 2026-11-04
+### Added
+- In progress, details to follow.
+
 ## [1.5.0] - 2026-11-04
 ### Added
 - **Message a commenter privately** from their comment thread: pick Reply publicly or Message privately above the box. Meta allows one per comment, within 7 days.
