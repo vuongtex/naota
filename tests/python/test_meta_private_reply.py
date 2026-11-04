@@ -1,4 +1,4 @@
-"""Meta connection (0.446.0): message a commenter privately, and disconnect a Page.
+"""Meta connection: message a commenter privately, and disconnect a Page.
 
     python tests/run.py meta_private_reply      (no network: Graph calls are faked)
 
@@ -19,8 +19,8 @@ import os
 import sys
 import tempfile
 
-os.environ["JAVIS_STATE_DIR"] = tempfile.mkdtemp(prefix="javis-meta-priv-")
-os.environ["JAVIS_ALLOWED_HOSTS"] = "testserver"
+os.environ["NAOTA_STATE_DIR"] = tempfile.mkdtemp(prefix="naota-meta-priv-")
+os.environ["NAOTA_ALLOWED_HOSTS"] = "testserver"
 try:
     sys.stdout.reconfigure(encoding="utf-8")
 except Exception:

@@ -2017,10 +2017,10 @@ def manual_meta(conv: dict, last: dict) -> dict:
             "message_id": str(last.get("external_message_id") or ""), "account_id": raw,
             "platform": str(conv.get("channel") or ""), "_kenh": str(conv.get("channel") or ""), "mentioned": True,
             "ts": float(last.get("created_at") or time.time())}
-    if conv.get("channel") == "messenger" and meta["chat_id"].startswith("cmt:"):
-        # A Page comment thread: the reply goes out publicly under the comment, the model must know.
+    if conv.get("channel") == "messenger" and meta["chat_id"].startswith(("cmt:", "igc:")):
+        # A Page or Instagram comment thread: the reply goes out publicly under the comment, the model must know.
         import messenger_bot
-        meta["ghi_chu_dau"] = messenger_bot.comment_note()
+        meta["ghi_chu_dau"] = messenger_bot.comment_note(instagram=meta["chat_id"].startswith("igc:"))
     if last.get("message_type") == "image":
         meta["co_anh"] = True
         meta["image_url"] = str((last.get("metadata") or {}).get("image_url") or "")

@@ -6,7 +6,12 @@ NAOTA release history. Newest first.
 
 ## [1.5.0] - 2026-11-04
 ### Added
-- In progress: private replies to commenters, Instagram in the shared inbox.
+- **Message a commenter privately** from their comment thread: pick Reply publicly or Message privately above the box. Meta allows one per comment, within 7 days.
+- **Instagram in the shared inbox**: tick "Also connect the Page's Instagram" when connecting, and Instagram messages and comments arrive in the same place, with the same bot as the Page.
+- **The "..." menu on each chat** now has View profile, Block and Delete chat. NAOTA always asks before Delete, because deleting a comment or a personal Zalo chat really deletes it there.
+
+### Improved
+- The Facebook Messenger card is now **Meta connection**, with an icon for each app and a **Disconnect** button on each Page. Past chats stay. Comments and Instagram get their own icons in the inbox.
 
 ## [1.4.0] - 2026-11-03
 ### Added

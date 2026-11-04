@@ -329,9 +329,9 @@ def register(app, deps: ChannelsDeps):
         return {"ok": True, "account_key": key, "no_bot": _bat(on)}
 
     async def _meta_unsubscribe(account_id: str) -> dict:
-        """A Facebook Page being removed (0.446.0): tell Meta to stop sending its messages and comments to this app's
+        """A Facebook Page being removed: tell Meta to stop sending its messages and comments to this app's
         webhook, or Meta keeps calling and, with the last app secret gone, every call fails the signature check.
-        Best effort; the Page is removed from Javis whatever Meta answers. {"meta_unsubscribed": bool} for Messenger."""
+        Best effort; the Page is removed from Naota whatever Meta answers. {"meta_unsubscribed": bool} for Messenger."""
         a = channel_accounts.get_account(account_id) or {}
         if a.get("channel") != "messenger":
             return {}
