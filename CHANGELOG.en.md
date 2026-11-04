@@ -4,6 +4,15 @@
 
 NAOTA release history. Newest first.
 
+## [1.5.0] - 2026-11-04
+### Added
+- **Message a commenter privately** from their comment thread: pick Reply publicly or Message privately above the box. Meta allows one per comment, within 7 days.
+- **Instagram in the shared inbox**: tick "Also connect the Page's Instagram" when connecting, and Instagram messages and comments arrive in the same place, with the same bot as the Page.
+- **The "..." menu on each chat** now has View profile, Block and Delete chat. NAOTA always asks before Delete, because deleting a comment or a personal Zalo chat really deletes it there.
+
+### Improved
+- The Facebook Messenger card is now **Meta connection**, with an icon for each app and a **Disconnect** button on each Page. Past chats stay. Comments and Instagram get their own icons in the inbox.
+
 ## [1.4.0] - 2026-11-03
 ### Added
 - **Pick a time zone** in **Settings** (the Language and time zone block) and in the last step of first-run setup. "Today", "yesterday", reminders and report numbers follow it, even when the server runs on UTC. The default is Vietnam time.
