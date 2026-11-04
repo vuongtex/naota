@@ -1116,7 +1116,7 @@
   <!-- Models page usage order: drag, swap, popover placement. console.js calls window.NaotaModelsOrder. -->
   <script src="/static/models-order.js?v=1"></script>
   <script src="/static/plan-limit.js?v=2"></script>
-  <script src="/static/model-picker.js?v=18"></script>
+  <script src="/static/model-picker.js?v=19"></script>
   <script src="/static/composer-plus.js?v=3"></script>
   <script src="/static/composer-folder.js?v=4"></script>
   <script src="/static/github-connect.js?v=3"></script>
@@ -1141,7 +1141,9 @@
   <script src="/static/pulse-seen.js?v=1"></script>
   <!-- Tag filter bar and tag picker shared by Cộng sự and Team: load BEFORE workspace.js and teams.js. -->
   <script src="/static/tag-picker.js?v=1"></script>
-  <script src="/static/workspace.js?v=34"></script>
+  <script src="/static/core-model.js?v=1"></script>
+  <!-- Model row of the Naota Core card: uses window.NaotaModelList, workspace.js calls window.NaotaCoreModel. -->
+  <script src="/static/workspace.js?v=35"></script>
   <!-- Hộp chọn thành viên kiểu Zalo: nạp TRƯỚC teams.js, teams.js gọi window.NaotaTeamPicker. -->
   <script src="/static/team-picker.js?v=1"></script>
   <!-- Bộ phán xử nói / chờ / im của từng trợ lý: lịch sử quyết định và nút sửa. Nạp TRƯỚC teams.js
