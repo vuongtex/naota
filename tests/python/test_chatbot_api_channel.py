@@ -116,6 +116,10 @@ check("account form gets the three limit fields", ui and [f["key"] for f in ui["
 check("other channels are not flagged", all(not c["khoa_tu_sinh"] and not c["tran_muc_quyen"]
                                             for c in channels.cho_giao_dien() if c["id"] != "api"))
 
+_css = (ROOT / "dashboard" / "style.css").read_text(encoding="utf-8")
+check("the token row really hides for a generated-key channel (.cb-row is display:flex, which beats [hidden])",
+      ".cb-row[hidden] { display: none; }" in _css)
+
 from fastapi import FastAPI  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 import routes.channels as rc  # noqa: E402

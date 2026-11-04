@@ -3422,6 +3422,7 @@ div.cb-quyen > svg { flex: none; margin-top: 2px; }
   background: var(--field-bg); color: var(--text); font-size: 14px; font-family: inherit; outline: none; }
 .cb-form input:focus, .cb-form select:focus, .cb-form textarea:focus { border-color: var(--info-line); }
 .cb-row { display: flex; gap: 6px; align-items: center; }
+.cb-row[hidden] { display: none; }
 .cb-row > :first-child { flex: 1 1 auto; min-width: 0; }
 .cb-row > button { flex: 0 0 auto; white-space: nowrap; }
 /* Tên Agent + vai trò dài làm <select> nở rộng ra khỏi form. min-width:0 ở trên mới cho phép

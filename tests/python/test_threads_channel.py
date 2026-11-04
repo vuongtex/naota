@@ -271,6 +271,12 @@ check("Delete on a Threads reply hides it; profile links to threads.net",
 pr = run(ca.profile({"channel": "threads", "external_chat_id": "r1", "customer_name": "@lan.nguyen"}))
 check("Threads profile link", pr.get("url") == "https://www.threads.net/@lan.nguyen", pr)
 
+_conv = (ROOT / "dashboard" / "conversations.js").read_text(encoding="utf-8")
+check("the add-channel form opens the Threads form on the Threads card, not the Messenger one",
+      'k.id === "threads") M.openThreadsForm()' in _conv)
+check("the add-channel form asks for no webhook for a channel with its own card",
+      "if (!k.webhook || k.the_ket_noi) return;" in _conv)
+
 print()
 if _fails:
     print(f"ĐỎ: {len(_fails)}: " + "; ".join(_fails))

@@ -2359,6 +2359,7 @@
       // Internal API: Naota generates the key on Save, so there is no token to paste or check.
       box.querySelector("#htTokenRow").hidden = !!k.khoa_tu_sinh;
       if (k.khoa_tu_sinh) lab.textContent = window.t("ht.khoa_lb");
+      box.querySelector("#htLabel").placeholder = window.t(k.khoa_tu_sinh ? "ht.ph_nhan_api" : "ht.ph_nhan_tk");
       box.querySelector("#htTokenNote").textContent = (k.lay_token || "") + (k.khoa_tu_sinh ? "" : " " + window.t("cb.token_rieng"));
       // A channel with its own card on the Connections page (Messenger): connecting there is quicker and a Page
       // connected there is already in the channel list, so nobody should connect the same Page twice.
@@ -2374,7 +2375,12 @@
       if (mo) mo.onclick = function () {
         dong();
         try { window.NaotaNav.go("mcp"); } catch (e) {}
-        setTimeout(function () { try { window.NaotaMessenger && window.NaotaMessenger.openForm(null); } catch (e) {} }, 400);
+        setTimeout(function () {
+          try {
+            var M = window.NaotaMessenger;
+            if (M) { if (k.id === "threads") M.openThreadsForm(); else M.openForm(null); }
+          } catch (e) {}
+        }, 400);
       };
       box.querySelectorAll(".cb-kenh-o").forEach(function (n) { n.classList.toggle("on", n.dataset.k === id); });
       hienWebhook(k);
@@ -2386,7 +2392,8 @@
       if (!o) return;
       o.hidden = true;
       o.innerHTML = "";
-      if (!k.webhook) return;
+      // A channel with its own card shows the webhook there; this part of the form is hidden for it.
+      if (!k.webhook || k.the_ket_noi) return;
       try {
         var r = await api("/channels/webhook-info?channel=" + encodeURIComponent(k.id));
         if (chon !== k.id) return;
