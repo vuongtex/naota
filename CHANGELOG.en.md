@@ -4,6 +4,16 @@
 
 NAOTA release history. Newest first.
 
+## [1.6.1] - 2026-11-04
+### Added
+- **Edit Agent button in the Chatbot form**: edit the bot's Agent on the spot, and what you typed in the form stays.
+### Fixed
+- **Rules taught to an assistant in chat now reach its bot**: at every permission level, with no need to copy them into the Agent file.
+- **Bots read Zalo contact cards**: when a customer sends one, the bot and the inbox see the name and phone number.
+- **Read only, Reads documents and Can write bots know the current time**: asked about today or opening hours, the bot no longer has to guess.
+### Security
+- **MCP links with a key in the path are stored apart**: when a service declares this, the link is encrypted, never stored in plain text or sent to the page, and only that service's address is accepted.
+
 ## [1.6.0] - 2026-11-04
 ### Added
 - **Threads on the Meta connection card**: replies under your Threads posts reach the inbox and the bot can answer publicly. Each account picks off, inbox only, or bot replies. Threads only lets you hide a reply, not delete it, so NAOTA says that and asks first.
