@@ -680,7 +680,7 @@
   }
   function noteLinks(t) {
     return '<div class="nv-links">' + linksIn(t.notes).map(function (l) {
-      if (l.wiki) return '<a href="#open=' + esc(encodeURIComponent(l.target)) + '" class="jv-wikilink nv-lnk" data-vault-path="' + esc(l.target) + '" title="' + esc(tw("nv.ln.open", { t: l.target })) + '">' + ic(linkIcon(l.target)) + esc(l.label) + "</a>";
+      if (l.wiki) return '<a href="#open=' + esc(encodeURIComponent(l.target)) + '" class="nt-wikilink nv-lnk" data-vault-path="' + esc(l.target) + '" title="' + esc(tw("nv.ln.open", { t: l.target })) + '">' + ic(linkIcon(l.target)) + esc(l.label) + "</a>";
       return '<a class="nv-lnk" href="' + esc(l.url) + '" target="_blank" rel="noopener" title="' + esc(l.url) + '">' + ic("link") + esc(l.label) + "</a>";
     }).join("") + '<button type="button" class="nv-lnkadd" data-act="notelink" data-id="' + esc(t.id) + '">' + ic("plus") + esc(tw("nv.ln.add")) + "</button>"
       + '<label class="nv-lnkadd' + (S.upBusy === t.id ? " busy" : "") + '">' + ic(S.upBusy === t.id ? "loader-circle" : "paperclip", S.upBusy === t.id ? "nv-spin" : "") + esc(tw(S.upBusy === t.id ? "nv.ln.uploading" : "nv.ln.upload"))

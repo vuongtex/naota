@@ -94,7 +94,7 @@ async def _engine(text, meta, progress, *, channel="", bot=None, **_kw):
     if ENGINE["sleep"]:
         await asyncio.sleep(ENGINE["sleep"])
     if ENGINE["fail"]:
-        return "Execution error: boom at /root/naota-os/state/secret.json"
+        return "Execution error: boom at /opt/naota/state/secret.json"
     return {"text": ENGINE["reply"], "files": []}
 
 
