@@ -2021,6 +2021,10 @@ def manual_meta(conv: dict, last: dict) -> dict:
         # A Page or Instagram comment thread: the reply goes out publicly under the comment, the model must know.
         import messenger_bot
         meta["ghi_chu_dau"] = messenger_bot.comment_note(instagram=meta["chat_id"].startswith("igc:"))
+    elif conv.get("channel") == "threads":
+        # Threads has only public replies: the model must know its answer is public and short.
+        import threads_bot
+        meta["ghi_chu_dau"] = threads_bot.comment_note()
     if last.get("message_type") == "image":
         meta["co_anh"] = True
         meta["image_url"] = str((last.get("metadata") or {}).get("image_url") or "")
