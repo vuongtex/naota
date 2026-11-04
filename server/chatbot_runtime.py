@@ -138,7 +138,8 @@ BI_LIEN_TIEP_DE_GOI = 2
 _deps: Dict[str, Callable] = {}
 
 
-def wire(*, answer, brain_root, read_agent, session_probe=None, session_undo=None, notify=None, transcribe=None):
+def wire(*, answer, brain_root, read_agent, session_probe=None, session_undo=None, notify=None, transcribe=None,
+         read_agent_memory=None):
     """main.py cấp ba thứ: lõi một lượt, đường tới brain, và cách đọc file Agent.
 
     `session_probe(key) -> (sid, số tin lịch sử RAM)` và `session_undo(key, giữ)` chỉ cho BẢN NHÁP ở Hộp thư: lấy phiên
@@ -149,8 +150,12 @@ def wire(*, answer, brain_root, read_agent, session_probe=None, session_undo=Non
     Thiếu thì lượt hỏng chỉ còn trong nhật ký bot và báo người trực.
 
     `transcribe(bytes, file name) -> awaitable dict` like `stt.groq_nghe`: hears what is said in a video a
-    customer sends. Missing means the bot gets the video's frames only, and is told it did not hear the sound."""
+    customer sends. Missing means the bot gets the video's frames only, and is told it did not hear the sound.
+
+    `read_agent_memory(brain, slug) -> str`: the agent's memory file, read only for its owner rules (`_owner_rules`).
+    Missing means the bot follows the Agent file alone."""
     _deps["answer"] = answer
+    _deps["read_agent_memory"] = read_agent_memory
     _deps["transcribe"] = transcribe
     _deps["notify"] = notify
     _deps["brain_root"] = brain_root
@@ -341,8 +346,27 @@ def _bao_chu_bell(cfg: dict, meta: dict, text: str, note: str) -> bool:
     return True
 
 
+def _owner_rules(agent: dict) -> list:
+    """Bullets of the agent's "## Luật chủ dặn" section, what the owner taught it in chat.
+
+    Only that section: the rest of the memory file is the agent's lessons and run notes from private chats with the
+    owner, which must not reach a stranger. Only the owner's chat writes this section (`NAOTA_RULE`); a bot turn never
+    extracts that marker, so a customer cannot put a rule here. A rule stays in force until the owner removes it."""
+    reader = _deps.get("read_agent_memory")
+    if not reader or not (agent or {}).get("slug"):
+        return []
+    try:
+        import agent_rules
+        _before, bullets, _after = agent_rules.split_section(
+            reader(agent.get("brain") or "brain", agent["slug"]) or "", agent_rules.OWNER_RULES_HEADER)
+        return bullets
+    except Exception as e:
+        print(f"[chatbot prompt] đọc luật chủ dặn lỗi: {e}", file=sys.stderr)
+        return []
+
+
 def build_bot_prompt(bot: dict) -> str:
-    """System prompt của một lượt bot = ĐÚNG file Agent, cộng tài liệu đã tra sẵn.
+    """System prompt của một lượt bot = ĐÚNG file Agent, luật chủ đã dặn Agent đó, cộng tài liệu đã tra sẵn.
 
     Không thêm luật nào của Naota. Người dùng viết quy định trong file Agent; việc của hàm này
     là chuyển nguyên nó xuống, không phải bình luận thêm.
@@ -397,6 +421,10 @@ def build_bot_prompt(bot: dict) -> str:
         phan.append(_CAU_RIENG_BAO_CHU)
     if than.strip():
         phan.append("\n" + than.strip())
+    # After the Agent file: the rule taught later wins over the older text.
+    luat = _owner_rules(a)
+    if luat:
+        phan.append("\nLUẬT CHỦ ĐÃ DẶN (làm theo đúng):\n" + "\n".join(luat))
     if not meta:
         # Agent bị xoá hay đổi slug: bot đang chạy mà KHÔNG có hướng dẫn nào. Một dòng nêu
         # đúng sự thật đó, để nó thận trọng thay vì tự tin bịa. Đây là lấp chỗ trống khi không

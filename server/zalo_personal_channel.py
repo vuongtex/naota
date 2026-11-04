@@ -324,6 +324,50 @@ def _loai_tin(msg: dict) -> str:
     return "other"
 
 
+def _dict_tu(v: Any) -> dict:
+    """`v` as a dict: already one, or a JSON object in a string. Anything else is {}."""
+    if isinstance(v, dict):
+        return v
+    if isinstance(v, str) and v.lstrip().startswith("{"):
+        try:
+            d = json.loads(v)
+        except ValueError:
+            return {}
+        return d if isinstance(d, dict) else {}
+    return {}
+
+
+def _danh_thiep(msg: dict) -> Optional[dict]:
+    """{"name", "phone"} of a contact card, None for any other message.
+
+    Zalo sends cards as `chat.recommended` with the details in a JSON object (in `text` or `content`, the phone sometimes
+    nested in `description` or `params`). It uses the same type for a shared link, so a message only counts as a card
+    when it carries a phone or says `recommened.user` (Zalo's own spelling): shared links stay as they were."""
+    if "recommen" not in str(_lay(msg, "type", "msgType", "message_type", mac_dinh="") or "").lower():
+        return None
+    for k in ("text", "content", "msg", "message"):
+        d = _dict_tu(msg.get(k))
+        if not d:
+            continue
+        phone = ""
+        for nguon in (d, _dict_tu(d.get("description")), _dict_tu(d.get("params"))):
+            phone = re.sub(r"[^\d+]", "", str(nguon.get("phone") or ""))[:20]
+            if phone:
+                break
+        if not phone and "user" not in str(d.get("action") or "").lower():
+            continue
+        ten = " ".join(str(_lay(d, "title", "displayName", "zaloName", "name", mac_dinh="") or "").split())[:100]
+        return {"name": ten, "phone": phone}
+    return None
+
+
+def _chu_danh_thiep(card: dict) -> str:
+    """The one line the inbox and the bot read for a contact card."""
+    ten = card.get("name") or localefmt.chu("không rõ tên", "no name")
+    sdt = card.get("phone") or localefmt.chu("không hiện số", "number hidden")
+    return localefmt.chu(f"[Danh thiếp] {ten}, SĐT {sdt}", f"[Contact card] {ten}, phone {sdt}")
+
+
 def _link_anh(msg: dict) -> str:
     """Link of the photo in an image message, or "".
 
@@ -449,6 +493,10 @@ def chuan_hoa_tin(conn: dict, msg: dict, ten: Dict[str, dict]) -> Optional[dict]
     if isinstance(text, dict):
         text = _lay(text, "text", "title", "description", "href", mac_dinh="")
     text = strip_mention_markup(str(text or ""))
+    card = _danh_thiep(msg)
+    if card is not None:
+        # As plain text, so the merged turn keeps it and the bot sees the number (an "other" message is dropped there).
+        loai, text = "text", _chu_danh_thiep(card)
     if loai != "text" and not text.strip():
         # The account's own photo (isSelf, from the owner's phone) is not "the customer sent".
         text = (f"[{conversations.KENH_NHAN[KENH]}: gửi {loai}]" if _la_cua_minh(msg)

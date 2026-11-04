@@ -1388,6 +1388,7 @@
   "cb.ph_ten": "Ví dụ: Tư vấn sản phẩm",
   "cb.lb_agent": "Agent điều khiển bot",
   "cb.tao_agent": "Tạo Agent",
+  "cb.sua_agent": "Sửa Agent",
   "cb.hint_agent_1": "Agent trong bộ não",
   "cb.hint_agent_2": ". Bot đọc tài liệu của chính bộ não này để trả lời. Sửa Agent là bot đổi theo ngay, không phải sửa hai chỗ. Bấm",
   "cb.hint_agent_3": "để sang trang Agents, tạo xong quay lại đây chọn.",
