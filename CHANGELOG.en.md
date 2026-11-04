@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.5.0] - 2026-11-04
+### Added
+- In progress: private replies to commenters, Instagram in the shared inbox.
+
 ## [1.4.0] - 2026-11-03
 ### Added
 - **Pick a time zone** in **Settings** (the Language and time zone block) and in the last step of first-run setup. "Today", "yesterday", reminders and report numbers follow it, even when the server runs on UTC. The default is Vietnam time.
