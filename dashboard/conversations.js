@@ -63,6 +63,7 @@
   var _host = null, _timer = null, _tab = "inbox";
   var _items = [], _stats = {}, _dauVet = "";
   var _kenhLoc = "", _botLoc = "", _q = "";
+  var _privFor = 0;                     // id of the comment thread whose composer is set to "Message privately"
   var _statusLoc = "", _typeLoc = "";   // bộ lọc, lưu ở trình duyệt qua NaotaConvFilters
   var _contactLoc = "";     // "1" = only chats where the customer left a phone number or email
   // Chatbot v5 (chatbot-v5-spec): who is handling the chat (the quick filters), the ticked
@@ -144,6 +145,18 @@
   }
   function chipKenh(id) {
     return '<span class="ht-chip">' + logoKenh(id) + " " + esc(nhanKenh(id)) + "</span>";
+  }
+  // A Facebook Page comment thread (0.446.0): conversation id "cmt:<comment id>" on the Messenger channel. It gets its
+  // own badge (a square comment box, not the round Messenger bubble) so a public comment never reads as a private chat.
+  function isComment(c) {
+    return !!c && c.channel === "messenger" && String(c.external_chat_id || "").indexOf("cmt:") === 0;
+  }
+  function commentLogo(size) {
+    return (window.Icons && Icons.kenh) ? Icons.kenh("fbcomment", { size: size || "13px" }) : "";
+  }
+  function chipOf(c) {
+    return isComment(c) ? '<span class="ht-chip">' + commentLogo() + " " + esc(window.t("ht.fb_comment")) + "</span>"
+      : chipKenh(c.channel);
   }
   function nangLuc(id, khoa) { return !!((kenhCua(id).nang_luc || {})[khoa]); }
 
@@ -705,7 +718,7 @@
     var ch = String(ten || "?").trim().charAt(0).toUpperCase() || "?";
     var grp = c.chat_type === "group";
     return '<span class="ht-item-ava' + (grp ? " g" : "") + '" aria-hidden="true">' + (grp ? ic("users") : esc(ch)) +
-      '<span class="ib-kl">' + logoKenh(c.channel, "21px") + '</span>' +
+      '<span class="ib-kl">' + (isComment(c) ? commentLogo("21px") : logoKenh(c.channel, "21px")) + '</span>' +
       (c.unread_count ? '<span class="ht-item-ava-dot"></span>' : "") + '</span>';
   }
 
@@ -1278,7 +1291,7 @@
         '<div class="ht-head-text"><span class="ib-hname"><strong>' + esc(ten) + '</strong>' +
           '<span class="ib-htags">' + tags + '<button type="button" class="ib-htag-add" aria-label="' + esc(window.t("ht.tag_title")) + '">' +
             ic("plus") + '<span>' + esc(window.t("ht.tag_btn")) + '</span></button></span></span>' +
-          '<small>' + chipKenh(c.channel) + (accLabel(c) ? ' · ' + esc(accLabel(c)) : "") +
+          '<small>' + chipOf(c) + (accLabel(c) ? ' · ' + esc(accLabel(c)) : "") +
           (c.chat_type === "group" ? ' · ' + esc(window.t("ht.nhom")) : "") +
           (soTin ? ' · ' + esc(window.t("sess.msgs", { count: soTin })) : "") + '</small></div>' +
         (threeModes ? '<span class="ib-hmode" title="' + esc(say) + '">' + bar + '</span>' + (V ? V.modeChipHtml(c, ic) : "") : "") +
@@ -1353,6 +1366,16 @@
       ta.oninput = grow;
       if (nhapDo) grow();
       box.querySelector(".ht-send").onclick = function () { gui(c); };
+      box.querySelectorAll(".ht-priv-o").forEach(function (b) {
+        b.onclick = function () {
+          var on = b.getAttribute("data-priv") === "1";
+          if ((_privFor === c.id) === on) return;
+          _privFor = on ? c.id : 0;
+          veThread();
+          var t2 = _host.querySelector(".ht-thread .ib-cin textarea");
+          if (t2) t2.focus();
+        };
+      });
       var ask = box.querySelector(".ib-ask");
       if (ask) ask.onclick = function () { aiReply(c, ta.value.trim(), "ask"); };
     }
@@ -1899,17 +1922,32 @@
     var ph = ten ? t(laBot ? "ib.cin_ph_as_ai" : "ib.cin_ph_as", { ten: ten }) :
       t(laBot ? "ib.cin_ph_ai" : cham ? "ib.cin_ph_touch" : "ht.gui_ph");
     var busy = _aiBusy === "redo" || _aiBusy === "send" ? _aiBusy : "";
+    var cmt = isComment(c), priv = cmt && _privFor === c.id;
+    if (priv) ph = t("ht.priv_ph");
     return '<div class="ht-compose' + (draft ? " has-draft" : "") + '">' + noteHtml() +
+      (cmt ? privToggleHtml(priv) : "") +
       '<div class="ib-cbox">' +
       (draft && V ? V.draftHtml(draft, busy || (_aiBusy ? "x" : ""), ic) : "") +
       '<div class="ib-cin">' +
         '<textarea rows="1" placeholder="' + esc(ph) + '" aria-label="' + esc(t("ib.cin_aria")) + '"></textarea>' +
-        (laBot ? '<button type="button" class="s-btn-ghost ib-ask"' + (_aiBusy ? " disabled" : "") + ' title="' + esc(t("ib.ai_reply_t")) +
+        (laBot && !priv ? '<button type="button" class="s-btn-ghost ib-ask"' + (_aiBusy ? " disabled" : "") + ' title="' + esc(t("ib.ai_reply_t")) +
           '" aria-label="' + esc(t("ib.ai_reply")) + '">' +
           ic(_aiBusy === "ask" ? "loader" : "sparkles") + '<span>' + esc(t(_aiBusy === "ask" ? "ib.ai_busy" : "ib.ai_reply")) + '</span></button>' : "") +
         '<button type="button" class="s-btn ht-send" aria-label="' + esc(t("ht.gui")) + '">' + ic("send") + '<span>' + esc(t("ht.gui")) + '</span></button>' +
       '</div></div>' +
     '</div>';
+  }
+
+  // "Reply publicly" / "Message privately" above the composer of a comment thread (0.446.0). Private goes to the
+  // commenter's Messenger inbox (Meta's Private Replies: once per comment, within 7 days).
+  function privToggleHtml(priv) {
+    var t = window.t;
+    return '<div class="ht-priv" role="radiogroup" aria-label="' + esc(t("ht.priv_aria")) + '">' +
+      '<button type="button" role="radio" class="ht-priv-o' + (priv ? "" : " on") + '" data-priv="0" aria-checked="' + !priv + '">' +
+        commentLogo("15px") + '<span>' + esc(t("ht.priv_public")) + '</span></button>' +
+      '<button type="button" role="radio" class="ht-priv-o' + (priv ? " on" : "") + '" data-priv="1" aria-checked="' + priv + '">' +
+        logoKenh("messenger", "15px") + '<span>' + esc(t("ht.priv_private")) + '</span></button>' +
+      infoBtn() + '</div>' + infoBody(esc(t("ht.priv_how")));
   }
 
   async function gui(c) {
@@ -1922,7 +1960,13 @@
     _dangGui = true;
     ta.disabled = true; if (nut) nut.disabled = true;
     try {
-      await api("/conversations/" + c.id + "/reply", { method: "POST", body: fd({ text: txt }) });
+      if (isComment(c) && _privFor === c.id) {
+        await api("/conversations/" + c.id + "/private-reply", { method: "POST", body: fd({ text: txt }) });
+        // One private message per comment: back to public replies, so the next Send does not hit Meta's limit.
+        _privFor = 0;
+      } else {
+        await api("/conversations/" + c.id + "/reply", { method: "POST", body: fd({ text: txt }) });
+      }
       ta.value = "";
     } catch (e) {
       alert(window.t("ht.loi_gui") + " " + e.message);
@@ -1963,6 +2007,9 @@
         ' ' + esc(t.message_type) + '</span>' : "";
     var loi = t.metadata && t.metadata.loi
       ? '<div class="ht-msg-loi">' + ic("triangle-alert") + ' ' + esc(t.metadata.loi) + '</div>' : "";
+    if (t.metadata && t.metadata.private_reply_to) {
+      loai = '<span class="ht-loai ht-priv-tag">' + logoKenh("messenger", "13px") + ' ' + esc(window.t("ht.priv_sent")) + '</span>' + loai;
+    }
     // Who and when go under the bubble. A private chat's customer is named in the head already, so only a
     // group shows who wrote each message.
     if (lop === "khach" && _conv && _conv.chat_type !== "group") ai = "";
