@@ -909,6 +909,8 @@
               '<select id="cbAgent">' + htmlAgent(agents, (b && (b.agent || {}).slug) || "") + '</select>' +
               '<button class="s-btn-ghost" id="cbNewAgent" type="button">' + ic("plus") + ' ' +
                 esc(window.t("cb.tao_agent")) + '</button>' +
+              '<button class="s-btn-ghost" id="cbEditAgent" type="button">' + ic("pencil") + ' ' +
+                esc(window.t("cb.sua_agent")) + '</button>' +
             '</div>' +
             '<div class="cb-hint">' + esc(window.t("cb2.s_ai_hint", { brain: br })) + '</div>' +
           '</div>' +
@@ -1053,6 +1055,31 @@
     box.querySelector("#cbNewAgent").onclick = function () {
       dong();
       try { window.NaotaNav.go("workspace"); } catch (e) {}
+    };
+    // The same editor as the Assistants page. It sits below this form in the stacking order, so the form steps aside
+    // while the editor is open and comes back as it was, with everything typed still there.
+    var oAgent = box.querySelector("#cbAgent"), nutSuaAgent = box.querySelector("#cbEditAgent");
+    function dongBoNutSua() { nutSuaAgent.disabled = !oAgent.value; }
+    oAgent.addEventListener("change", dongBoNutSua);
+    dongBoNutSua();
+    nutSuaAgent.onclick = function () {
+      var St = window.NaotaStudio, slug = oAgent.value, ed = document.getElementById("studioEditor");
+      if (!slug || !St || !St.editAgent || !ed) return;
+      var daMo = false;
+      var theoDoi = new MutationObserver(function () {
+        var mo = ed.classList.contains("open");
+        if (mo && !daMo) { daMo = true; box.style.display = "none"; }
+        else if (!mo && daMo) { theoDoi.disconnect(); box.style.display = ""; }
+      });
+      theoDoi.observe(ed, { attributes: true, attributeFilter: ["class"] });
+      Promise.resolve(St.editAgent({ slug: slug }, { onSaved: function () {
+        // A renamed agent shows its new name in the picker; the choice stays.
+        napAgent(br).then(function (ds) {
+          if (!box.parentNode) return;
+          oAgent.innerHTML = htmlAgent(ds, slug);
+          dongBoNutSua();
+        });
+      } })).catch(function () { if (!daMo) theoDoi.disconnect(); });
     };
 
     function giaTri(ten) {

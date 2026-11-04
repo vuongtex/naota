@@ -14522,6 +14522,7 @@ async def _start_scheduler():
         # khởi động (xem bước "Import thật main" trong CI).
         chatbot_runtime.wire(answer=_tg_answer, brain_root=_brain_root,
                              read_agent=lambda b, slug: _read_md(_agents_dir(b) / f"{slug}.md"),
+                             read_agent_memory=_agent_memory,
                              session_probe=_manual_session_probe, session_undo=_manual_session_undo,
                              # hear what is said in a video a customer sends (same Groq key as voice messages).
                              transcribe=_stt_nghe,
@@ -23157,6 +23158,12 @@ class _BoQua(Exception):
 _MO_ANH_BANG_CONG_CU = ("anthropic-cli", "openai-oauth")
 
 
+def _bot_co_dong_ho(sys_bot, bot):
+    """Prompt of a lower-level bot plus the clock line. These bots have no `naota_now` and no admin prompt (a full-power
+    bot gets the clock from there), so "is the shop open now?" was answered by guessing. Rebuilt every turn."""
+    return str(sys_bot or "") + "\n\n" + context_compiler.dong_ho(lang=str((bot or {}).get("ngon_ngu") or ""))
+
+
 def _bot_full_prompt(brain, sys_bot, lang, conv_sid=""):
     """Prompt của bot mức Toàn quyền: ĐỦ prompt của kênh admin (CLAUDE.md, bộ nhớ, kỹ năng,
     hướng dẫn điều phối) cho brain của bot, rồi VAI của Agent đè lên.
@@ -23409,11 +23416,11 @@ async def _tg_answer_engine(text, meta, progress, *, chat_id, sess, brain, mcfg,
                         text = borrowed_eyes.turn_text(text, _mo_ta, len(_anh))
         elif _muc in chatbot_store.MUC_CO_TOOL:
             return await _bot_tra_loi_co_tool(
-                text, sess=sess, sysprompt=_sys_bot, prov=prov, api_key=api_key,
+                text, sess=sess, sysprompt=_bot_co_dong_ho(_sys_bot, bot), prov=prov, api_key=api_key,
                 api_model=api_model, reasoning=reasoning, progress=_p,
                 runtime_trace=runtime_trace, brain=brain, chat_id=chat_id, muc_quyen=_muc, images=_anh)
         else:
-            return await _bot_tra_loi(text, sess=sess, sysprompt=_sys_bot,
+            return await _bot_tra_loi(text, sess=sess, sysprompt=_bot_co_dong_ho(_sys_bot, bot),
                                       prov=prov, api_key=api_key, api_model=api_model,
                                       reasoning=reasoning, progress=_p, runtime_trace=runtime_trace,
                                       brain=brain, chat_id=chat_id, images=_anh)

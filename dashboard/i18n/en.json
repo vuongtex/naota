@@ -1388,6 +1388,7 @@
   "cb.ph_ten": "Example: Product advisor",
   "cb.lb_agent": "Agent as its brain",
   "cb.tao_agent": "New Agent",
+  "cb.sua_agent": "Edit Agent",
   "cb.hint_agent_1": "Agent in brain",
   "cb.hint_agent_2": ". The bot reads this brain's own documents to answer. Edit the Agent and the bot follows at once, no editing in two places. Click",
   "cb.hint_agent_3": "to go to the Agents page; once it exists, come back here and pick it.",
