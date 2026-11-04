@@ -6,7 +6,14 @@ NAOTA release history. Newest first.
 
 ## [1.6.0] - 2026-11-04
 ### Added
-- In progress, details to follow.
+- **Threads on the Meta connection card**: replies under your Threads posts reach the inbox and the bot can answer publicly. Each account picks off, inbox only, or bot replies. Threads only lets you hide a reply, not delete it, so NAOTA says that and asks first.
+- **Teams do more**: attach a GitHub repo (edits on its own branch, opens a PR, red CI gets at most 3 fix rounds), call `/skill` in the team chat, and members open a job when given one in the chat, at most 5 a day by default.
+- **My tasks get Tags and subtasks**: old Projects become tags, nothing is lost. Notes can link to pages, `[[notes]]` and files.
+- **Internal API channel (experimental)**: one of your servers asks a Chatbot over HTTP. The key shows once, the bot only reads, and by default only the machine running NAOTA can call it.
+
+### Improved
+- **Drag to reorder** projects, pinned chats and tags, the same order on every device. The Naota Core card says which model it runs on and can pick one. Phones get an **Install on phone** button in the menu.
+- **Claude Code waits for background work** before it carries on, up to 30 minutes. The answer to a message added mid-turn shows right below it. Antigravity no longer warns by mistake that it could not read the context file.
 
 ## [1.5.0] - 2026-11-04
 ### Added
