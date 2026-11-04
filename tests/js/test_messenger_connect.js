@@ -125,7 +125,7 @@ check("card shows the webhook address and verify token to copy", () => {
 check("the add-channel form points a channel with a Connections card to it", () => {
   const conv = fs.readFileSync(path.join(__dirname, "..", "..", "dashboard", "conversations.js"), "utf8");
   assert.ok(conv.includes("hint.hidden = !k.the_ket_noi") && conv.includes('window.t("ht.the_ket_noi"'));
-  assert.ok(conv.includes("window.NaotaMessenger.openForm(null)"));
+  assert.ok(conv.includes('k.id === "threads") M.openThreadsForm(); else M.openForm(null)'));
 });
 
 // picking such a channel shows only the way to its card, no token field, webhook or Save.
