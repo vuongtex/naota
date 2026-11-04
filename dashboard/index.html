@@ -31,8 +31,8 @@
   <!-- Biến --ic-* cho icon dùng trong content: của CSS. Phải đứng TRƯỚC style.css
        vì style.css tham chiếu các biến này. -->
   <link rel="stylesheet" href="/static/vendor/lucide-icons.css?v=1">
-  <link rel="stylesheet" href="/static/style.css?v=166">
-  <link rel="stylesheet" href="/static/console.css?v=150">
+  <link rel="stylesheet" href="/static/style.css?v=167">
+  <link rel="stylesheet" href="/static/console.css?v=152">
   <!-- Áp tông đã lưu TRƯỚC khi vẽ để không nháy tối rồi mới đổi sang sáng.
        Giá trị cũ "dim" (tông tối-nhạt, gỡ) quy về tối; theme.js sẽ ghi đè lại.
        Chưa chọn gì thì SÁNG (NAOTA 1.0.0). Chế độ "auto" (chỉ khi người dùng tự chọn) tính theo khung giờ "HH:MM-HH:MM", cùng quy tắc với
@@ -986,7 +986,8 @@
   "/static/agent-judge-ui.js?v=2"
  ],
  "teams": [
-  "/static/teams.js?v=21"
+  "/static/team-github.js?v=1",
+  "/static/teams.js?v=24"
  ],
  "packs": [
   "/static/packs.js?v=4"
@@ -1014,10 +1015,10 @@
  ],
  "nhiemvu": [
   "/static/date-range.css?v=1",
-  "/static/tasks.css?v=10",
+  "/static/tasks.css?v=11",
   "/static/date-range.js?v=1",
   "/static/tasks-stats.js?v=1",
-  "/static/tasks.js?v=9"
+  "/static/tasks.js?v=10"
  ]
 }</script>
   <script src="/static/nap-cham.js?v=1"></script>
@@ -1105,7 +1106,7 @@
   <script src="/static/screen-awake.js?v=1"></script>
   <script src="/static/incoming-call.js?v=1"></script>
   <script src="/static/call-bar.js?v=1"></script>
-  <script src="/static/app.js?v=158"></script>
+  <script src="/static/app.js?v=159"></script>
   <!-- Sau app.js: dải việc nền đọc window.NaotaSessions (app.js dựng) để biết phiên + brain. -->
   <script src="/static/background-strip.js?v=3"></script>
   <!-- Thân bảng chọn model dùng chung: phải đứng TRƯỚC model-picker.js (thanh chat) và
@@ -1115,7 +1116,7 @@
   <!-- Models page usage order: drag, swap, popover placement. console.js calls window.NaotaModelsOrder. -->
   <script src="/static/models-order.js?v=1"></script>
   <script src="/static/plan-limit.js?v=2"></script>
-  <script src="/static/model-picker.js?v=18"></script>
+  <script src="/static/model-picker.js?v=19"></script>
   <script src="/static/composer-plus.js?v=3"></script>
   <script src="/static/composer-folder.js?v=4"></script>
   <script src="/static/github-connect.js?v=3"></script>
@@ -1126,7 +1127,9 @@
   <script src="/static/brains-ui.js?v=9"></script>
   <!-- Brain picker drawn by Naota over #graphSource: after brains-ui.js and app.js. -->
   <script src="/static/brain-picker.js?v=5"></script>
-  <script src="/static/sessions-ui.js?v=25"></script>
+  <!-- One Reorder box (drag or arrows) for projects, pinned chats and tags. Before sessions-ui.js. -->
+  <script src="/static/reorder-dialog.js?v=1"></script>
+  <script src="/static/sessions-ui.js?v=26"></script>
   <link rel="stylesheet" href="/static/improvement-candidates.css?v=3">
   <script src="/static/improvement-experiments.js?v=1"></script>
   <script src="/static/improvement-candidates.js?v=3"></script>
@@ -1138,7 +1141,9 @@
   <script src="/static/pulse-seen.js?v=1"></script>
   <!-- Tag filter bar and tag picker shared by Cộng sự and Team: load BEFORE workspace.js and teams.js. -->
   <script src="/static/tag-picker.js?v=1"></script>
-  <script src="/static/workspace.js?v=33"></script>
+  <script src="/static/core-model.js?v=1"></script>
+  <!-- Model row of the Naota Core card: uses window.NaotaModelList, workspace.js calls window.NaotaCoreModel. -->
+  <script src="/static/workspace.js?v=35"></script>
   <!-- Hộp chọn thành viên kiểu Zalo: nạp TRƯỚC teams.js, teams.js gọi window.NaotaTeamPicker. -->
   <script src="/static/team-picker.js?v=1"></script>
   <!-- Bộ phán xử nói / chờ / im của từng trợ lý: lịch sử quyết định và nút sửa. Nạp TRƯỚC teams.js
@@ -1172,7 +1177,7 @@
   <script src="/static/mobile-chat.js?v=21"></script>
   <script src="/static/brain-view.js?v=1"></script>
   <script src="/static/push.js?v=3"></script>
-  <script src="/static/install-nudge.js?v=1"></script>
+  <script src="/static/install-nudge.js?v=2"></script>
   <!-- Mời tặng sao GitHub: thẻ hiện ở khoảnh khắc vui, xem server/star_nudge.py. -->
   <link rel="stylesheet" href="/static/star-nudge.css?v=6">
   <script src="/static/star-nudge.js?v=4"></script>

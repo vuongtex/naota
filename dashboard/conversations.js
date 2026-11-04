@@ -149,15 +149,21 @@
   // A Facebook Page comment thread: conversation id "cmt:<comment id>" on the Messenger channel. It gets its
   // own badge (a square comment box, not the round Messenger bubble) so a public comment never reads as a private chat.
   // Instagram through the same Page: "ig:<user>" is a direct message, "igc:<comment id>" a comment thread.
+  // Threads: every Threads chat is a public reply thread ("thc"); it has no private messages.
   function chatKind(c) {
+    if (c && c.channel === "threads") return "thc";
     if (!c || c.channel !== "messenger") return "";
     var x = String(c.external_chat_id || "");
     return x.indexOf("cmt:") === 0 ? "fbc" : x.indexOf("igc:") === 0 ? "igc" : x.indexOf("ig:") === 0 ? "ig" : "";
   }
-  function isComment(c) { var k = chatKind(c); return k === "fbc" || k === "igc"; }
+  function isComment(c) { var k = chatKind(c); return k === "fbc" || k === "igc" || k === "thc"; }
+  // Only Facebook and Instagram comments can be answered privately (Meta's Private Replies); Threads cannot.
+  function canPrivate(c) { var k = chatKind(c); return k === "fbc" || k === "igc"; }
   function isInstagram(c) { var k = chatKind(c); return k === "ig" || k === "igc"; }
   function commentLogo(size, c) {
-    return (window.Icons && Icons.kenh) ? Icons.kenh(isInstagram(c) ? "igcomment" : "fbcomment", { size: size || "13px" }) : "";
+    var k = chatKind(c);
+    return (window.Icons && Icons.kenh) ? Icons.kenh(k === "igc" ? "igcomment" : k === "thc" ? "thcomment" : "fbcomment",
+      { size: size || "13px" }) : "";
   }
   // The badge on the avatar: a comment box for a comment thread, the Instagram mark for an Instagram message.
   function badgeOf(c, size) {
@@ -167,8 +173,8 @@
   }
   function chipOf(c) {
     var k = chatKind(c);
-    if (k === "fbc" || k === "igc") return '<span class="ht-chip">' + commentLogo("13px", c) + " " +
-      esc(window.t(k === "igc" ? "ht.ig_comment" : "ht.fb_comment")) + "</span>";
+    if (k === "fbc" || k === "igc" || k === "thc") return '<span class="ht-chip">' + commentLogo("13px", c) + " " +
+      esc(window.t(k === "igc" ? "ht.ig_comment" : k === "thc" ? "ht.th_comment" : "ht.fb_comment")) + "</span>";
     if (k === "ig") return '<span class="ht-chip">' + badgeOf(c, "13px") + " Instagram</span>";
     return chipKenh(c.channel);
   }
@@ -1125,7 +1131,8 @@
     if (!c) return closeRowMenu(false);
     closeRowMenu(false);
     var F = window.NaotaConvFilters, k = F.chatKind(c), remote = F.platformActs(c).indexOf("delete_remote") >= 0;
-    var q = k === "fb_comment" ? "ht.del_q_fbc" : k === "ig_comment" ? "ht.del_q_igc" : remote ? "ht.del_q_zalo" :
+    var q = k === "fb_comment" ? "ht.del_q_fbc" : k === "ig_comment" ? "ht.del_q_igc" : k === "threads_comment" ? "ht.del_q_thc" :
+      remote ? "ht.del_q_zalo" :
       (k === "messenger_dm" || k === "ig_dm") ? "ht.del_q_meta" : "ht.del_q_local";
     if (!confirm(window.t(q, { ten: convName(c) }))) return;
     try {
@@ -2002,7 +2009,7 @@
     var ph = ten ? t(laBot ? "ib.cin_ph_as_ai" : "ib.cin_ph_as", { ten: ten }) :
       t(laBot ? "ib.cin_ph_ai" : cham ? "ib.cin_ph_touch" : "ht.gui_ph");
     var busy = _aiBusy === "redo" || _aiBusy === "send" ? _aiBusy : "";
-    var cmt = isComment(c), priv = cmt && _privFor === c.id;
+    var cmt = canPrivate(c), priv = cmt && _privFor === c.id;
     if (priv) ph = t("ht.priv_ph");
     return '<div class="ht-compose' + (draft ? " has-draft" : "") + '">' + noteHtml() +
       (cmt ? privToggleHtml(priv, c) : "") +
@@ -2041,7 +2048,7 @@
     _dangGui = true;
     ta.disabled = true; if (nut) nut.disabled = true;
     try {
-      if (isComment(c) && _privFor === c.id) {
+      if (canPrivate(c) && _privFor === c.id) {
         await api("/conversations/" + c.id + "/private-reply", { method: "POST", body: fd({ text: txt }) });
         // One private message per comment: back to public replies, so the next Send does not hit Meta's limit.
         _privFor = 0;
@@ -2313,7 +2320,7 @@
       '<div class="cb-hint ht-card-hint" id="htCardHint" hidden></div>' +
       '<div id="htTokenPart">' +
       '<label id="htTokenLabel"></label>' +
-      '<div class="cb-row"><input id="htToken" type="password" placeholder="' + esc(window.t("cb.ph_token")) + '">' +
+      '<div class="cb-row" id="htTokenRow"><input id="htToken" type="password" placeholder="' + esc(window.t("cb.ph_token")) + '">' +
         '<button class="s-btn-ghost" id="htCheck" type="button">' + esc(window.t("cb.kiem_tra")) + '</button></div>' +
       '<div class="cb-hint" id="htTokenNote"></div>' +
       '<div class="cb-hint ht-webhook" id="htWebhook" hidden></div>' +
@@ -2349,7 +2356,11 @@
       var g = guideUrl(k);
       if (g) lab.insertAdjacentHTML("beforeend", ' · <a class="ht-guide" href="' + esc(g) + '" target="_blank" rel="noopener">'
         + esc(window.t("ht.huong_dan")) + " ↗</a>");
-      box.querySelector("#htTokenNote").textContent = (k.lay_token || "") + " " + window.t("cb.token_rieng");
+      // Internal API: Naota generates the key on Save, so there is no token to paste or check.
+      box.querySelector("#htTokenRow").hidden = !!k.khoa_tu_sinh;
+      if (k.khoa_tu_sinh) lab.textContent = window.t("ht.khoa_lb");
+      box.querySelector("#htLabel").placeholder = window.t(k.khoa_tu_sinh ? "ht.ph_nhan_api" : "ht.ph_nhan_tk");
+      box.querySelector("#htTokenNote").textContent = (k.lay_token || "") + (k.khoa_tu_sinh ? "" : " " + window.t("cb.token_rieng"));
       // A channel with its own card on the Connections page (Messenger): connecting there is quicker and a Page
       // connected there is already in the channel list, so nobody should connect the same Page twice.
       // for such a channel the form stops here. No token field, webhook or Save, only the
@@ -2364,7 +2375,12 @@
       if (mo) mo.onclick = function () {
         dong();
         try { window.NaotaNav.go("mcp"); } catch (e) {}
-        setTimeout(function () { try { window.NaotaMessenger && window.NaotaMessenger.openForm(null); } catch (e) {} }, 400);
+        setTimeout(function () {
+          try {
+            var M = window.NaotaMessenger;
+            if (M) { if (k.id === "threads") M.openThreadsForm(); else M.openForm(null); }
+          } catch (e) {}
+        }, 400);
       };
       box.querySelectorAll(".cb-kenh-o").forEach(function (n) { n.classList.toggle("on", n.dataset.k === id); });
       hienWebhook(k);
@@ -2376,7 +2392,8 @@
       if (!o) return;
       o.hidden = true;
       o.innerHTML = "";
-      if (!k.webhook) return;
+      // A channel with its own card shows the webhook there; this part of the form is hidden for it.
+      if (!k.webhook || k.the_ket_noi) return;
       try {
         var r = await api("/channels/webhook-info?channel=" + encodeURIComponent(k.id));
         if (chon !== k.id) return;
@@ -2442,8 +2459,8 @@
       var t = box.querySelector("#htToken").value.trim();
       var k = kenhCua(chon);
       if (!chon) return alert(window.t("ht.khong_kenh_token"));
-      if (!t) return alert(window.t("cb.dan_token_kenh", { kenh: k.nhan }) + "\n\n" + (k.lay_token || ""));
-      var moi = null;
+      if (!t && !k.khoa_tu_sinh) return alert(window.t("cb.dan_token_kenh", { kenh: k.nhan }) + "\n\n" + (k.lay_token || ""));
+      var moi = null, khoa = "";
       try {
         var r = await api("/channels/accounts", { method: "POST", body: fd({
           channel: chon, token: t, label: box.querySelector("#htLabel").value.trim(), bot_username: uname,
@@ -2451,25 +2468,59 @@
           // mà không gắn chủ thì nó lơ lửng ở mọi brain.
           brain: brain() }) });
         moi = r.account || (r.id ? { id: r.id, channel: chon } : null);
+        khoa = r.secret || "";
       } catch (e) { return alert(window.t("ht.loi_doi") + " " + e.message); }
       dong();
       _dauVetTK = "";
       taiTK(true);
+      if (khoa) hienKhoa(khoa);
       if (opts.onXong) { try { opts.onXong(moi); } catch (e) {} }
+    };
+  }
+
+  // The key of a generated-key channel (internal API), shown ONCE: Naota keeps only its hash.
+  function hienKhoa(khoa) {
+    var box = el('<div class="ht-modal"><div class="ht-form">' +
+      '<h3>' + esc(window.t("ht.khoa_moi")) + '</h3>' +
+      '<div class="cb-row"><input id="htKhoa" readonly value="' + esc(khoa) + '">' +
+        '<button class="s-btn-ghost" id="htKhoaCopy" type="button">' + esc(window.t("ht.khoa_chep")) + '</button></div>' +
+      '<div class="cb-hint cb-warn">' + esc(window.t("ht.khoa_mot_lan")) + '</div>' +
+      '<div class="ht-form-acts"><button class="s-btn ht-close" type="button">' + esc(window.t("ht.khoa_da_luu")) + '</button></div>' +
+      '</div></div>');
+    document.body.appendChild(box);
+    box.querySelector(".ht-close").onclick = function () { if (box.parentNode) box.parentNode.removeChild(box); };
+    box.querySelector("#htKhoaCopy").onclick = async function () {
+      var ok = await copyText(khoa);
+      this.textContent = window.t(ok ? "ht.khoa_da_chep" : "ht.khoa_chep_tay");
+      if (!ok) box.querySelector("#htKhoa").select();
     };
   }
 
   function moSuaTK(a) {
     var k = kenhCua(a.channel);
     var uname = "";
+    var tuSinh = !!k.khoa_tu_sinh;
+    var md = a.meta || {};
+    // Generated-key channel: no token field, the key's first characters, a Rotate button and the account's limits.
+    var phanKhoa = tuSinh
+      ? '<label>' + esc(window.t("ht.khoa_lb")) + '</label>' +
+        '<div class="cb-row"><code id="htKhoaDau">' + esc((md.key_prefix || "") + "…") + '</code>' +
+          '<button class="s-btn-ghost" id="htXoayKhoa" type="button">' + esc(window.t("ht.khoa_xoay")) + '</button></div>' +
+        '<div class="cb-hint">' + esc(window.t("ht.khoa_tran")) + '</div>' +
+        (k.cai_dat_tk || []).map(function (f) {
+          var v = md[f.key] != null ? md[f.key] : f.default;
+          return '<label>' + esc(f.nhan) + '</label><input class="ht-cai-dat" type="number" inputmode="numeric" data-k="' +
+            esc(f.key) + '" min="' + esc(f.min) + '" max="' + esc(f.max) + '" value="' + esc(v) + '">';
+        }).join("")
+      : '<label>Token ' + esc(k.nhan) + ' ' + esc(window.t("cb.token_de_trong")) + '</label>' +
+        '<div class="cb-row"><input id="htToken" type="password" placeholder="' + esc(window.t("cb.ph_token")) + '">' +
+          '<button class="s-btn-ghost" id="htCheck" type="button">' + esc(window.t("cb.kiem_tra")) + '</button></div>' +
+        '<div class="cb-hint" id="htTokenNote">' + (a.external_id ? esc(window.t("cb.dang_dung")) + " " + esc((a.tien_to_ten || "") + a.external_id) : "") + '</div>';
     var box = el('<div class="ht-modal"><div class="ht-form">' +
       '<h3>' + esc(window.t("ht.sua_tk")) + ' - ' + esc(a.label) + '</h3>' +
       '<label>' + esc(window.t("ht.lb_nhan_tk")) + '</label>' +
       '<input id="htLabel" value="' + esc(a.label) + '">' +
-      '<label>Token ' + esc(k.nhan) + ' ' + esc(window.t("cb.token_de_trong")) + '</label>' +
-      '<div class="cb-row"><input id="htToken" type="password" placeholder="' + esc(window.t("cb.ph_token")) + '">' +
-        '<button class="s-btn-ghost" id="htCheck" type="button">' + esc(window.t("cb.kiem_tra")) + '</button></div>' +
-      '<div class="cb-hint" id="htTokenNote">' + (a.external_id ? esc(window.t("cb.dang_dung")) + " " + esc((a.tien_to_ten || "") + a.external_id) : "") + '</div>' +
+      phanKhoa +
       (a.bot_id ? '<div class="cb-hint">' + esc(window.t("ht.tk_doi_token_bot", { bot: a.bot_name })) + '</div>' : "") +
       // Đổi brain chủ. Đây là lối thoát khi lỡ thêm tài khoản ở brain khác: không có
       // nó thì chỉ còn cách xoá rồi thêm lại, mà xoá là mất luôn lịch sử hội thoại của nó.
@@ -2491,7 +2542,18 @@
     var nutXoa = box.querySelector(".ht-xoa-tk");
     if (nutXoa) nutXoa.onclick = function () { dong(); xoaTK(a); };
     veChonBrain(box.querySelector("#htBrain"), a.brain || "");
-    box.querySelector("#htCheck").onclick = async function () {
+    var nutXoay = box.querySelector("#htXoayKhoa");
+    if (nutXoay) nutXoay.onclick = async function () {
+      if (!confirm(window.t("ht.khoa_xn_xoay"))) return;
+      try {
+        var r = await api("/channels/accounts/" + encodeURIComponent(a.id) + "/rotate-key", { method: "POST", body: fd({}) });
+        var dau = box.querySelector("#htKhoaDau");
+        if (dau && r.account && r.account.meta) dau.textContent = (r.account.meta.key_prefix || "") + "…";
+        md = (r.account && r.account.meta) || md;
+        if (r.secret) hienKhoa(r.secret);
+      } catch (e) { alert(window.t("ht.loi_doi") + " " + e.message); }
+    };
+    if (box.querySelector("#htCheck")) box.querySelector("#htCheck").onclick = async function () {
       var t = box.querySelector("#htToken").value.trim();
       var note = box.querySelector("#htTokenNote");
       if (!t) { note.textContent = window.t("cb.dan_token"); return; }
@@ -2506,9 +2568,16 @@
     box.querySelector(".ht-save").onclick = async function () {
       try {
         var oBr = box.querySelector("#htBrain");
+        var oTok = box.querySelector("#htToken");
         var than = { label: box.querySelector("#htLabel").value.trim(),
-                     token: box.querySelector("#htToken").value.trim(), bot_username: uname };
+                     token: oTok ? oTok.value.trim() : "", bot_username: uname };
         if (oBr) than.brain = oBr.value;   // không có ô (kind account) thì KHÔNG gửi = không đụng
+        var oCd = box.querySelectorAll(".ht-cai-dat");
+        if (oCd.length) {
+          var cd = {};
+          oCd.forEach(function (n) { cd[n.dataset.k] = n.value.trim(); });
+          than.settings = JSON.stringify(cd);
+        }
         await api("/channels/accounts/" + encodeURIComponent(a.id) + "/update", { method: "POST", body: fd(than) });
       } catch (e) { return alert(window.t("ht.loi_doi") + " " + e.message); }
       dong();

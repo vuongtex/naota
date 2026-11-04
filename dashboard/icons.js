@@ -264,6 +264,16 @@
         '<rect x="6.3" y="7" width="11.4" height="1.7" rx=".85" fill="#fff"/>' +
         '<rect x="6.3" y="11.2" width="7.6" height="1.7" rx=".85" fill="#fff"/>',
     },
+    // A Threads reply in the inbox: the same square comment box, in Threads black.
+    thcomment: {
+      nhan: "Threads reply",
+      mau: "#000000",
+      than:
+        '<path fill="#111" d="M5.2 3h13.6A2.7 2.7 0 0 1 21.5 5.7v9.1a2.7 2.7 0 0 1-2.7 2.7H10l-4.6 3.6c-.4.3-.9 0-.9-.5' +
+        'v-3.1A2.7 2.7 0 0 1 2.5 14.8V5.7A2.7 2.7 0 0 1 5.2 3z" stroke="#fff" stroke-width=".8"/>' +
+        '<rect x="6.3" y="7" width="11.4" height="1.7" rx=".85" fill="#fff"/>' +
+        '<rect x="6.3" y="11.2" width="7.6" height="1.7" rx=".85" fill="#fff"/>',
+    },
     // Discord: the controller-face mark on blurple.
     discord: {
       nhan: "Discord",
@@ -287,6 +297,15 @@
         'c-1.4 3.3-5.2 4.6-9.2 3.1-3-1.1-5-3.6-6.1-6.6z"/>' +
         '<path fill="#133C9A" d="M11.3 10.4c2.5-2.3 5.6-3 8.6-1.8 1 .4 1.6 1 1.9 1.6-.7.2-1.4.7-2' +
         ' 1.3l-.9 1.4c-1.6 1.9-3.7 2.6-6.3 2.1-1.2-.2-2.4-.6-3.5-1.2z"/>',
+    },
+    // Internal API: a server you run asks a Chatbot over HTTP. Code brackets on slate.
+    api: {
+      nhan: "API",
+      mau: "#475569",
+      than:
+        '<rect width="24" height="24" rx="7" fill="#475569"/>' +
+        '<path fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"' +
+        ' d="M9 8l-4 4 4 4M15 8l4 4-4 4M13.2 6.8l-2.4 10.4"/>',
     },
   };
 
