@@ -363,10 +363,10 @@ def register_agents(app, deps: ResonanceApiDeps):
         on = str(body.get("enabled", "")).strip().lower() in ("1", "true", "on", "yes")
         if not slug:
             return _err(400, "Thiếu trợ lý", "Missing assistant")
-        if slug.lower() == "naota-core":
-            # Naota Core is the system assistant: it is not an Auto assistant and cannot be switched.
-            return _err(403, "Naota Core là trợ lý hệ thống, không bật hay tắt Auto được",
-                        "Naota Core is the system assistant; Auto cannot be switched for it")
+        if slug.lower() == "naota-core" and not on:
+            # Naota Core: Auto is always on for the system assistant and cannot be switched off.
+            return _err(403, "Naota Core luôn bật Auto, không tắt được",
+                        "Auto is always on for Naota Core and cannot be switched off")
         if on and deps.agent_file(root, slug) is None:
             store = deps.store() if _store_exists() else None
             live = store.agent(root, slug) if store else None

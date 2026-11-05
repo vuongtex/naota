@@ -1680,6 +1680,7 @@
           '<div class="cside-list"></div>' +
         '</div>';
       listEl = side.querySelector(".cside-list");
+      ganTaiTruoc(listEl);
       searchEl = side.querySelector(".cside-search");
       projBar = null;
       cayEl = null;
@@ -1705,6 +1706,7 @@
       '</div>' +
       '<div class="cside-pane" data-pane="files"></div>';
     listEl = side.querySelector(".cside-list");
+    ganTaiTruoc(listEl);
     searchEl = side.querySelector(".cside-search");
     projBar = side.querySelector(".cside-proj");
     cayEl = side.querySelector('[data-pane="files"]');
@@ -1784,6 +1786,42 @@
     if (window.innerWidth >= 860) return;
     var page = document.getElementById("chatPage");
     if (page) page.classList.remove("side-open");
+  }
+
+  // start fetching a chat the moment the pointer rests on it (or a finger touches it), so the click that
+  // follows usually finds it ready (app.js prefetchSession keeps it). One listener on the list, not one per row:
+  // the list is redrawn often.
+  function ganTaiTruoc(el) {
+    if (!el || el._taiTruoc) return;
+    el._taiTruoc = true;
+    var hen = null;
+    var sidCua = function (e) {
+      var it = e.target && e.target.closest ? e.target.closest("[data-sid]") : null;
+      return it ? it.getAttribute("data-sid") : "";
+    };
+    var tai = function (sid) {
+      try { if (sid && window.NaotaSessions && window.NaotaSessions.prefetch) window.NaotaSessions.prefetch(sid); } catch (e) {}
+    };
+    el.addEventListener("pointerover", function (e) {
+      var sid = sidCua(e);
+      clearTimeout(hen);
+      if (sid) hen = setTimeout(function () { tai(sid); }, 80);   // a pass over the list on the way elsewhere fetches nothing
+    }, { passive: true });
+    el.addEventListener("pointerdown", function (e) { clearTimeout(hen); tai(sidCua(e)); }, { passive: true });
+  }
+
+  // Light the row of the chat on screen without asking the server. False (the caller then reloads the list) when the
+  // list is not up, is showing search results, belongs to another brain, or does not hold that chat yet.
+  function chiToDongDangMo() {
+    if (!side || !listEl || brain() !== lastBrain) return false;
+    if (searchEl && searchEl.value.trim()) return false;
+    var cur = currentId();
+    if (!cur) return false;
+    var rows = listEl.querySelectorAll(".cside-item[data-sid]"), found = false;
+    for (var i = 0; i < rows.length; i++) { if (rows[i].getAttribute("data-sid") === cur) { found = true; break; } }
+    if (!found) return false;
+    for (var j = 0; j < rows.length; j++) rows[j].classList.toggle("active", rows[j].getAttribute("data-sid") === cur);
+    return true;
   }
 
   function openSession(id) {
@@ -1935,6 +1973,7 @@
           togglePin({ id: h.session_id, pinned: h.pinned }, q);
         };
         item.onclick = function () { openSession(h.session_id); };
+        item.setAttribute("data-sid", h.session_id);
         listEl.appendChild(item);
       });
     } catch (e) { listEl.innerHTML = '<div class="cside-empty">' + esc(window.t("sess.search_err")) + '</div>'; }
@@ -2023,7 +2062,12 @@
   };
 
   // Cập nhật khi có lượt chat mới / đổi phiên / đổi brain
-  window.addEventListener("naota:sessions-changed", refresh);
+  window.addEventListener("naota:sessions-changed", function (e) {
+    // Performance: a plain switch to a chat already in the list changes nothing in the list but which row
+    // is lit. Re-fetching it (and its GitHub icons) on every click cost two round trips and redrew every row.
+    if (e && e.detail && e.detail.reason === "open" && chiToDongDangMo()) return;
+    refresh();
+  });
   // Chip phải tự sống KHÔNG phụ thuộc cột trái: refresh() thoát sớm khi chưa mount sidebar,
   // mà chip còn đứng ở màn Naota nơi cột đó chưa bao giờ mount. Đổi phiên là đổi project có
   // hiệu lực, nên bỏ cache rồi vẽ lại.

@@ -83,6 +83,7 @@ import claude_auth     # gói Claude Code xác thực bằng gì: phiên subscri
 import aux_engine   # engine việc nền: Claude / Codex / API rẻ
 import model_routing   # provider order, per-card model/effort, several accounts per provider
 import plan_accounts   # several accounts on one subscription plan card (Codex, Grok, Claude Code)
+import adv_keys   # gateway lists: Advanced API key (OpenAI route) and Claude Compatible (Anthropic route)
 import mcp_store
 import mcp_client
 import mcp_catalog
@@ -212,6 +213,7 @@ import codex_realtime  # ChatGPT Live: một Codex app-server sống lâu, realt
 import voice_call     # nút mic là gọi Naota: tự chọn ChatGPT Live / Live API / Cơ bản
 
 app = FastAPI(title="NAOTA")
+import voice_persona  # a voice call from a partner's chat speaks as that partner
 _CHAT_RUNTIME = ChatRuntime()
 
 
@@ -254,11 +256,15 @@ _REGISTRY_SHADOW_TASKS = set()
 # middleware gắn sau bọc response thành stream, đứng ngoài chúng thì không còn thấy câu trả lời nào là một cục.
 import nen_phan_hoi
 app.add_middleware(nen_phan_hoi.NenPhanHoi)
-# CORS KHÔNG dùng '*' nữa: dashboard cùng-origin (không cần CORS). Chỉ mở cross-origin cho localhost
-# (tiện dev). Chống trang web độc ĐỌC API qua trình duyệt; phần chống GHI/CSRF ở _csrf_guard bên dưới.
-app.add_middleware(CORSMiddleware,
-                   allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$",
-                   allow_methods=["*"], allow_headers=["*"])
+# CORS KHÔNG dùng '*' nữa: dashboard cùng-origin (không cần CORS). Chống trang web độc ĐỌC API qua trình duyệt;
+# phần chống GHI/CSRF ở _csrf_guard bên dưới.
+# Vá bảo mật 2026-11-05: cửa CORS cho MỌI localhost:<cổng> (để tiện dev) giờ chỉ mở khi NAOTA_DEV_CORS=1. Trên
+# máy không đặt mật khẩu, nó cho bất kỳ trang nào chạy ở một cổng localhost khác (dev server, app khác) đọc được
+# cả API: file trong brain, hội thoại. Dashboard, CLI và plugin không cần nó.
+if (os.getenv("NAOTA_DEV_CORS", "") or "").strip().lower() in ("1", "true", "yes", "on"):
+    app.add_middleware(CORSMiddleware,
+                       allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$",
+                       allow_methods=["*"], allow_headers=["*"])
 
 # Đường dẫn KHÔNG cần đăng nhập. CHỈ các auth endpoint công khai (status/login/setup) -
 # KHÔNG để cả prefix /auth public vì /auth/disable, /auth/logout phải yêu cầu đăng nhập.
@@ -268,9 +274,12 @@ app.add_middleware(CORSMiddleware,
 # canh đúng một ký tự này.
 # "/hooks/": webhook triggers, called by outside systems with no cookie. Same trailing
 # slash rule as "/s/"; each hook checks its own secret token in webhook_triggers.accept().
-_AUTH_PUBLIC_PREFIX = ("/static", "/health", "/s/", "/hooks/")
+# 2026-11-05 audit: "/static" and "/health" had no trailing slash, the same trap as "/s" above. "/health" opened
+# /health/loop (stack traces, server paths, restart history) and would open any later /health* or /static* route.
+# The probe stays public as an exact path; the static mount keeps its prefix WITH the slash.
+_AUTH_PUBLIC_PREFIX = ("/static/", "/s/", "/hooks/")
 # /brand-logo: hiện trên màn đăng nhập (trước session). /tls-check: Caddy gọi (không đăng nhập được).
-_AUTH_PUBLIC_EXACT = ("/", "/favicon.ico", "/auth/status", "/auth/login", "/auth/setup",
+_AUTH_PUBLIC_EXACT = ("/", "/favicon.ico", "/health", "/auth/status", "/auth/login", "/auth/setup",
                       "/brand-logo", "/brand-theme.css", "/tls-check",
                       # /domain/auto, /domain/whoami: the login page opened by IP asks whether a
                       # verified https link exists; neither reveals anything beyond that link and a random id.
@@ -372,7 +381,7 @@ async def _auth_guard(request: Request, call_next):
         path = duong_dan_router(request)   # KHÔNG phải request.url.path - xem duong_dan_router
         public = (path in _AUTH_PUBLIC_EXACT
                   or any(path.startswith(p) for p in _AUTH_PUBLIC_PREFIX)
-                  or (path in _AUTH_LOCAL_EXACT and _direct_local_request(request))
+                  or (path in _AUTH_LOCAL_EXACT and _local_tool_call(request))
                   # Zalo's domain check fetches /zalo_verifier<code>.html. The route answers
                   # only codes the owner saved and 404s everything else, so nothing leaks.
                   or (path.startswith("/zalo_verifier") and path.endswith(".html") and "/" not in path[1:])
@@ -901,12 +910,23 @@ def _agent_assets_block(brain: str, meta: dict) -> str:
 
 
 def _naota_core_block(session_id: str) -> str:
-    """Naota Core's role block when `session_id` is a Naota Core chat, else ""."""
+    """Naota Core's role block when `session_id` is a Naota Core chat, else "". It ends with the name and
+    style the person gave Naota Core in that chat's brain."""
     try:
         row = get_store().get_session(session_id) if session_id else None
     except Exception:
         row = None
-    return naota_core.prompt_block() if row and naota_core.is_core_channel(row.get("channel")) else ""
+    if not (row and naota_core.is_core_channel(row.get("channel"))):
+        return ""
+    try:
+        brain = str(row.get("brain") or "brain")
+        root = _brain_root(brain)
+        block = naota_core.prompt_block(root)
+        # documents attached on its card ride along, the same block an agent gets.
+        return block + _agent_assets_block(brain, naota_core.read_core(root)[0])
+    except Exception as e:  # noqa: BLE001 - a broken brain file must not break the turn
+        print(f"[naota core block] {type(e).__name__}: {e}", file=sys.stderr)
+        return naota_core.prompt_block()
 
 
 # Stable prompt: the clock line points at the per-message header instead of holding the time.
@@ -1750,6 +1770,29 @@ def _direct_local_request(request: Request) -> bool:
     return not any(request.headers.get(h) for h in _FORWARD_HEADERS)
 
 
+_LOOPBACK_HOSTS = ("127.0.0.1", "localhost", "::1")
+
+
+def _local_tool_call(request: Request) -> bool:
+    """A login-exempt call from a tool on this machine (naota_schedule, an engine's curl), never from a web page.
+
+    Security fix (2026-11-05 audit): _direct_local_request() only looks at the client address. With login on, the
+    DNS-rebinding Host check in web_security is skipped, so a page the owner opens could rebind its own name to
+    127.0.0.1 and POST /reminders with muc_quyen=full from inside the browser: client 127.0.0.1, no forwarding header,
+    Origin equal to Host. A tool call names a loopback Host and carries no browser fetch metadata (Origin,
+    Sec-Fetch-Site); a page cannot drop either. The logged-in dashboard never needs this path, it has its cookie.
+    """
+    if not _direct_local_request(request):
+        return False
+    try:
+        host = web_security.host_only(request.headers.get("host") or "")
+    except Exception:  # noqa: BLE001
+        return False
+    if host.strip("[]") not in _LOOPBACK_HOSTS:
+        return False
+    return not (request.headers.get("origin") or request.headers.get("sec-fetch-site"))
+
+
 @app.post("/auth/disable")
 async def auth_disable(request: Request, password: str = Form(""), code: str = Form("")):
     """Turn off the login requirement (clears the password). Security report C2.
@@ -1891,6 +1934,15 @@ PROVIDER_DEFS = [   # thứ tự = thứ tự hiển thị card ở trang Models
 _PROVIDER_KEY_FIELDS = tuple(p["key_field"] for p in PROVIDER_DEFS if p.get("key_field"))
 # Providers addressed by an endpoint, not by an account: one key at most, no account list.
 _ROUTING_SINGLE_KEY = ("openai-compat", "anthropic-compat", "ollama-local")
+
+
+def _card_label(p: dict) -> str:
+    """Name a card shows on the Models page. the Anthropic-compatible route is "Claude Compatible"
+    again. The advanced keys run on the
+    OpenAI-compatible card, which keeps its name. Both cards hold several keys."""
+    if p.get("id") == adv_keys.ANTHROPIC:
+        return "Claude Compatible"
+    return p.get("label") or p.get("id") or ""
 # Plan providers: their quota belongs to the account, so the background order lists each once (same rule as aux_engine).
 _ROUTING_PLAN_PROVIDERS = ("anthropic-cli", "openai-oauth", "grok-cli", "antigravity-cli")
 
@@ -1992,16 +2044,16 @@ def _providers_view(cfg):
             # nối" cho mọi máy, kể cả máy chưa hề đặt địa chỉ - ô chọn model liền bày một nhà
             # "đã nối" mà bấm vào thì rỗng. Cùng cái bẫy đã dính với Claude/Codex (cli_found).
             configured = bool((m.get("ollama_local_endpoint") or "").strip())
-        elif p["id"] == "openai-compat":
-            configured = bool((m.get("openai_compat_base") or "").strip())
-        elif p["id"] == "anthropic-compat":
-            configured = bool((m.get("anthropic_compat_base") or "").strip())
+        elif p["id"] in adv_keys.PROVIDERS:
+            configured = bool(adv_keys.gateways(m, p["id"]))
         elif p["key_field"] is None:
             configured = True
         else:
             configured = bool(m.get(p["key_field"]))
         item = {
-            "id": p["id"], "label": p["label"], "kind": p["kind"],
+            "id": p["id"], "kind": p["kind"],
+            # OpenAI Compatible and Claude Compatible are two cards, each with several keys.
+            "label": _card_label(p),
             "needs_key": p["key_field"] is not None,
             "configured": configured,
             "models": models,
@@ -2044,9 +2096,10 @@ def _providers_view(cfg):
             item["auth_error"] = _a.get("error", "")
             item["cai_lenh"] = antigravity_cli.lenh_cai()
             item["tu_cai"] = cli_autoinstall.state("agy")    # Docker tự cài lúc khởi động
-            # Không có nút Ngắt: token nằm trong keyring của hệ điều hành, Naota không giữ nên
-            # cũng không gỡ hộ được. Dựng nút rồi bên dưới không làm gì mới là dối.
+            # The token lives in the OS keyring, which Naota does not hold. Since 05/11/2026 the card still has Disconnect:
+            # it runs the CLI's own sign-out when there is one, else switches the card off in Naota (`naota_off`).
             item["auth_by_naota"] = False
+            item["naota_off"] = bool(_a.get("naota_off"))
             # Đăng nhập làm trong TERMINAL, không phải trên dashboard - xem
             # `antigravity_cli.login_huong_dan()` để biết vì sao. Thẻ Models chỉ đưa lại đúng
             # lệnh cần gõ.
@@ -2318,6 +2371,11 @@ def _resonance_turn_agent(conv_sid, brain, get_session):
     try:
         session_row = get_session(conv_sid) or {}
         persona = workflow_chat.persona_cua_phien(session_row)
+        if naota_core.is_core_channel(session_row.get("channel")):
+            # Naota Core has Auto always on, so its chats carry its Resonance identity like an agent's.
+            persona = ("agent", naota_core.SLUG)
+            naota_core.ensure_file(_brain_root(brain))
+            _core_auto_on(brain)
         if not persona or persona[0] != "agent":
             return None
         if _brain_key(session_row.get("brain")) != _brain_key(brain):
@@ -2563,10 +2621,29 @@ def _resonance_agents_meta(root):
     return out
 
 
+def _resonance_agents_meta_core(root):
+    """The Auto page's list: Naota Core first (Auto always on), then the brain's agents. Teams keep
+    `_resonance_agents_meta`, without Naota Core."""
+    try:
+        main_prov = _chat_provider(cfgmod.read_settings().get("model", {}) or {})[0]
+    except Exception:  # noqa: BLE001
+        main_prov = ""
+    out = []
+    try:
+        _cm = naota_core.read_core(root)[0]
+        _cp = _core_pin(cfgmod.read_settings().get("model", {}) or {})
+        out.append({"slug": naota_core.SLUG, "name": _cm.get("name") or naota_core.NAME,
+                    "provider": _cp.get("provider") or main_prov, "avatar": agent_avatar.for_agent(_cm, naota_core.SLUG),
+                    "title": str(_cm.get("role") or "")[:120], "system": True})
+    except Exception as e:  # noqa: BLE001
+        print(f"[resonance meta core] {type(e).__name__}: {e}", file=sys.stderr)
+    return out + _resonance_agents_meta(root)
+
+
 _RESONANCE_API_DEPS = resonance_api.ResonanceApiDeps(
     store=lambda: _resonance_store(), brain_key=lambda b: _brain_key(b),
     engine_factory=lambda s, t="resonance": _resonance_engine(s, t), session_store=lambda: get_store(),
-    agents_meta=_resonance_agents_meta, agent_file=lambda root, slug: _agent_md_path(root, slug),
+    agents_meta=_resonance_agents_meta_core, agent_file=lambda root, slug: _agent_md_path(root, slug),
     broadcast=lambda ev: _CHAT_RUNTIME.publish(ev))
 resonance_api.register(app, _RESONANCE_API_DEPS)
 _RESONANCE_TICK_BUSY = [False]
@@ -2710,6 +2787,8 @@ def _route_ready(mcfg, prov) -> bool:
     if not d:
         return False
     if d.get("kind") == "api":
+        if prov in adv_keys.PROVIDERS and adv_keys.gateways(mcfg, prov):
+            return adv_keys.active(mcfg, prov) is not None
         if d.get("key_field") and d["id"] not in _ROUTING_SINGLE_KEY:
             return bool(model_routing.usable_accounts(mcfg, prov, d["key_field"]))
         return bool(_provider_key(mcfg, d))
@@ -2786,7 +2865,10 @@ def _agent_model_provider(model: str, provider: str = "") -> str:
 # runs on the main chat's model instead. Set by the chat turn when an engine reports "usage limit reached"; the reset
 # time it gives is used, or an hour when it gives none. Only the pin falls back: the main model is never changed.
 _PIN_LIMITED: dict = {}
-_LIMIT_ENGINE_PROVIDER = {"claude-code": "anthropic-cli", "codex": "openai-oauth", "grok-cli": "grok-cli"}
+# Antigravity was missing here until 05/11/2026, so an `agy` turn out of quota marked nothing: a chat pinned to it kept running
+# on it and failed every turn instead of moving to the main card.
+_LIMIT_ENGINE_PROVIDER = {"claude-code": "anthropic-cli", "codex": "openai-oauth", "grok-cli": "grok-cli",
+                          "antigravity-cli": "antigravity-cli"}
 PIN_LIMIT_DEFAULT_S = 3600
 # provider -> account id the last chat engine of that provider ran on (plan_accounts). Read when that turn
 # reports "out of quota", so the account that ran out is the one that rests.
@@ -2837,9 +2919,39 @@ def _plan_main_signed_in(provider: str) -> None:
     _PIN_LIMITED.pop(provider, None)
 
 
+def _clear_pin_limit(provider: str) -> bool:
+    """The owner chose this card on purpose (made it MAIN, pinned a chat to it, or tapped "Use again now"), so its
+    out-of-quota mark goes and the next turn tries it. A plan that really is still empty refuses before writing a word
+    and the turn moves on to the next card (spec 6.4), so trying costs one quick refusal at most.
+
+    Before this, a mark could outlive the quota it stood for (a reset epoch far away, or a refusal another card
+    triggered): every turn skipped the card the owner had just chosen and landed on a card that was out of quota
+    itself, with no way to undo it from the page. True when a mark was lifted."""
+    prov = str(provider or "")
+    had = _PIN_LIMITED.pop(prov, None) is not None
+    try:
+        m = cfgmod.read_settings().get("model") or {}
+        if not (plan_accounts.in_use(prov) and plan_accounts.has_extra(m, prov)):
+            model_routing.clear_rest(prov, plan_accounts.MAIN)   # one account: its rest IS the card's rest
+    except Exception as e:  # noqa: BLE001 - lifting a mark must never fail the owner's click
+        print(f"[routing] clear limit {prov}: {type(e).__name__}: {e}", file=sys.stderr)
+    return had
+
+
 def _note_api_limit(mcfg, prov: str, key: str, raw: str = "", seconds: float = 0.0) -> None:
     """An API key ran out of quota in a chat turn: that key rests, so the turn and the next ones run on the
     provider's next key, or on the next card when it has none."""
+    if prov in adv_keys.PROVIDERS:
+        try:
+            secs = seconds or aux_engine.cooldown_for(raw) or aux_engine.COOLDOWN_QUOTA_S
+            with cfgmod._SETTINGS_LOCK:
+                cfg = cfgmod.read_settings()
+                if adv_keys.rest_and_rotate(cfg["model"], prov, key, secs):
+                    cfgmod.write_settings(cfg)
+                    _PROV_MODELS_CACHE.pop(prov, None)
+        except Exception as e:  # noqa: BLE001
+            print(f"[routing] rest {prov}: {type(e).__name__}: {e}", file=sys.stderr)
+        return
     try:
         d = _provider_def(prov) or {}
         acc = model_routing.account_for_key(mcfg or {}, prov, key, d.get("key_field") or "")
@@ -2874,6 +2986,8 @@ def _route_name(prov: str) -> str:
 def _route_account_no(mcfg, prov: str, key: str = ""):
     """(number, label) of the account a route runs on: the plan account picked now, or the API key given."""
     try:
+        if prov in adv_keys.PROVIDERS:
+            return adv_keys.account_no(mcfg, prov, key)
         if plan_accounts.supported(prov):
             lst = plan_accounts.accounts(mcfg, prov)
             aid = (plan_accounts.pick(mcfg, prov) or {}).get("id") if key == "" else key
@@ -2903,6 +3017,12 @@ def _chat_next_route(mcfg, failed: str, failed_key: str = "", tried=(), failed_a
             ran = failed_account or _PLAN_ACCOUNT_LAST.get(failed, plan_accounts.MAIN)
             if acc and acc["id"] != ran:
                 same = (failed, d.get("kind", "cli"), "", acc["id"])
+        elif failed in adv_keys.PROVIDERS:
+            m2 = cfgmod.read_settings().get("model") or {}   # _note_api_limit just switched the gateway on disk
+            key = _provider_key(m2, d) if _route_ready(m2, failed) else ""
+            if key and key != failed_key:
+                mcfg = m2
+                same = (failed, "api", key, key)
         elif d.get("kind") == "api" and failed not in _ROUTING_SINGLE_KEY and _route_ready(mcfg, failed):
             key = _provider_key(mcfg, d)
             if key and key != failed_key:
@@ -2991,6 +3111,8 @@ def _chat_provider_for_session(mcfg, row):
     d = _provider_def(pprov)
     if not d:
         return _chat_provider(mcfg)
+    if pprov == "antigravity-cli" and antigravity_cli.naota_off():
+        return _chat_provider(mcfg)   # 05/11/2026: the owner disconnected that card; a pin to it must not keep using it
     if _pin_limited_until(pprov):
         # The pinned model's plan is out of quota: run on the main chat's model until it resets.
         main_route = _chat_provider(mcfg)
@@ -3020,6 +3142,8 @@ def _pin_health(mcfg, prov: str) -> tuple:
     d = _provider_def(prov)
     # Same key reading as routing (`_provider_key`): a home Ollama with no key must not read as a broken pin.
     ok = bool(d) and (d.get("kind") != "api" or bool(_provider_key(mcfg, d)))
+    if ok and prov == "antigravity-cli" and antigravity_cli.naota_off():
+        ok = False   # disconnected on the Models page: the chat runs on the main model (_chat_provider_for_session)
     lim_until = _pin_limited_until(prov) if ok else 0
     if lim_until and _chat_provider(mcfg)[0] != prov:
         return False, lim_until
@@ -4421,7 +4545,7 @@ def _api_label(prov):
     return {"openrouter": "OpenRouter", "openai": "OpenAI", "anthropic-api": "Anthropic API",
             "openai-oauth": "ChatGPT (OAuth)", "gemini": "Google Gemini",
             "groq": "Groq", "deepseek": "DeepSeek", "ollama": "Ollama",
-            "openai-compat": "OpenAI Compatible", "anthropic-compat": "Anthropic Compatible"}.get(prov, prov)
+            "openai-compat": "OpenAI Compatible", "anthropic-compat": "Claude Compatible"}.get(prov, prov)
 
 def _reasoning_level(mcfg):
     r = (mcfg or {}).get("reasoning", "off")
@@ -4892,6 +5016,23 @@ async def claude_update_now():
 
 
 @app.on_event("startup")
+async def _widen_io_pool():
+    """Performance: a bigger pool for `asyncio.to_thread` / `io_offload.run_io`.
+
+    Python's default pool is min(32, CPUs + 4) threads: 5 or 6 on a small VPS. Team reads, the team scheduler,
+    agent turns and page reads all borrow from it, so one busy agent left a page click waiting for a free
+    thread, which is the "sometimes instant, sometimes 1-2 seconds" the owner saw. The work is I/O (SQLite,
+    files), not CPU, so more threads cost little memory and no speed. Must be the FIRST startup hook."""
+    import concurrent.futures
+    n = max(32, (os.cpu_count() or 1) * 4)
+    try:
+        asyncio.get_running_loop().set_default_executor(
+            concurrent.futures.ThreadPoolExecutor(max_workers=n, thread_name_prefix="naota-io"))
+    except Exception as e:  # noqa: BLE001 - the stock pool still works, only smaller
+        print(f"[io pool] kept the default pool: {type(e).__name__}: {e}", file=sys.stderr)
+
+
+@app.on_event("startup")
 async def _routing_migrate_on_start():
     """move the settings to the usage-order layout once (model-routing-spec, part 4)."""
     def _run():
@@ -5053,6 +5194,8 @@ def _plan_login_fresh(provider: str, account_id: str, folder) -> bool:
         kind = plan_accounts.KIND[provider]
         if kind == "grok":
             f = grok_cli._doc_phien(folder)[0]
+        elif kind == "agy":
+            f = plan_accounts.agy_token_file(folder)
         else:
             f = Path(folder) / ".credentials.json"
             if not f.exists():
@@ -5084,6 +5227,13 @@ async def plan_account_login_start(request: Request):
     plan_accounts.prepare(prov, folder)
     _PLAN_LOGIN[aid] = {"provider": prov, "label": str(body.get("label") or "")[:60], "ts": time.time()}
     kind = plan_accounts.KIND[prov]
+    if kind == "agy":
+        # agy signs in on a keyboard screen in a terminal, so the page gives the command to paste into Naota's
+        # Terminal page (same user as Naota): agy with this account's HOME and file storage.
+        import shlex
+        cli = antigravity_cli.find_antigravity_cli() or "agy"
+        cmd = " ".join(f"{k}={shlex.quote(v)}" for k, v in plan_accounts.env_for(prov, folder).items()) + " " + shlex.quote(cli)
+        return {"ok": True, "account_id": aid, "url": "", "code": "", "needs_code": False, "terminal": cmd}
     if kind == "codex":
         try:
             d = await asyncio.to_thread(openai_oauth.start_device_for, aid)
@@ -5145,6 +5295,10 @@ async def plan_account_login_poll(provider: str = "", account_id: str = ""):
         if d.get("connected") and _plan_login_fresh(provider, account_id, folder):
             return _plan_login_ok(provider, account_id)
         return {"ok": True, "connected": False, "error": "" if d.get("dang_cho") else d.get("error", "")}
+    if kind == "agy":
+        if plan_accounts.agy_token_file(folder) and _plan_login_fresh(provider, account_id, folder):
+            return _plan_login_ok(provider, account_id)
+        return {"ok": True, "connected": False}
     d = await asyncio.to_thread(claude_cli.auth_status_folder, folder)
     if d.get("connected") and _plan_login_fresh(provider, account_id, folder):
         return _plan_login_ok(provider, account_id)
@@ -5225,6 +5379,63 @@ async def grok_logout():
     except Exception as e:  # noqa: BLE001 - the logout itself already happened
         print(f"[routing] grok logout: {type(e).__name__}: {e}", file=sys.stderr)
     return out
+
+
+def _drop_card(provider: str) -> None:
+    """A card the owner disconnected leaves the usage order; MAIN moves on, or back to Claude Code when it was alone."""
+    with cfgmod._SETTINGS_LOCK:
+        cfg = cfgmod.read_settings()
+        m = cfg["model"]
+        model_routing.drop_from_order(m, provider)
+        if _effective_main(cfg).get("provider") == provider:
+            _set_main_model(cfg, "anthropic-cli", m.get("claude_model") or "opus")
+        else:
+            _sync_legacy_engine(m)
+        cfgmod.write_settings(cfg)
+
+
+@app.post("/antigravity/logout")
+async def antigravity_logout():
+    """Disconnect the Antigravity card ("the Antigravity card has no Disconnect button").
+
+    The Google session sits in the OS keyring, out of Naota's reach, so this does what it honestly can: run the CLI's
+    own sign-out when the binary lists one, and in any case switch the card off in Naota, so no chat, background job
+    or fallback runs on it until the owner taps "Connect again"."""
+    out = await asyncio.to_thread(antigravity_cli.logout)
+    try:
+        def _save():
+            _drop_card("antigravity-cli")
+            cfgmod.update_settings({"model": {antigravity_cli._OFF_KEY: True}})
+        await asyncio.to_thread(_save)
+    except Exception as e:  # noqa: BLE001
+        return {"ok": False, "error": f"{type(e).__name__}: {e}"}
+    antigravity_cli.forget_status()
+    _PROV_MODELS_CACHE.pop("antigravity-cli", None)
+    _PIN_LIMITED.pop("antigravity-cli", None)
+    try:
+        connect_health.probe_engines()
+    except Exception:
+        pass
+    return {"ok": True, "cli_logout": bool(out.get("cli_logout")), "error": out.get("error", "")}
+
+
+@app.post("/antigravity/reconnect")
+async def antigravity_reconnect():
+    """Switch the Antigravity card back on and ask `agy` again whether it is signed in."""
+    await asyncio.to_thread(cfgmod.update_settings, {"model": {antigravity_cli._OFF_KEY: False}})
+    antigravity_cli.forget_status()
+    _PROV_MODELS_CACHE.pop("antigravity-cli", None)
+    d = await asyncio.to_thread(antigravity_cli.auth_status, True)
+    return {"ok": True, "connected": bool(d.get("connected")), "error": d.get("error", "")}
+
+
+@app.post("/routing/retry")
+async def routing_retry(provider: str = Form(...)):
+    """"Use again now" on a card the page shows as out of quota: its mark goes and the next turn tries it."""
+    if not _provider_def(provider):
+        return JSONResponse({"ok": False, "error": localefmt.chu("Không có nhà này", "No such provider")},
+                            status_code=400)
+    return {"ok": True, "lifted": await asyncio.to_thread(_clear_pin_limit, provider)}
 
 
 @app.post("/grok/check")
@@ -5970,6 +6181,10 @@ def settings_get():
                "resting_until": model_routing.resting_until(pid, a["id"])}
               for a in model_routing.accounts(cfg["model"], pid, kf)]
         for pid, kf in _routing_key_fields().items() if model_routing.accounts(cfg["model"], pid, kf)}
+    for _gp in adv_keys.PROVIDERS:   # Advanced API key / Claude Compatible: gateways, key cut to the last 4 characters
+        if adv_keys.gateways(cfg["model"], _gp):
+            safe["model"]["accounts"][_gp] = adv_keys.view(cfg["model"], _gp)
+        safe["model"].pop(adv_keys.field(_gp), None)
     for pid in plan_accounts.KIND:   # plan cards: account 1 plus any extra account
         try:
             safe["model"]["accounts"][pid] = plan_accounts.view(cfg["model"], pid)
@@ -6049,9 +6264,14 @@ def _routing_view(mcfg, providers) -> dict:
                 break
     except Exception as e:  # noqa: BLE001 - a broken view must not take the whole settings page down
         print(f"[routing] view: {type(e).__name__}: {e}", file=sys.stderr)
-    return {"order": o, "profiles": {p: model_routing.profile(mcfg, p) for p in o},
+    limited = {}
+    for p in o:
+        until = _pin_limited_until(p)
+        if until:
+            limited[p] = int(until)
+    return {"order": o, "profiles": {p: model_routing.profile(mcfg, p) for p in o}, "limited": limited,
             "background": model_routing.background_spec(mcfg), "chat_in_use": chat, "bg_in_use": bg,
-            "multi_key": list(_routing_key_fields()), "multi_plan": list(plan_accounts.KIND),
+            "multi_key": list(_routing_key_fields()), "multi_plan": [p for p in plan_accounts.KIND if plan_accounts.available(p)],
             "defaults": {p["id"]: d for p in providers if (d := _default_model_name(mcfg, p["id"]))}}
 
 
@@ -6105,6 +6325,7 @@ async def settings_set(section: str = Form(...), data: str = Form("{}")):
             prov = patch["main"].get("provider"); mod = patch["main"].get("model")
             if _provider_def(prov) and mod:
                 _set_main_model(cfg, prov, mod)
+                _clear_pin_limit(prov)
         # Nhập credential provider (chỉ ghi khi có giá trị mới - tránh xoá bằng giá trị che ••••)
         # Lấy từ PROVIDER_DEFS: danh sách tay cũ sót ollama_key, dán key Ollama Cloud rồi bấm
         # Kết nối là báo đã lưu mà không lưu gì.
@@ -6138,13 +6359,11 @@ async def settings_set(section: str = Form(...), data: str = Form("{}")):
                 if d["id"] not in _ROUTING_SINGLE_KEY:
                     model_routing.save_accounts(m, d["id"], [], d["key_field"])
                 model_routing.drop_from_order(m, d["id"])
-                if patch["clear_key"] == "openai-compat":
-                    m["openai_compat_base"] = ""
-                    _PROV_MODELS_CACHE.pop("openai-compat", None)
-                if patch["clear_key"] == "anthropic-compat":
-                    m["anthropic_compat_base"] = ""
-                    m["anthropic_compat_models"] = []
-                    _PROV_MODELS_CACHE.pop("anthropic-compat", None)
+                if patch["clear_key"] in adv_keys.PROVIDERS:   # every gateway of the card goes
+                    adv_keys.forget(m, patch["clear_key"])
+                    if patch["clear_key"] == "openai-compat":
+                        m.setdefault("catalog", {}).pop("openai-compat", None)
+                    _PROV_MODELS_CACHE.pop(patch["clear_key"], None)
                 if _effective_main(cfg).get("provider") == patch["clear_key"]:
                     _set_main_model(cfg, "anthropic-cli", m.get("claude_model") or "opus")
         # Gói Claude Code xác thực bằng gì: phiên subscription sẵn có, hay API key riêng.
@@ -6183,8 +6402,17 @@ async def settings_set(section: str = Form(...), data: str = Form("{}")):
         if isinstance(patch.get("order"), list):
             ids = [p for p in patch["order"] if _provider_def(str(p or ""))]
             if ids:
+                _was_main = model_routing.main_provider(m)
                 model_routing.set_order(m, ids)
                 _sync_legacy_engine(m)
+                if ids[0] != _was_main:
+                    _clear_pin_limit(ids[0])   # a card moved to the top on purpose is tried, not skipped
+        if isinstance(patch.get("adv_keys"), dict):   # gateway list of a card: order, on/off, names, removal
+            ak = patch["adv_keys"]
+            gp = str(ak.get("provider") or adv_keys.ANTHROPIC)   # an older page sends no provider
+            if gp in adv_keys.PROVIDERS:
+                adv_keys.save_list(m, gp, ak.get("items") or [], removed=ak.get("removed") or [])
+                _PROV_MODELS_CACHE.pop(gp, None)
         if isinstance(patch.get("profile"), dict):
             pp = patch["profile"]
             pid = str(pp.get("provider") or "")
@@ -7309,7 +7537,7 @@ async def upload_raw(name: str = Query(...), dl: int = Query(0)):
     resp = FileResponse(str(f), media_type=mt or "application/octet-stream")
     resp.headers["Content-Disposition"] = "inline"
     resp.headers["X-Content-Type-Options"] = "nosniff"
-    return resp
+    return _csp_neu_chay_script(resp, mt)
 
 @app.post("/ingest-upload")
 async def ingest_upload(
@@ -7737,6 +7965,49 @@ async def ui_order_set(scope: str = Form(...), order: str = Form("[]")):
     return {"ok": True, "order": val[scope]}
 
 
+@app.get("/pet/menu")
+async def pet_menu_get():
+    """The mascot menu the owner arranged (pet_menu.py): {state, rev, items}. Never customised = the default six."""
+    import pet_menu
+    return {"ok": True, "menu": pet_menu.read(cfgmod.read_settings() or {})}
+
+
+def _pet_menu_save(items, base_rev, hidden=None):
+    """Check and write under the settings lock, so two windows saving at once cannot both pass the revision check."""
+    import pet_menu
+    with cfgmod._SETTINGS_LOCK:
+        cfg = cfgmod.read_settings()
+        code, value = pet_menu.check_save(cfg, items, base_rev, hidden)
+        if not code:
+            cfg[pet_menu.SETTINGS_KEY] = value
+            cfgmod.write_settings(cfg)
+        return code, pet_menu.read(cfg)
+
+
+@app.post("/pet/menu")
+async def pet_menu_set(items: str = Form("[]"), base_rev: int = Form(-1), hidden: str = Form("[]")):
+    """Save the mascot menu: `items` is a JSON list of action ids, first on top; `hidden` (older dashboards) is left out;
+    `base_rev` the revision it was edited from. Adding, reordering and removing any item pass, down to an empty menu
+; a stale revision is a 409 so no window overwrites another one's newer menu."""
+    raw = _order_list(items)
+    if raw is None:
+        raw = "bad"
+    hid = _order_list(hidden)
+    if hid is None:
+        hid = "bad"
+    code, menu = await asyncio.to_thread(_pet_menu_save, raw, base_rev, hid)
+    if not code:
+        return {"ok": True, "menu": menu}
+    msg = {
+        "conflict": localefmt.chu("Menu linh vật vừa được đổi ở cửa sổ khác. Tải lại để xem bản mới.",
+                                  "The mascot menu was just changed in another window. Reload to see it."),
+        "invalid_saved": localefmt.chu("Cấu hình menu đã lưu bị lỗi nên chưa lưu đè được.",
+                                       "The saved menu settings are damaged, so they cannot be saved over yet."),
+    }.get(code) or localefmt.chu("Danh sách chức năng không hợp lệ.", "Invalid list of features.")
+    return JSONResponse({"ok": False, "code": code, "error": msg, "menu": menu},
+                        status_code=409 if code in ("conflict", "invalid_saved") else 400)
+
+
 @app.post("/projects/order")
 async def projects_set_order(brain: str = Form(...), order: str = Form("[]")):
     """The owner's order of the projects of one brain (JSON list of project ids, first on top)."""
@@ -7983,6 +8254,7 @@ def _agents_dir(brain):
     return _brain_sub(_brain_root(brain), "agents", "Naota/agents")
 def _workflows_dir(brain):
     return _brain_sub(_brain_root(brain), "workflows", "Naota/workflows")
+naota_core.AGENTS_DIR = _agents_dir   # Naota Core's own agent file lives where the brain keeps its agents
 
 def _agent_memory(brain, slug):
     f = _brain_memory_dir(brain) / "agents" / slug / "MEMORY.md"
@@ -8145,18 +8417,50 @@ def _naota_core_entry(brain: str) -> dict:
         moc = get_store().moc_cap_nhat_theo_kenh(_brain_keys(brain), "agent:")
     except Exception:
         moc = {}
-    e = naota_core.list_entry(moc.get(naota_core.CHANNEL, 0))
-    e["role"] = localefmt.chu(naota_core.definition()["role"], naota_core.definition()["role_en"])
-    e["avatar"] = agent_avatar.for_agent({}, naota_core.SLUG)   # the same stable face in every brain
+    root = _brain_root(brain)
+    e = naota_core.list_entry(moc.get(naota_core.CHANNEL, 0), root=root)
+    meta = naota_core.read_core(root)[0]
+    e["role"] = naota_core.role_text(meta, localefmt.chu)
+    e["avatar"] = agent_avatar.for_agent(meta, naota_core.SLUG)   # the face picked on its card, else the stable one
+    # the agent editor shows Naota Core's model (its pin, empty = the main model) and its own level.
+    mcfg = cfgmod.read_settings().get("model", {})
+    pin = _core_pin(mcfg)
+    e["model"], e["model_provider"] = pin.get("model") or "", pin.get("provider") or ""
+    e["reasoning"] = _core_reasoning(mcfg)
+    _core_auto_on(brain)
     return e
 
 
+_CORE_AUTO_DONE: set = set()
+
+
+def _core_auto_on(brain: str) -> None:
+    """Auto (Resonance) is always on for Naota Core: register it and switch it on, once per brain
+    per process. A missing entry needs nothing from the owner: the brain's Naota Core file is made right here."""
+    try:
+        bkey = _brain_key(brain)
+        if not bkey or bkey in _CORE_AUTO_DONE:
+            return
+        naota_core.ensure_file(_brain_root(brain))
+        rs = _resonance_store()
+        owner = resonance_store.Principal("owner", "owner", bkey)
+        live = rs.agent(bkey, naota_core.SLUG)
+        if live is None or not live.get("enabled"):
+            if live is not None and live.get("status") == "missing":
+                rs.agent_confirm(owner, live["agent_key"], True)
+            rs.agent_set_enabled(owner, naota_core.SLUG, True)
+        _CORE_AUTO_DONE.add(bkey)
+    except Exception as e:  # noqa: BLE001 - never fail the Partners page over this
+        print(f"[naota core auto] {type(e).__name__}: {e}", file=sys.stderr)
+
+
 def _core_refusal() -> JSONResponse:
-    """The one answer to every attempt to delete, rename, unpin, edit or reuse Naota Core."""
+    """The one answer to deleting, unpinning or re-tagging Naota Core, or creating a new agent on its slug. Everything
+    else (picture, name, role, instructions, documents, skills, model) is edited like any agent."""
     return JSONResponse({"ok": False, "code": "system_assistant", "error": localefmt.chu(
-        "Naota Core là trợ lý hệ thống: không xoá, đổi tên, bỏ ghim hay sửa được. Chọn model vẫn được.",
-        "Naota Core is the system assistant: it cannot be deleted, renamed, unpinned or edited. "
-        "Choosing its model still works.")}, status_code=403)
+        "Naota Core là trợ lý hệ thống: không xoá hay bỏ ghim được. Mọi thứ khác sửa như một trợ lý thường.",
+        "Naota Core is the system assistant: it cannot be deleted or unpinned. Everything else is edited like any "
+        "other assistant.")}, status_code=403)
 
 
 @app.post("/naota-core/session")
@@ -8213,7 +8517,10 @@ def agent_get(slug: str = Query(...), brain: str = Query("brain")):
     vào đường dẫn là đọc được file ngoài thư mục agents.
     """
     if naota_core.is_core_slug(slug):
-        return {**_naota_core_entry(brain), "prompt": naota_core.definition()["body"]}
+        _cm, _cb = naota_core.read_core(_brain_root(brain))
+        e = _naota_core_entry(brain)
+        # The editor gets the role as stored (saving it unchanged must not swap in the translated line).
+        return {**e, "role": str(_cm.get("role") or e["role"]), "prompt": _cb}
     path = _agent_md_path(brain, slug)
     if not path:
         return JSONResponse({"error": localefmt.chu("Không tìm thấy trợ lý", "Assistant not found")}, status_code=404)
@@ -8240,8 +8547,18 @@ async def save_agent(name: str = Form(...), role: str = Form(""), skills: str = 
     # KHÔNG ghi đè agent cũ (trước đây ghi đè âm thầm tên, vai, lời nhắc của người khác); trả 409 kèm gợi ý slug trống.
     creating = not (slug or "").strip()
     slug = slug or _ascii_slug(name)
-    if naota_core.is_core_slug(slug):
-        return _core_refusal()
+    core = naota_core.is_core_slug(slug)
+    if core and creating:
+        return _core_refusal()   # a new agent can never take the system assistant's slug
+    if core:
+        # Naota Core is edited with the same form as any agent. Its file is made first, its model
+        # is Naota Core's pin (the same one as the model chip of its chat) and its level is its own, both in settings.
+        naota_core.ensure_file(_brain_root(brain))
+        mp_core = (model_provider or "").strip()
+        await _set_core_pin(mp_core if (mp_core and (model or "").strip() and _provider_def(mp_core)) else "", model)
+        if isinstance(reasoning, str) and reasoning in engine.REASONING_LEVELS:
+            await asyncio.to_thread(cfgmod.update_settings, {"model": {"core_reasoning": reasoning}})
+        model, model_provider, reasoning = "", "", None
     skills_list = [s.strip() for s in re.split(r"[,\n]", skills) if s.strip()]
     # `model_provider` nói RÕ model thuộc nhà nào - cùng một tên model có thể có ở hai nhà
     # (gemini-2.5-pro: Gemini CLI lẫn Gemini API; claude-*: Claude Code lẫn Anthropic API).
@@ -8299,6 +8616,8 @@ async def save_agent(name: str = Form(...), role: str = Form(""), skills: str = 
                          "skills": skills_list, "model": model, "avatar": avatar,
                          "model_provider": mp if mp in AGENT_PROVIDERS else "",
                          "updated": _today()})  # "" = mặc định theo CLI
+            if core:
+                meta["system"] = True   # still the system assistant after any edit
             agent_tags.write_tags(meta, hien)
             _write_md(path, meta, (prompt.strip() or role))
             return {"ok": True, "slug": slug, "tags": hien}
@@ -8370,10 +8689,9 @@ def _agent_file(brain: str, slug: str):
     dạng tách dấu (NFD), còn slug tới từ trình duyệt là dạng dựng sẵn (NFC), hai chuỗi trông y hệt mà
     so khác nhau."""
     import unicodedata
-    # Naota Core's slug is reserved for the platform definition: a stray `agents/naota-core.md` in a brain
-    # (hand-written, imported, written by a model) is never read, edited or deleted as a brain agent.
+    # Naota Core: a real file in every brain, made from the platform definition when missing.
     if naota_core.is_core_slug(slug):
-        return None
+        return naota_core.ensure_file(_brain_root(brain))
     d = _agents_dir(brain)
     for dang in dict.fromkeys((slug, unicodedata.normalize("NFC", slug), unicodedata.normalize("NFD", slug))):
         f = d / f"{dang}.md"
@@ -9320,6 +9638,22 @@ async def files_zip(brain: str = Query("brain"), path: str = Query(""), probe: i
     return await zip_dir_response(brain, path, probe=bool(probe))
 
 
+# Types a browser runs script in when opened as a page (security fix, 2026-11-05 audit). A customer can send the shop's
+# bot a file named x.html that lands in inbox/khach/, and /files/raw served it inline on the dashboard's own origin with
+# no sandbox: opened by the owner (or by a link that carries their cookie), its script ran with the owner's session and
+# could reach /chat, /files/write and the terminal. These types now get the same CSP sandbox as a /s/ share link, an
+# opaque origin. PDF and images stay as before: Chrome refuses to draw a PDF in a sandboxed document.
+_LOAI_CHAY_SCRIPT = ("text/html", "application/xhtml+xml", "image/svg+xml", "text/xml", "application/xml")
+
+
+def _csp_neu_chay_script(resp, media_type: str):
+    """Add the share sandbox to an inline response whose type can run script. Returns the response."""
+    mt = str(media_type or "").split(";")[0].strip().lower()
+    if mt in _LOAI_CHAY_SCRIPT or mt.endswith("+xml"):
+        resp.headers["Content-Security-Policy"] = share_render.CSP_HTML
+    return resp
+
+
 def raw_file_response(brain: str, path: str, dl: bool = False):
     """Lõi thuần của /files/raw (route handler KHÔNG được gọi nhau như hàm thường, xem
     test_handler_khong_goi_truc_tiep). Trả file inline, hoặc ép tải khi dl=True."""
@@ -9338,7 +9672,7 @@ def raw_file_response(brain: str, path: str, dl: bool = False):
     resp = FileResponse(str(f), media_type=mt or "application/octet-stream", filename=f.name,
                         content_disposition_type="inline")   # hiển thị trong trình duyệt, không ép tải
     resp.headers["X-Content-Type-Options"] = "nosniff"
-    return resp
+    return _csp_neu_chay_script(resp, mt)
 
 
 @app.get("/files/raw")
@@ -9432,9 +9766,24 @@ def _share_asset(ban, p: str):
     thu_muc = goc.parent
     dinh_kem = (Path(_brain_root(brain)).resolve() / "attachments")
 
+    goc_brain = Path(_brain_root(brain)).resolve()
+
+    def _vung_rieng(x) -> bool:
+        """inbox/ (files customers and the owner's Telegram send), memory/, or any dot folder, relative to the brain.
+
+        Vá bảo mật 2026-11-05: a note shared from the brain root made "its folder" the whole brain, so the token served
+        every image or audio file in it, inbox photos named by sequential message id included."""
+        try:
+            parts = x.resolve().relative_to(goc_brain).parts
+        except (ValueError, OSError):
+            return False
+        return bool(parts) and (parts[0].lower() in ("inbox", "memory") or any(s.startswith(".") for s in parts[:-1]))
+
     def _qua_cong(f) -> bool:
-        """Đúng hai hàng rào ở trên, hỏi cho MỘT ứng viên."""
+        """Đúng hai hàng rào ở trên, hỏi cho MỘT ứng viên (cộng vùng riêng của brain, trừ khi chính file chia sẻ nằm ở đó)."""
         if not f.is_file() or f.suffix.lower() not in share_render.DUOI_TAI_NGUYEN:
+            return False
+        if _vung_rieng(f) and not _vung_rieng(goc):
             return False
         if thu_muc in f.parents or f.parent == thu_muc:
             return True
@@ -10330,6 +10679,10 @@ async def agent_tag_delete(brain: str = Form("brain"), tag: str = Form(...)):
 
 @app.post("/workflows/delete")
 async def delete_workflow(slug: str = Form(...), brain: str = Form("brain")):
+    # The slug goes straight into a file name: without this check `../x` deleted any .md outside the
+    # workflows folder (found while auditing the Store uninstall path).
+    if not skill_router.valid_file_slug(slug):
+        return JSONResponse({"ok": False, "error": localefmt.chu("slug không hợp lệ", "invalid slug")}, status_code=400)
     f = _workflows_dir(brain) / f"{slug}.md"
     if f.exists():
         f.unlink()
@@ -11337,9 +11690,9 @@ def _agent_chat_prompt(brain, slug, channel="dashboard", conv_sid="", skill_serv
     Cố ý KHÔNG nối CLAUDE.md, bộ nhớ của chủ hay khối kênh: người dùng đang muốn nói chuyện với
     "Người viết", không phải với Naota đội mũ Người viết.
 
-    `channel`: "dashboard" (the Partners page), "cli" (POST /chat with `agent`) or "telegram" (the
-    owner's bot, `@<agent>` or /agent). Only the closing line that tells the agent where the owner
-    is talking from changes; the CLI and Telegram engines append their own channel block after this
+    `channel`: "dashboard" (the Partners page), "cli" (POST /chat with `agent`), "telegram" (the
+    owner's bot, `@<agent>` or /agent) or "voice" (a voice call from the partner's chat,
+    `_voice_ask_naota`). Only the closing line that tells the agent where the owner is talking from changes; the CLI and Telegram engines append their own channel block after this
     prompt.
     """
     if not (_agents_dir(brain) / f"{slug}.md").exists():
@@ -11357,17 +11710,36 @@ def _agent_chat_prompt(brain, slug, channel="dashboard", conv_sid="", skill_serv
                      + "\n# Cộng hưởng (đang bật cho bạn)\n- " + _RESONANCE_GOAL_HINT + "\n")
     where = ("qua Naota CLI (terminal hoặc HTTP /chat)" if channel == "cli"
              else "qua Telegram" if channel == "telegram"
+             else "trong một cuộc gọi thoại trên dashboard Naota (khung chat của bạn ở trang Cộng sự); câu bạn "
+                  "viết ra được đọc lại thành tiếng, nên viết gọn, không bảng" if channel == "voice"
              else "trên dashboard Naota (trang Cộng sự)")
     # the dashboard chat id, so a chat_id/owner_chat the model passes names this chat. An agent DM never had
     # the channel block or the `[Phiên chat: ...]` header, so its jobs used to report to Naota Core.
+    # A voice call runs in that same dashboard chat, so its jobs report there too.
     phien = (f" Phiên chat này là `web:{conv_sid}`: việc nền (`naota_task`) và nhắc hẹn, việc định kỳ "
              "(`naota_schedule`) giao từ đây tự báo kết quả về đúng khung chat này; nhắc hẹn và việc định kỳ "
              "tới giờ chạy bằng chính vai của bạn."
-             if channel == "dashboard" and conv_sid else "")
-    return (sysprompt + _agent_builder_block(brain)
+             if channel in ("dashboard", "voice") and conv_sid else "")
+    return (sysprompt + _agent_builder_block(brain) + _agent_identity_block(_name)
             + f"\n\n# Kênh: bạn đang trò chuyện trực tiếp với chủ {where}. "
             "Trả lời như đang nói chuyện, theo ngôn ngữ chủ đang dùng; "
             "không cần báo cáo dạng nhiệm vụ trừ khi được giao việc cụ thể." + phien)
+
+
+def _agent_identity_block(name) -> str:
+    """Who the assistant is in a chat with the owner: a partner inside Naota, not a bare model.
+
+    The assistant prompt opens with its name and role but never said where it lives. On Codex an assistant asked
+    "who are you" answered that it was ChatGPT , and an API engine's own "you run on model
+    X" fact pulled the same way. Answering with the engine stays right when the owner asks which MODEL it runs on."""
+    return (
+        "\n# Bạn là ai\n"
+        f"- Bạn là {name}, một cộng sự (trợ lý chuyên trách) trong NAOTA, hệ trợ lý AI cá nhân của chủ. Naota là "
+        "hệ thống bạn chạy bên trong: cùng brain, cùng kết nối và công cụ, nhưng vai, giọng và bộ nhớ là của bạn.\n"
+        f"- Hỏi bạn là ai thì trả lời bạn là {name}, cộng sự trong Naota của chủ, kèm vai của mình. KHÔNG tự nhận là "
+        "ChatGPT, Claude, Gemini, Grok hay một trợ lý AI chung chung. Chỉ khi chủ hỏi rõ đang chạy model hay engine "
+        "nào mới nói đúng tên model đó.\n"
+    )
 
 
 def _background_agent_prompt(brain, slug) -> str:
@@ -13349,6 +13721,12 @@ async def cache_keepwarm_set(payload: dict = Body(None)):
 
 @app.get("/viec/all")
 async def viec_all():
+    """Performance: the whole scan reads loop files of every brain, so it runs in a worker thread; on the
+    event loop it held up every other request while the Tasks page opened or polled."""
+    return await asyncio.to_thread(_viec_all_sync)
+
+
+def _viec_all_sync():
     """Gộp MỌI brain cho trang Việc: mỗi brain kèm loop + nhắc hẹn đang chờ, mỗi item gắn
     brain_name/brain_path để nút thao tác (bật/tắt/xoá/chuyển/huỷ) nhắm ĐÚNG brain của chính
     item, không phải brain đang chọn ở sidebar. Quét list_brains() (KHÔNG chỉ brain đã đăng ký)
@@ -16583,6 +16961,52 @@ def _ngon_ngu_cuoc_goi(meta) -> str:
     return lang_registry.chuan_hoa(str((meta or {}).get("call_lang") or ""))
 
 
+def _voice_agent(conv_sid: str, brain: str):
+    """The partner a voice call talks to: {"brain", "slug"} (the shape `_tg_answer` takes as `agent`) when the call
+    runs in a partner's chat (Partners page, session channel `agent:<slug>`), else None.
+
+    The Partners page shares the chat frame of the main chat, so a call started there carries that partner's session
+    id. Until this was fixed the call ignored it: the call model spoke as plain Naota and the work it handed off ran
+    as plain Naota too, so asked who it was, it answered that it was ChatGPT. Any failure is None:
+    the call then runs as Naota, as before, instead of not starting."""
+    if not conv_sid:
+        return None
+    try:
+        persona = workflow_chat.persona_cua_phien(get_store().get_session(conv_sid) or {})
+        if not persona or persona[0] != "agent":
+            return None
+        root = _brain_root(brain)
+        f = _agent_md_path(root, persona[1])
+        return {"brain": root, "slug": f.stem} if f is not None else None
+    except Exception as e:  # noqa: BLE001 - a call must still start
+        print(f"[voice agent] {type(e).__name__}: {e}", file=sys.stderr)
+        return None
+
+
+def _voice_persona(conv_sid: str, brain: str):
+    """(name, identity block) of the partner a voice call talks to, for the call model's prompt
+    (voice_live.make_provider / voice_brain conf "system"), or None for a plain call."""
+    agent = _voice_agent(conv_sid, brain)
+    if not agent:
+        return None
+    try:
+        meta, body = _read_md(_agents_dir(agent["brain"]) / f"{agent['slug']}.md")
+        name = str(meta.get("name") or agent["slug"]).strip()
+        return name, voice_persona.identity_block(name, str(meta.get("role") or ""), body,
+                                                  _agent_memory(agent["brain"], agent["slug"]))
+    except Exception as e:  # noqa: BLE001
+        print(f"[voice persona] {type(e).__name__}: {e}", file=sys.stderr)
+        return None
+
+
+def _voice_brain_conf(conf: dict, conv_sid: str, brain: str) -> dict:
+    """The fast voice lane's settings for this chat: a partner's chat speaks with the partner's prompt."""
+    persona = _voice_persona(conv_sid, brain)
+    if not persona:
+        return conf
+    return {**conf, "system": voice_persona.apply(voice_brain.SYSTEM_PROMPT, persona[0], persona[1])}
+
+
 async def _voice_ask_naota(request: str, conv_sid: str, brain: str, key: str = "", progress=None,
                            call_lang: str = "") -> str:
     """Tool `ask_naota` của phiên Live, và việc nền của làn nhanh (V3): chạy MỘT lượt bộ não
@@ -16606,7 +17030,9 @@ async def _voice_ask_naota(request: str, conv_sid: str, brain: str, key: str = "
     """
     own_key = bool(key)   # khoá riêng dùng một lần: phiên RAM của nó phải chết theo, xem finally
     key = key or f"voice:{conv_sid}"
-    sess = _tg_session(key)
+    # A call in a partner's chat hands its work to that partner (prompt, model, memory), not to plain Naota.
+    agent = _voice_agent(conv_sid, brain)
+    sess = _tg_session(_agent_sess_key(key, agent))
     try:
         root = _brain_root(brain)
         if os.path.isdir(root):
@@ -16616,12 +17042,12 @@ async def _voice_ask_naota(request: str, conv_sid: str, brain: str, key: str = "
     try:
         out = await _tg_answer(request, meta={"chat_id": key, "call_lang": call_lang},
                                progress=progress, channel="cli",
-                               phien_kho=str(conv_sid or ""), ghi_kho=False)
+                               phien_kho=str(conv_sid or ""), ghi_kho=False, agent=agent)
     except Exception as e:
         return f"Bộ não chính lỗi: {type(e).__name__}: {e}"
     finally:
         if own_key:
-            _TG_SESS.pop(key, None)
+            _TG_SESS.pop(_agent_sess_key(key, agent), None)
     if isinstance(out, dict):
         return channel_context.strip_control_blocks(str(out.get("text") or ""))[:6000] or "(không có nội dung)"
     return str(out or "")[:6000]
@@ -16673,8 +17099,17 @@ async def voice_live_ws(ws: WebSocket, session_id: str = Query(""), brain: str =
                 memory_index = _fit_memory_index(idx.read_text(encoding="utf-8"), cap=voice_live.MEMORY_CHARS)
         except Exception:
             memory_index = ""
+    # A call from a partner's chat speaks as that partner (name, role, file, memory), not as plain Naota.
+    # `_voice_persona` logs its own failures; anything else still starts the call, as Naota.
+    _persona_kw = {}
     try:
-        prov = voice_live.make_provider(cfg, recognition_lang=lang, memory_index=memory_index)
+        _p = _voice_persona(session_id, brain)
+        if _p:
+            _persona_kw["persona"] = _p
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        prov = voice_live.make_provider(cfg, recognition_lang=lang, memory_index=memory_index, **_persona_kw)
         await prov.connect()
     except Exception as e:
         await _j({"type": "error", "message": f"{type(e).__name__}: {e}" if not isinstance(e, RuntimeError) else str(e)})
@@ -17844,6 +18279,9 @@ async def _chat_socket(ws):
                 acli.mode = _muc_quyen_luot_chat(_row0, user_message)
                 # Hub trỏ BRAIN kể cả khi cwd là repo - xem chú thích ở nhánh Grok.
                 _apply_antigravity_hub(acli, _brain_root(brain))
+                # The Google account to run (extra accounts: Linux only, plan_accounts). After the hub, so an extra
+                # account's HOME gets the hub config just written.
+                _turn_acc["antigravity-cli"] = _plan_account_apply(acli, "antigravity-cli", mcfg)
                 if not acli.is_available():
                     final_text = ("⚠ Chưa cài Antigravity CLI trên máy này. Cài một lần:\n\n"
                                   f"`{antigravity_cli.lenh_cai()}`\n\n"
@@ -17936,8 +18374,15 @@ async def _chat_socket(ws):
                 # bằng transcript trong SQLite. Không làm bước này thì mỗi lượt tiếp theo
                 # đều đắt hơn lượt trước mà không thêm giá trị gì, và đó là phần TO NHẤT của
                 # hoá đơn token - to hơn hẳn thứ Phase 8 gọt được. Xem compaction.
+                # Thread size = input of the LAST request of the previous turn, measured by the
+                # app-server. A turn total sums every request of a tool loop, so a turn
+                # that searched the web for a while looked like a huge thread. Without a
+                # measurement (exec fallback, older data) the turn total is used, as before.
+                _codex_do = _row0.get("last_context_provider") == "codex"
+                _codex_ctx = int((_row0.get("last_context_input_tokens") if _codex_do
+                                  else _row0.get("last_input_tokens")) or 0)
                 if stored_codex_thread and compaction.nen_mach_thue_bao(
-                        _row0.get("last_input_tokens"), msg_count=_row0.get("msg_count"),
+                        _codex_ctx, msg_count=_row0.get("msg_count"),
                         rotated_at=_row0.get("thread_rotated_msg")):
                     stored_codex_thread = ""
                     store.clear_codex_thread_id(conv_sid)
@@ -17945,16 +18390,17 @@ async def _chat_socket(ws):
                     _CONTEXT_RUNTIME.record_runtime_event(
                         runtime_trace, "thread.rotated",
                         {"engine": "codex",
-                         "last_input_tokens": int(_row0.get("last_input_tokens") or 0),
+                         "last_input_tokens": _codex_ctx,
+                         "basis": "last_request" if _codex_do else "turn_total",
                          "threshold": compaction.SUBSCRIPTION_THREAD_MAX_TOKENS})
                     await ws.send_text(json.dumps({
                         "type": "tool_call", "tool": "naota_nen_mach",
                         "content": localefmt.chu(
                             "⚙ Mạch hội thoại đã dài "
-                            f"({int(_row0.get('last_input_tokens') or 0):,} token mỗi lượt), "
+                            f"({_codex_ctx:,} token mỗi lượt), "
                             "Naota mở mạch mới và mang theo tóm tắt.",
                             "⚙ The conversation thread got long "
-                            f"({int(_row0.get('last_input_tokens') or 0):,} tokens per turn), "
+                            f"({_codex_ctx:,} tokens per turn), "
                             "Naota started a new one and carried a summary over."),
                     }))
                 ccli.session_id = stored_codex_thread or None
@@ -18022,6 +18468,18 @@ async def _chat_socket(ws):
                                 final_text = ev.get("content") or final_text
                                 if ev.get("session_id"):
                                     store.set_codex_thread_id(conv_sid, ev["session_id"])
+                                _telemetry = ev.get("usage_telemetry") or {}
+                                if _telemetry:
+                                    _CONTEXT_RUNTIME.record_runtime_event(
+                                        runtime_trace, "subscription.usage",
+                                        {**_telemetry, "requests": ev.get("request_usage") or []})
+                                # Only a real per-request measurement is stored; without one the
+                                # old number is dropped so it cannot describe a different thread.
+                                if int(_telemetry.get("last_request_input") or 0) > 0:
+                                    store.set_last_context_input_tokens(
+                                        conv_sid, _telemetry["last_request_input"])
+                                else:
+                                    store.clear_last_context_input_tokens(conv_sid)
                                 _ctx_in += int(ev.get("tokens_in", 0) or 0)
                                 _ctx_cache += int(ev.get("tokens_cache_read", 0) or 0)
                                 usage_store.record("codex", actual_model, ev.get("tokens_in", 0), ev.get("tokens_out", 0))
@@ -19070,6 +19528,12 @@ async def _chat_socket(ws):
                     await send_raw({"type": "stream", "content": chunk, "session_id": conv_sid, "lane": "voice"})
 
             try:
+                # A call in a partner's chat speaks with that partner's prompt. The helper logs its own failures;
+                # anything else keeps the Naota voice rather than dropping the fast lane.
+                conf = _voice_brain_conf(conf, conv_sid, brain)
+            except Exception:  # noqa: BLE001
+                pass
+            try:
                 brain_obj = await voice_brain.get_brain(conv_sid, conf)
                 await send_raw({"type": "status", "content": localefmt.chu("Naota đang trả lời nhanh...",
                                                                            "Naota is answering quickly..."),
@@ -20014,9 +20478,12 @@ def sessions_new(brain: str = Form("brain"), channel: str = Form("web")):
 
 
 @app.get("/sessions/search")
-async def sessions_search(q: str = Query(...), brain: str = Query(None), limit: int = Query(30),
-                          channel: str = Query(""), bots: int = Query(0)):
-    """channel: bỏ trống = tìm mọi kênh (thanh tìm trang Trò chuyện); có giá trị = chỉ kênh đó
+def sessions_search(q: str = Query(...), brain: str = Query(None), limit: int = Query(30),
+                    channel: str = Query(""), bots: int = Query(0)):
+    """Performance: a plain `def`, so FastAPI runs the full-text search in its thread pool; as `async def`
+    it ran on the event loop and every request waited for it.
+
+    channel: bỏ trống = tìm mọi kênh (thanh tìm trang Trò chuyện); có giá trị = chỉ kênh đó
     (ô tìm ở cột lịch sử của một trợ lý / quy trình trên trang Cộng sự)."""
     return {"results": get_store().search(q, limit=limit, brain=_brain_keys(brain),
                                           channel=channel or None,
@@ -20024,19 +20491,22 @@ async def sessions_search(q: str = Query(...), brain: str = Query(None), limit: 
 
 
 @app.get("/sessions/{session_id}")
-def sessions_get(session_id: str, limit: int = Query(0)):
+def sessions_get(session_id: str, limit: int = Query(0), tools: int = Query(1)):
     """`limit=0` (mặc định) trả CẢ hội thoại - khuôn cũ, mọi chỗ gọi cũ giữ nguyên hành vi.
 
     `limit=N` trả N tin CUỐI kèm `has_more` + `total`: khung chat mở hội thoại dài thì chỉ
     dựng phần đuôi rồi rơi thẳng xuống câu trả lời gần nhất, phần cũ để cuộn lên mới kéo về
     qua `/sessions/{id}/messages`.
+
+    `tools=0` (performance, 2026-11-05, with `limit`): leave out the stored tool calls, which the chat view never
+    shows and which can be most of the payload. The default keeps the old shape for every other caller.
     """
     store = get_store()
     sess = store.get_session(session_id)
     if not sess:
         return JSONResponse({"error": "not found"}, status_code=404)
     if limit and limit > 0:
-        khuc = store.get_messages_page(session_id, limit=limit)
+        khuc = store.get_messages_page(session_id, limit=limit, with_tools=bool(tools))
         sess["messages"] = khuc["messages"]
         sess["has_more"] = khuc["has_more"]
         sess["total"] = store.count_messages(session_id)
@@ -20054,9 +20524,11 @@ def sessions_get(session_id: str, limit: int = Query(0)):
 
 
 @app.get("/sessions/{session_id}/messages")
-async def sessions_messages(session_id: str, limit: int = Query(30),
-                            before_ts: float = Query(None), before_id: int = Query(None)):
-    """Khúc tin CŨ HƠN con trỏ (before_ts, before_id) - khung chat cuộn lên thì gọi đường này.
+def sessions_messages(session_id: str, limit: int = Query(30),
+                      before_ts: float = Query(None), before_id: int = Query(None), tools: int = Query(1)):
+    """Performance: a plain `def` (thread pool), not `async def` doing SQLite on the event loop.
+
+    Khúc tin CŨ HƠN con trỏ (before_ts, before_id) - khung chat cuộn lên thì gọi đường này.
 
     Thiếu con trỏ thì trả khúc cuối, y như `/sessions/{id}?limit=N`.
     """
@@ -20066,7 +20538,8 @@ async def sessions_messages(session_id: str, limit: int = Query(30),
     truoc = None
     if before_ts is not None and before_id is not None:
         truoc = (float(before_ts), int(before_id))
-    page = store.get_messages_page(session_id, limit=max(1, min(int(limit), 200)), before=truoc)
+    page = store.get_messages_page(session_id, limit=max(1, min(int(limit), 200)), before=truoc,
+                                   with_tools=bool(tools))   # tools=0: see sessions_get
     _gan_reaction(store, session_id, page.get("messages") or [])
     return page
 
@@ -20438,6 +20911,11 @@ async def sessions_pin(session_id: str, pinned: str = Form("1")):
 
 @app.get("/sessions/{session_id}/meta")
 async def sessions_meta(session_id: str):
+    """Performance: asked on every chat open; its reads run in a worker thread, off the event loop."""
+    return await asyncio.to_thread(_sessions_meta_sync, session_id)
+
+
+def _sessions_meta_sync(session_id: str):
     """Row phiên KHÔNG kèm messages - cho model bar hỏi 'phiên này ghim model gì' mà
     không phải kéo cả hội thoại về (GET /sessions/{id} trả nguyên cả messages).
 
@@ -20517,6 +20995,8 @@ async def sessions_set_model(session_id: str, provider: str = Form(""),
     if prov and not _provider_def(prov):
         return JSONResponse({"error": localefmt.chu(f"provider không tồn tại: {prov}",
                                                     f"provider does not exist: {prov}")}, status_code=400)
+    if prov:
+        _clear_pin_limit(prov)   # picking a model in the chat bar means "use this one": its old quota mark goes
     _row = get_store().get_session(session_id)
     if _row and naota_core.is_core_channel(_row.get("channel")):
         _cp = await _set_core_pin(prov, model)
@@ -20811,62 +21291,104 @@ async def ollama_local_set_endpoint(endpoint: str = Form(""), key: str = Form(No
 
 @app.post("/provider/openai-compat/connect")
 async def openai_compat_connect(request: Request):
-    """Lưu Base URL + key của provider OpenAI Compatible SAU KHI gọi thử {base}/models.
+    """Add or edit one gateway of the Advanced API key card (OpenAI-compatible route), AFTER checking it.
 
-    Các provider API khác lưu key không kiểm, nhưng ở đây URL cũng do người dùng gõ: lưu bừa
-    thì thẻ báo "Đã kết nối" với key sai, rồi hiện danh sách model cũ còn nhớ như thể thật.
-    Key để trống = dùng lại key đang lưu (ô key chỉ để ĐỔI key)."""
+    the Advanced card runs on the OpenAI format, so the seller's own list ({base}/models) fills the
+    model picker and nobody has to type a model name. The URL is typed by the owner, so saving blind would show
+    "Connected" with a wrong key: Naota calls {base}/models first, and for a seller with no list it sends one tiny
+    /chat/completions request (max_tokens 1) with the model typed in the box that then opens.
+    `id` edits that gateway, `add` appends one; a page from before (neither) edits the only gateway it knows.
+    A blank key reuses the saved one, for the same gateway and URL only; a gateway may have no key at all (a server
+    on the owner's own machine)."""
     import httpx
     data = await request.json()
-    base = str(data.get("base") or "").strip().rstrip("/")
-    if base.endswith("/chat/completions"):
-        base = base[: -len("/chat/completions")]
+    base = adv_keys.norm_base(adv_keys.OPENAI, data.get("base"))
     if not base.lower().startswith(("http://", "https://")):
         return {"ok": False, "error": localefmt.chu("Base URL phải bắt đầu bằng http:// hoặc https://",
                                                     "Base URL must start with http:// or https://")}
-    cfg = cfgmod.read_settings()
-    m = cfg.setdefault("model", {})
+    typed_in = data.get("models")
+    if isinstance(typed_in, str):
+        typed_in = re.split(r"[,\n]+", typed_in)
+    typed = _gop_giu_thu_tu([str(x).strip() for x in (typed_in or []) if str(x).strip()])
+    m = cfgmod.read_settings().get("model") or {}
+    gid = str(data.get("id") or "").strip()
+    gws = adv_keys.gateways(m, adv_keys.OPENAI)
+    if not gid and not data.get("add") and len(gws) == 1:
+        gid = gws[0]["id"]
+    old = next((g for g in gws if g["id"] == gid), None)
+    if gid and not old:
+        return {"ok": False, "error": localefmt.chu("Không tìm thấy key này nữa, tải lại trang.",
+                                                    "This key is gone, reload the page.")}
     # A blank input reuses the secret only for the same endpoint. Reusing it for another URL
     # would send that secret to the new host during the validation request below.
-    old_base = str(m.get("openai_compat_base") or "").strip().rstrip("/")
     key = str(data.get("key") or "").strip()
-    if not key and base == old_base:
-        key = m.get("openai_compat_key") or ""
+    if not key and old and base == old["base"]:
+        key = old["key"]
+    headers = {"Authorization": f"Bearer {key or 'none'}"}
+    live, why = [], ""
     try:
         async with httpx.AsyncClient(timeout=20) as c:
-            r = await c.get(base + "/models", headers={"Authorization": f"Bearer {key or 'none'}"})
+            r = await c.get(base + "/models", headers=headers)
+        if r.status_code in (401, 403):
+            return {"ok": False, "error": localefmt.chu(f"API key không hợp lệ (HTTP {r.status_code}). Chưa lưu gì.",
+                                                        f"Invalid API key (HTTP {r.status_code}). Nothing was saved.")}
+        if r.status_code == 200:
+            try:
+                body = r.json()
+                rows = body.get("data") if isinstance(body, dict) else body
+                live = sorted({x.get("id") for x in (rows or []) if isinstance(x, dict) and x.get("id")})
+            except Exception:
+                live = []
+        else:
+            why = f"HTTP {r.status_code}"
     except Exception as e:
-        return {"ok": False, "error": localefmt.chu(f"Không gọi được {base}/models ({type(e).__name__}). "
-                                                    "Kiểm tra lại Base URL.",
-                                                    f"Could not reach {base}/models ({type(e).__name__}). "
-                                                    "Check the Base URL.")}
-    if r.status_code in (401, 403):
-        return {"ok": False, "error": localefmt.chu(f"API key không hợp lệ (HTTP {r.status_code}). Chưa lưu gì.",
-                                                    f"Invalid API key (HTTP {r.status_code}). Nothing was saved.")}
-    if r.status_code == 404:
-        return {"ok": False, "error": localefmt.chu(f"Không thấy {base}/models (HTTP 404). Base URL phải tính tới "
-                                                    "/v1, ví dụ https://api.example.com/v1.",
-                                                    f"{base}/models not found (HTTP 404). The Base URL must include "
-                                                    "/v1, for example https://api.example.com/v1.")}
-    if r.status_code != 200:
-        return {"ok": False, "error": localefmt.chu(f"Endpoint trả HTTP {r.status_code}: {r.text[:160]}",
-                                                    f"Endpoint returned HTTP {r.status_code}: {r.text[:160]}")}
-    try:
-        ids = sorted(x.get("id") for x in (r.json().get("data") or [])
-                     if isinstance(x, dict) and x.get("id"))
-    except Exception:
-        ids = []
-    if not ids:
-        return {"ok": False, "error": localefmt.chu("Endpoint trả lời nhưng không có model nào - không giống "
-                                                    "endpoint chuẩn OpenAI.",
-                                                    "The endpoint answered but lists no models - it does not "
-                                                    "look like a standard OpenAI endpoint.")}
-    m["openai_compat_base"] = base
-    m["openai_compat_key"] = key
-    m.setdefault("catalog", {})["openai-compat"] = ids
-    cfgmod.write_settings(cfg)
-    _PROV_MODELS_CACHE["openai-compat"] = {"ids": ids, "ts": time.time()}
-    return {"ok": True, "models": len(ids)}
+        why = type(e).__name__
+    if not live:
+        if not typed:
+            if why and not why.startswith("HTTP"):
+                return {"ok": False, "error": localefmt.chu(f"Không gọi được {base}/models ({why}). Kiểm tra lại Base URL.",
+                                                            f"Could not reach {base}/models ({why}). Check the Base URL.")}
+            # The box for model names stays hidden until a seller turns out to list none (same rule as Claude
+            # Compatible): this reply opens it.
+            return {"ok": False, "need_models": True, "suggest": [],
+                    "error": localefmt.chu(
+                        "Cổng này không tự báo danh sách model. Gõ tên model bên bán cho dùng ở ô vừa hiện ra, rồi bấm "
+                        "Kết nối lại. Nếu bên bán có danh sách model, kiểm tra Base URL đã có /v1 chưa "
+                        "(ví dụ https://integrate.api.nvidia.com/v1).",
+                        "This gateway does not list its models. Type the model the seller gave you in the box that "
+                        "just appeared, then press Connect again. If the seller does list models, check that the Base "
+                        "URL ends with /v1 (for example https://integrate.api.nvidia.com/v1).")}
+        url = base + "/chat/completions"
+        payload = {"model": typed[0], "max_tokens": 1, "messages": [{"role": "user", "content": "ping"}]}
+        try:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(45, connect=15)) as c:
+                r = await c.post(url, headers=headers, json=payload)
+        except Exception as e:
+            return {"ok": False, "error": localefmt.chu(f"Không gọi được {url} ({type(e).__name__}). Kiểm tra lại Base URL.",
+                                                        f"Could not reach {url} ({type(e).__name__}). Check the Base URL.")}
+        if r.status_code in (401, 403):
+            return {"ok": False, "error": localefmt.chu(f"API key không hợp lệ (HTTP {r.status_code}). Chưa lưu gì.",
+                                                        f"Invalid API key (HTTP {r.status_code}). Nothing was saved.")}
+        if r.status_code == 404:
+            return {"ok": False, "error": localefmt.chu(f"Không thấy {url} (HTTP 404). Base URL phải tính tới /v1, "
+                                                        "ví dụ https://api.example.com/v1.",
+                                                        f"{url} not found (HTTP 404). The Base URL must include /v1, "
+                                                        "for example https://api.example.com/v1.")}
+        if r.status_code not in (200, 429, 529):   # 429/529: key and model accepted, the gateway is only busy
+            return {"ok": False, "error": localefmt.chu(f"Cổng trả HTTP {r.status_code} khi thử model {typed[0]}: {r.text[:160]}",
+                                                        f"The gateway returned HTTP {r.status_code} for model {typed[0]}: {r.text[:160]}")}
+    ids = _gop_giu_thu_tu(typed, live)
+    label = str(data.get("label") or "").strip()
+    with cfgmod._SETTINGS_LOCK:
+        cfg = cfgmod.read_settings()
+        m = cfg.setdefault("model", {})
+        if old and adv_keys.update(m, adv_keys.OPENAI, old["id"], label=label or None, base=base, key=key, models=ids):
+            g_id = old["id"]
+        else:
+            g_id = adv_keys.add(m, adv_keys.OPENAI, label, base, key, ids)["id"]
+        cfgmod.write_settings(cfg)
+    _PROV_MODELS_CACHE.pop("openai-compat", None)
+    return {"ok": True, "models": len(ids), "listed": bool(live), "id": g_id}
 
 
 @app.post("/provider/anthropic-compat/connect")
@@ -20891,12 +21413,22 @@ async def anthropic_compat_connect(request: Request):
     typed = _gop_giu_thu_tu([str(x).strip() for x in (typed_in or []) if str(x).strip()])
     cfg = cfgmod.read_settings()
     m = cfg.setdefault("model", {})
+    # Claude Compatible keeps a list of gateways: `id` edits one, `add` appends one. A page from before
+    # (no `id`, no list yet) edits the one gateway it knows.
+    gid = str(data.get("id") or "").strip()
+    gws = adv_keys.gateways(m, adv_keys.ANTHROPIC)
+    if not gid and not data.get("add") and len(gws) == 1:
+        gid = gws[0]["id"]
+    old = next((g for g in gws if g["id"] == gid), None)
+    if gid and not old:
+        return {"ok": False, "error": localefmt.chu("Không tìm thấy key này nữa, tải lại trang.",
+                                                    "This key is gone, reload the page.")}
     # A blank input reuses the secret only for the same gateway: reusing it for another URL would
     # send that secret to the new host during the check below.
-    old_base = engine.normalize_anthropic_compat_base(m.get("anthropic_compat_base") or "")
+    old_base = old["base"] if old else ""
     key = str(data.get("key") or "").strip()
-    if not key and base == old_base:
-        key = m.get("anthropic_compat_key") or ""
+    if not key and old and base == old_base:
+        key = old["key"]
     if not key:
         return {"ok": False, "error": localefmt.chu("Cần API key bên bán đưa cho bạn.",
                                                     "Enter the API key the seller gave you.")}
@@ -20943,13 +21475,18 @@ async def anthropic_compat_connect(request: Request):
             return {"ok": False, "error": localefmt.chu(f"Cổng trả HTTP {r.status_code} khi thử model {typed[0]}: {r.text[:160]}",
                                                         f"The gateway returned HTTP {r.status_code} for model {typed[0]}: {r.text[:160]}")}
     ids = _gop_giu_thu_tu(typed, live)
-    m["anthropic_compat_base"] = base
-    m["anthropic_compat_key"] = key
-    m["anthropic_compat_models"] = typed
-    m.setdefault("catalog", {})["anthropic-compat"] = ids
-    cfgmod.write_settings(cfg)
-    _PROV_MODELS_CACHE["anthropic-compat"] = {"ids": ids, "ts": time.time()}
-    return {"ok": True, "models": len(ids), "listed": bool(live)}
+    label = str(data.get("label") or "").strip()
+    # Each gateway keeps its own model names: a seller's list, or the names typed for a seller that lists none.
+    with cfgmod._SETTINGS_LOCK:
+        cfg = cfgmod.read_settings()
+        m = cfg.setdefault("model", {})
+        if old and adv_keys.update(m, adv_keys.ANTHROPIC, old["id"], label=label or None, base=base, key=key, models=ids):
+            g_id = old["id"]
+        else:
+            g_id = adv_keys.add(m, adv_keys.ANTHROPIC, label, base, key, ids)["id"]
+        cfgmod.write_settings(cfg)
+    _PROV_MODELS_CACHE.pop("anthropic-compat", None)
+    return {"ok": True, "models": len(ids), "listed": bool(live), "id": g_id}
 
 
 @app.get("/ollama-local/specs")
@@ -21620,6 +22157,26 @@ def _configured_api_providers() -> tuple:
     return tuple(out)
 
 
+def _fallback_brain_labels(engine_hint: str = "") -> tuple:
+    """Every other card a turn could move to while one plan is out of quota: API keys AND signed-in plan cards.
+
+    `_configured_api_providers` alone counts API keys only, so an owner with ChatGPT signed in was told "no other
+    brain is connected" when Antigravity ran out. The plan that just ran out is left
+    out. A broken check falls back to the API list: this only words an error message."""
+    labels = list(_configured_api_providers())
+    try:
+        failed = _LIMIT_ENGINE_PROVIDER.get(str(engine_hint or ""), "")
+        for pid in _routing_connected_ids(cfgmod.read_settings()):
+            d = _provider_def(pid) or {}
+            if pid == failed or d.get("kind") == "api":
+                continue
+            if d.get("label") and d["label"] not in labels:
+                labels.append(d["label"])
+    except Exception:  # noqa: BLE001 - see docstring
+        pass
+    return tuple(labels)
+
+
 def _subscription_limit_event(raw: str, engine_hint: str):
     """(câu người dùng hiểu, SubscriptionLimit) cho lỗi "gói thuê bao hết lượt"; ("", None) nếu
     không phải loại lỗi này. Khung chat cần cả hai: câu chữ để hiện, mốc reset để hẹn chạy lại."""
@@ -21627,7 +22184,8 @@ def _subscription_limit_event(raw: str, engine_hint: str):
         hit = limit_learner.parse_subscription_limit(raw, engine_hint=engine_hint)
         if not hit:
             return "", None
-        return model_limits.subscription_blocked_hint(hit, _configured_api_providers()), hit
+        return model_limits.subscription_blocked_hint(
+            hit, _fallback_brain_labels(getattr(hit, "engine", "") or engine_hint)), hit
     except Exception:   # noqa: BLE001 - không được để câu báo lỗi tự nó nổ
         return "", None
 
@@ -23562,7 +24120,9 @@ async def _tg_answer_engine(text, meta, progress, *, chat_id, sess, brain, mcfg,
         sysprompt = _bot_full_prompt(brain, _sys_bot_full, _lang_qd, conv_sid)
     elif agent:
         sysprompt = _cli_agent_prompt(brain, agent["slug"], conv_sid,
-                                      channel=("telegram" if channel == "telegram" else "cli"))
+                                      channel=("telegram" if channel == "telegram"
+                                               # `call_lang` is set only by a voice call (_voice_ask_naota)
+                                               else "voice" if "call_lang" in (meta or {}) else "cli"))
     try:
         if _bot_full or agent:
             raise _BoQua()   # selected sources swap the prompt for Naota's voice: not for a bot or an agent
@@ -24112,7 +24672,7 @@ _TG_NHAN_NGAN = {
     "deepseek": "DeepSeek",
     "ollama": "Ollama",
     "openai-compat": "OpenAI Compat",
-    "anthropic-compat": "Anthropic Compat",
+    "anthropic-compat": "Claude Compat",
 }
 _TG_MODEL_LISTS = {}   # provider -> list model id ĐÃ render (index nút ổn định khi bấm)
 _TG_PAGE = 8           # model mỗi trang (lưới 2 cột x 4 hàng)
@@ -28702,12 +29262,7 @@ async def agent_jobs_list(slug: str, brain: str = "brain", source: str = "all", 
     """Việc của một trợ lý, đọc thẳng bản ghi gốc (không sao chép): việc nhóm (kể cả bước con, hỗ trợ), việc từ chat
     riêng, mục tiêu Auto. Lọc theo nguồn và ngăn, phân trang bằng `cursor`. Chỉ đọc, không tạo gì."""
     root = _brain_key(brain)
-    if slug == naota_core.SLUG:
-        # Naota Core has no agent file, no team seat and no Auto, so it has no jobs of its
-        # own. The tab must say "no jobs yet", not "could not load jobs".
-        return {"ok": True, "jobs": [], "counts": {"running": 0, "waiting": 0, "needs_you": 0, "done": 0},
-                "source_counts": {"team": 0, "chat": 0, "auto": 0}, "total": 0, "next": None,
-                "counts_partial": {"done": False}, "errors": [], "at": time.time(), "teams": [], "agent_key": ""}
+    # Naota Core has its own file and Auto now, so its Jobs tab lists its work like any agent's.
     if not _agent_md_path(root, slug):
         return JSONResponse({"ok": False, "error": localefmt.chu("Không tìm thấy trợ lý", "Assistant not found")},
                             status_code=404)

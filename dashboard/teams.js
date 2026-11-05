@@ -1918,7 +1918,7 @@
       focusPicker: false, focusBack: null, searchOpen: false, searchResults: null, searchQuery: "", jumped: null,
       openMember: null, advOpen: false, turns: [], sideOpener: null, rowMenu: null, focusRowMenu: false, swallowClick: false,
       picked: [], retrying: {}, pickSt: null, pickOpener: null, pickHost: null, roster: [],
-      renaming: "", renamingHead: false, replyTo: null, plusOpen: false, dict: null, dictBase: "", dictState: "idle",
+      renaming: "", renamingHead: false, replyTo: null, plusOpen: false, dict: null, dictBase: "", dictState: "idle", dictSend: false,
       atts: [], folder: null, repos: [], ghIcon: null, skills: null, skillsBrain: "", info: null, typing: [], pinned: [], pinsOpen: false, tagFilter: readTagFilter(),
       autoOpened: false, unclamped: {}, outbox: [] };
   }
@@ -2237,7 +2237,13 @@
     }
     var built = listItems();
     var prev = S.listCache && S.listCache.team === S.team.team_id && S.listCache.box === box ? S.listCache.items : null;
-    S.listCache = { team: S.team.team_id, box: box, items: listSync(box, built.items, prev, htmlNodes) };
+    // Performance: Alpine walks every node added anywhere on the page looking for x- directives; message
+    // nodes never carry one. Same two steps as the main chat (app.js chatAppend): the list itself is flagged, and the
+    // sync runs inside Alpine.mutateDom so what is written into a message is not walked either.
+    box._x_ignoreMutationObserver = true;
+    var A = typeof window !== "undefined" && window.Alpine;
+    var sync = function () { return listSync(box, built.items, prev, htmlNodes); };
+    S.listCache = { team: S.team.team_id, box: box, items: A && typeof A.mutateDom === "function" ? A.mutateDom(sync) : sync() };
     // The latest assistant message keeps its Like button visible (like Zalo); older ones show it on hover.
     var lastAgent = null;
     for (var li = built.list.length - 1; li >= 0; li--) if (built.list[li].author_kind === "agent") { lastAgent = built.list[li].id; break; }
@@ -2373,19 +2379,27 @@
     if (S.dictState === "transcribing") return;
     var input = S.el.querySelector(".tm-input");
     S.dictBase = input ? input.value : "";
-    var forTeam = S.activeId;
+    S.dictSend = false;
+    var forTeam = S.activeId, heard = "";
+    // Like a voice recorder: the words are held while speaking and land in the box once, when the
+    // recording ends (see composer-dictate.js).
     S.dict = D.create({
-      onText: function (text) {
-        var inp = S.el.querySelector(".tm-input");
-        if (!inp || S.activeId !== forTeam) return;
-        inp.value = D.joinText(S.dictBase, text);
-        S.pending = null;
-        grow(inp);
-        drawHint();
-      },
+      onText: function (text) { heard = String(text || ""); },
       onState: function (st) {
+        var was = S.dictState;
         S.dictState = st;
+        // Send pressed while recording (button or Enter): it waited for the last words, now it goes.
+        var sendNow = st === "idle" && was !== "idle" && S.dictSend;
+        if (st === "idle") S.dictSend = false;
         if (S.activeId !== forTeam) return;
+        var inp0 = st === "idle" && heard ? S.el.querySelector(".tm-input") : null;
+        if (inp0) {
+          inp0.value = D.joinText(S.dictBase, heard);
+          heard = "";
+          S.pending = null;
+          grow(inp0);
+          drawHint();
+        }
         var btn = S.el.querySelector(".tm-mic");
         if (!btn) return;
         btn.classList.toggle("is-rec", st !== "idle");
@@ -2393,6 +2407,7 @@
         var lab = tw(st === "idle" ? "teams.mic" : st === "transcribing" ? "teams.mic_busy" : "teams.mic_stop");
         btn.setAttribute("aria-label", lab); btn.title = lab;
         btn.innerHTML = ic(st === "idle" ? "mic" : st === "transcribing" ? "loader" : "square");
+        if (sendNow) { send(); return; }
         if (st === "idle") { var inp = S.el.querySelector(".tm-input"); if (inp) inp.focus(); }
       },
       onError: function (code) {
@@ -2967,7 +2982,31 @@
     });
   }
 
+  // the last state of the teams opened lately (the record, the queue, the newest page of messages). Opening
+  // one of them again draws it at once from here while the same three requests refresh it behind; before, every
+  // switch showed an empty chat until the slowest of them answered. Lives outside S, which each visit rebuilds.
+  var TEAM_CACHE = {}, TEAM_CACHE_MAX = 12, TEAM_CACHE_MS = 5 * 60 * 1000;
+  function keepTeam() {
+    if (!S || !S.activeId || !S.team || S.filterTask || (S.jumped !== null && S.jumped !== undefined)) return;
+    TEAM_CACHE[S.activeId] = { at: Date.now(), team: S.team, queue: S.queue, msgs: S.msgs.slice(-60), hasMore: S.hasMore || S.msgs.length > 60,
+      pinned: S.pinned || [], taskTitles: Object.assign({}, S.taskTitles) };
+    var ids = Object.keys(TEAM_CACHE);
+    if (ids.length > TEAM_CACHE_MAX) {
+      ids.sort(function (a, b) { return TEAM_CACHE[a].at - TEAM_CACHE[b].at; });
+      ids.slice(0, ids.length - TEAM_CACHE_MAX).forEach(function (k) { delete TEAM_CACHE[k]; });
+    }
+  }
+  function useTeam(id) {
+    var c = TEAM_CACHE[id];
+    if (!c || S.filterTask) return false;
+    if (Date.now() - c.at > TEAM_CACHE_MS) { delete TEAM_CACHE[id]; return false; }
+    S.team = c.team; S.queue = c.queue; S.msgs = c.msgs.slice(); S.hasMore = c.hasMore; S.pinned = c.pinned;
+    S.taskTitles = Object.assign({}, c.taskTitles);
+    return true;
+  }
+
   function openTeam(id, taskId) {
+    keepTeam();
     S.jumped = null; S.searchResults = null; S.searchQuery = ""; S.searchOpen = false;
     S.activeId = id; S.view = "chat"; S.asJob = false; S.pending = null; S.filterTask = String(taskId || "");
     S.team = null; S.queue = null; S.msgs = []; S.taskTitles = {}; S.side = false; S.openMember = null; S.turns = [];
@@ -2980,8 +3019,18 @@
     var input = S.el.querySelector(".tm-input");
     if (input) input.value = "";
     setNote("");
+    useTeam(id);
+    // Performance: ask the server FIRST, then draw. Drawing the whole page (header, cached messages,
+    // composer) took 150-300 ms on a 4x slowed CPU, and the three requests only left after it: every switch waited
+    // for that drawing plus the round trip. Now the round trip runs while the page draws.
+    var loads = Promise.all([loadTeam(), loadQueue(), loadMsgs(false)]);
     drawAll(true);
-    Promise.all([loadTeam(), loadQueue(), loadMsgs(false)]).then(function () { if (S.activeId === id) { drawAll(true); loadFolder(); loadSkills(); } });
+    loads.then(function () {
+      if (S.activeId !== id) return;
+      // Drawn from the cache, the chat was already on screen: this redraw reuses the unchanged message nodes.
+      drawAll(true);
+      keepTeam(); loadFolder(); loadSkills();
+    });
     markOpened(id);
   }
 
@@ -3461,6 +3510,12 @@
   function send() {
     var input = S.el.querySelector(".tm-input");
     if (!input || !S.team) return;
+    // Recording: stop, wait for the final words, then send them (Enter sends, no stop press first).
+    if (S.dict && S.dictState !== "idle") {
+      S.dictSend = true;
+      if (S.dict.active()) S.dict.stop();
+      return;
+    }
     var typed = input.value.trim();
     if (S.atts.some(function (a) { return a.busy; })) { setNote(tw("teams.attach_wait")); return; }
     // A file that failed to upload is not dropped silently: remove it or send it again first (main chat wording).
@@ -4670,7 +4725,9 @@
     // Same Enter rules as the main chat (chat-acts.js): never while an IME is composing, and a touch screen keeps Enter
     // as a new line (the Send button sends).
     var A = actsApi();
-    if (e.target.classList && e.target.classList.contains("tm-input") && A && A.enterSends(e, S.composing && S.composing())) {
+    // While recording the focus usually sits on the mic just pressed: Enter there sends too, instead of only stopping.
+    var onMic = S.dictState !== "idle" && e.target.classList && e.target.classList.contains("tm-mic");
+    if (e.target.classList && (onMic || e.target.classList.contains("tm-input")) && A && A.enterSends(e, S.composing && S.composing())) {
       e.preventDefault();
       send();
     }
@@ -4692,7 +4749,7 @@
     }
   }
 
-  var refreshTimer = null;
+  var refreshTimer = null, refreshOpen = "";
   function onTeamEvent(ev) {
     if (!S || !S.el || !S.el.isConnected) return;
     var d = (ev && ev.detail) || {};
@@ -4739,15 +4796,22 @@
       // A new message while the owner reads higher up: the jump button becomes "New messages" (at the end it follows).
       if (i < 0 && S.scroll && !S.scroll.stuck()) toLatest(false);
     }
+    // "the owner read this team" only changes the unread badge on the team list. It used to refetch the open
+    // team and its queue too, the heaviest reads of the page, after every team switch and every agent message.
+    // Events merged into one refresh keep the open team's refetch if any of them asked for it.
+    if (d.type !== "team_read" && d.team_id === S.activeId) refreshOpen = d.team_id;
     clearTimeout(refreshTimer);
     refreshTimer = setTimeout(function () {
+      var full = !!refreshOpen && !!S && refreshOpen === S.activeId;
+      refreshOpen = "";
       loadTeams(false);
-      if (d.team_id === S.activeId) { loadQueue(); loadTeam(); }
+      if (full) { loadQueue(); loadTeam(); }
     }, 300);
   }
 
   // Rời trang (console.js gọi qua _pageLeave): đóng ngăn, bỏ hẹn giờ; trang dựng lại từ đầu lần ghé sau.
   function leave() {
+    keepTeam();
     clearTimeout(refreshTimer);
     if (colResize()) colResize().miniTip.hide();
     if (S && S.pickSt) closePicker();

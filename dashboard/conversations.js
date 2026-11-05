@@ -67,6 +67,12 @@
   var _statusLoc = "", _typeLoc = "";   // bộ lọc, lưu ở trình duyệt qua NaotaConvFilters
   var _contactLoc = "";     // "1" = only chats where the customer left a phone number or email
   // Chatbot v5 (chatbot-v5-spec): who is handling the chat (the quick filters), the ticked
+  // The mic of the reply box ("thêm nút chép lời để nói bằng giọng nói rồi chép lại, khỏi phải gõ").
+  // dictate.js does the listening; the state lives here because the 5-second redraw rebuilds the box.
+  var _dict = null, _dictState = "idle", _dictBase = "", _dictHeard = "", _dictConv = 0, _dictSend = false;
+  var _statusLoc = "", _typeLoc = "";   // bộ lọc, lưu ở trình duyệt qua NaotaConvFilters
+  var _contactLoc = "";     // 2026-10-25: "1" = only chats where the customer left a phone number or email
+  // Chatbot v5 (docs/dev/2026-10-chatbot-v5-spec.md): who is handling the chat (the quick filters), the ticked
   // channel accounts (the channel picker) and tags any/none (the Filter menu). Saved with the rest by NaotaConvFilters.
   var _who = "you", _accs = [], _tagsAny = [], _tagsNone = [], _whoCounts = null;
   var _when = null, _lastBy = "", _pinned = "";   // when the last message came, who wrote it, pinned only (Filter menu)
@@ -257,7 +263,7 @@
   function nhip() {
     if (_timer) clearInterval(_timer);
     _timer = setInterval(function () {
-      if (!_host || !document.body.contains(_host)) { clearInterval(_timer); _timer = null; closeRowMenu(false); return; }
+      if (!_host || !document.body.contains(_host)) { clearInterval(_timer); _timer = null; closeRowMenu(false); dropMic(); return; }
       if (document.hidden || document.querySelector(".ht-modal")) return;
       if (_tab === "inbox") {
         tai(true);
@@ -1249,7 +1255,7 @@
   // ---------------------------------------------------------------- một hội thoại
   async function mo(id) {
     closeRowMenu(false);
-    if (id !== _chon) { _tagPop = false; _tagEdit = 0; _tagErr = ""; _draftEdit = null; _noteEdit = null; _msheet = false; }
+    if (id !== _chon) { _tagPop = false; _tagEdit = 0; _tagErr = ""; _draftEdit = null; _noteEdit = null; _msheet = false; dropMic(); }
     luuCache();
     _chon = id;
     _dauVetTin = "";
@@ -1299,6 +1305,7 @@
   }
 
   function dongThread() {
+    dropMic();
     luuCache();
     _chon = null;
     _msgs = [];
@@ -1540,6 +1547,10 @@
       });
       var ask = box.querySelector(".ib-ask");
       if (ask) ask.onclick = function () { aiReply(c, ta.value.trim(), "ask"); };
+      var mic = box.querySelector(".ib-mic");
+      if (mic) mic.onclick = function () { toggleMic(c); };
+      // While the words arrive by themselves the box is read only: typing would be overwritten by the next result.
+      ta.readOnly = dictOn(c);
     }
     paintInfo();
   }
@@ -2069,6 +2080,116 @@
         esc(window.t(_aiBusy === "now" ? "ib.ai_busy" : "ib.ask_ai_now")) + '</button>' : "") + '</div>';
   }
 
+  // ---------------------------------------------------------------- Mic: speak, the words land in the reply box
+  // Same engine as the team chat (dictate.js): live text while speaking, nothing is sent by itself. The owner reads
+  // the words, fixes them, then presses Send (or A.I. draft, where the words are the instruction).
+  function dictOn(c) { return !!(_dict && _dictState !== "idle" && c && c.id === _dictConv); }
+
+  // Enter while recording stops and sends in one press, like the main chat. Pressing the mic redraws
+  // it, so the focus falls back to the page and the reply box's own Enter never runs: listen on the document instead.
+  var _dictKeys = false;
+  function watchDictEnter() {
+    if (_dictKeys) return;
+    _dictKeys = true;
+    document.addEventListener("keydown", function (e) {
+      if (!_conv || !dictOn(_conv) || _chon !== _dictConv) return;
+      var A = window.NaotaActs;
+      var send = A ? A.enterSends(e, false) : e.key === "Enter" && !e.shiftKey && !e.isComposing;
+      if (!send) return;
+      var tg = e.target, tag = String((tg && tg.tagName) || "").toUpperCase();
+      var ok = !tg || tag === "BODY" || tag === "HTML" || tg === replyBox()
+        || !!(tg.classList && tg.classList.contains("ib-mic"));
+      if (!ok) return;
+      e.preventDefault(); e.stopPropagation();
+      gui(_conv);
+    }, true);
+  }
+
+  function micHtml(c) {
+    var st = dictOn(c) ? _dictState : "idle";
+    var lab = window.t(st === "idle" ? "ib.mic" : st === "transcribing" ? "ib.mic_busy" : "ib.mic_stop");
+    return '<button type="button" class="s-btn-ghost ib-mic' + (st !== "idle" ? " is-rec" : "") + '" aria-pressed="' +
+      (st === "listening" ? "true" : "false") + '" title="' + esc(lab) + '" aria-label="' + esc(lab) + '"' +
+      (st === "transcribing" ? " disabled" : "") + '>' +
+      ic(st === "idle" ? "mic" : st === "transcribing" ? "loader" : "square") + '</button>';
+  }
+
+  function replyBox() { return _host && _host.querySelector(".ht-thread .ib-cin textarea"); }
+
+  function paintMic() {
+    var b = _host && _host.querySelector(".ht-thread .ib-mic");
+    if (b && _conv) b.outerHTML = micHtml(_conv);
+    var nb = _host && _host.querySelector(".ht-thread .ib-mic");
+    if (nb && _conv) { var c = _conv; nb.onclick = function () { toggleMic(c); }; }
+    var ta = replyBox();
+    if (ta) ta.readOnly = dictOn(_conv);
+  }
+
+  function touchOnly() {
+    try { return !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches); } catch (e) { return false; }
+  }
+
+  function toggleMic(c) {
+    var D = window.NaotaDictate;
+    if (!D) { setNote(window.t("dict.unsupported"), true); return; }
+    if (_dict && _dictState === "listening") { _dict.stop(); return; }
+    if (_dict && _dictState !== "idle") return;
+    var ta = replyBox();
+    // A phone would keep the keyboard up over the words; put it away while listening (see composer-dictate.js).
+    if (ta && touchOnly() && document.activeElement === ta) { try { ta.blur(); } catch (e) { /* ignore */ } }
+    _dictBase = ta ? ta.value : "";
+    _dictHeard = "";
+    _dictConv = c.id;
+    _dictSend = false;
+    if (_actNote) setNote("");
+    // Like a voice recorder: the words are held while speaking and land in the box once, when the
+    // recording ends (see composer-dictate.js).
+    var dict = D.create({
+      onText: function (text) {
+        if (_dict !== dict) return;
+        _dictHeard = String(text || "");
+      },
+      onState: function (st) {
+        if (_dict !== dict) return;
+        var was = _dictState;
+        _dictState = st;
+        if (st === "idle") _dict = null;
+        paintMic();
+        if (st !== "idle" || was === "idle") return;
+        var send = _dictSend, heard = _dictHeard;
+        _dictSend = false; _dictHeard = "";
+        if (_chon !== _dictConv || !_conv) return;
+        var box = replyBox();
+        if (box && heard) {
+          box.value = D.joinText(_dictBase, heard);
+          box.style.height = "auto"; box.style.height = box.scrollHeight + "px";
+          box.scrollTop = box.scrollHeight;
+        }
+        if (send) { gui(_conv); return; }
+        if (box && !touchOnly()) { try { box.focus(); box.setSelectionRange(box.value.length, box.value.length); } catch (e) { /* ignore */ } }
+      },
+      onError: function (code) {
+        var ios = D.isIOS && D.isIOS();
+        setNote(window.t(code === "denied" ? (ios ? "dict.denied_ios" : "dict.denied")
+          : code === "service" ? (ios ? "dict.service_ios" : "dict.service") : code === "unsupported" ? "dict.unsupported"
+          : code === "nothing" ? "dict.nothing" : "dict.failed"), true);
+      }
+    });
+    _dict = dict;
+    _dictState = "listening";
+    watchDictEnter();
+    paintMic();
+    dict.start();
+  }
+
+  // Another chat opened or the page closed: drop the recording, its words belong to the chat it started in.
+  function dropMic() {
+    if (!_dict) return;
+    var d = _dict;
+    _dict = null; _dictState = "idle"; _dictSend = false; _dictHeard = "";
+    try { d.cancel(); } catch (e) { /* ignore */ }
+  }
+
   // Ô trả lời khách: Gửi (gửi nguyên văn) và A.I. trả lời (chữ trong ô là lệnh cho A.I.). Nói rõ trước khi bấm gửi: gửi từ đây
   // là TIẾP QUẢN (bot đang trực sẽ im ở cuộc này), và với kênh tài khoản cá nhân thì tin đi dưới tên chính bạn.
   function veCompose(c) {
@@ -2092,6 +2213,7 @@
       (draft && V ? V.draftHtml(draft, busy || (_aiBusy ? "x" : ""), ic) : "") +
       '<div class="ib-cin">' +
         '<textarea rows="1" placeholder="' + esc(ph) + '" aria-label="' + esc(t("ib.cin_aria")) + '"></textarea>' +
+        micHtml(c) +
         (laBot && !priv ? '<button type="button" class="s-btn-ghost ib-ask"' + (_aiBusy ? " disabled" : "") + ' title="' + esc(t("ib.ai_reply_t")) +
           '" aria-label="' + esc(t("ib.ai_reply")) + '">' +
           ic(_aiBusy === "ask" ? "loader" : "sparkles") + '<span>' + esc(t(_aiBusy === "ask" ? "ib.ai_busy" : "ib.ai_reply")) + '</span></button>' : "") +
@@ -2114,6 +2236,7 @@
   }
 
   async function gui(c) {
+    if (dictOn(c)) { _dictSend = true; if (_dictState === "listening") _dict.stop(); return; }
     var box = _host.querySelector(".ht-thread");
     var ta = box && box.querySelector(".ib-cin textarea");
     var nut = box && box.querySelector(".ht-send");

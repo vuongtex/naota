@@ -325,9 +325,11 @@
         kind: t.kind || "task", fromNaota: !!t.from_naota, raw: t, end: t.end || "" };
       if (t.kind === "appt") {
         // Appointments are not ticked: they turn "past" on their own once their time is over.
-        var first = t.repeat ? nextOcc(t.repeat, start(t), today) : t.date;
+        // A time skipped on purpose ("Skip this time") is not shown; the next one is.
+        var skA = t.skip_dates || {}, nextA = function (from) { var d = nextOcc(t.repeat, start(t), from); for (var g = 0; d && skA[d] && g < 50; g++) d = nextOcc(t.repeat, start(t), addDays(d, 1)); return d; };
+        var first = t.repeat ? nextA(today) : t.date;
         var occs = [first];
-        if (t.repeat && first === today && apptState(today, t.time, t.end, today, hm) === "past") occs.push(nextOcc(t.repeat, start(t), addDays(today, 1)));
+        if (t.repeat && first === today && apptState(today, t.time, t.end, today, hm) === "past") occs.push(nextA(addDays(today, 1)));
         occs.forEach(function (d, i) {
           if (!d) return;
           var as = apptState(d, t.time, t.end, today, hm);
@@ -463,12 +465,17 @@
   // `store.clean.days` ({iso: "c" | "i" | "e" | "x"}) is the server's verdict up to yesterday; today is judged live here.
   var STAR_MAX = 3, MILES_T = [10, 25, 50, 100, 200, 500, 1000];
   function isTaskItem(i) { return !!i && i.src === "mine" && !i.appt && !(i.raw && habitOn(i.raw)); }
+  // A star belongs to the day of its task ("I star tomorrow's tasks ahead of time"), so each day has
+  // its own STAR_MAX slots: tomorrow's stars never fill today's, and starring tomorrow's task keeps it on tomorrow.
+  function starsOn(me, day) {
+    return ((me && me.items) || []).filter(function (i) { return i.src === "mine" && !i.appt && i.date === day && i.id.indexOf("md:") !== 0 && i.raw && i.raw.star; });
+  }
   function pulseCalc(me, store, today) {
     var I = ((me && me.items) || []).filter(isTaskItem);
     var over = I.filter(function (i) { return i.over && !FIN[i.st]; });
     var td = I.filter(function (i) { return i.date === today && i.id.indexOf("md:") !== 0; });
     var tdOpen = td.filter(function (i) { return !FIN[i.st]; });
-    var star = ((me && me.items) || []).filter(function (i) { return i.src === "mine" && !i.appt && i.date === today && i.id.indexOf("md:") !== 0 && i.raw && i.raw.star; });
+    var star = starsOn(me, today);
     var doneToday = I.filter(function (i) { return i.st === "done" && (i.date === today || (i.doneAt && isoOf(new Date(i.doneAt * 1000)) === today)); }).length;
     var clean = !over.length && !tdOpen.length && doneToday > 0;
     var days = (store && store.clean && store.clean.days) || {}, run = 0, best = 0;
@@ -484,7 +491,7 @@
       hN: H.length, hDue: hDue, hDone: hDone };
   }
 
-  var model_ = { pulseCalc: pulseCalc, isTaskItem: isTaskItem, apptState: apptState, habitCalc: habitCalc, habitStats: habitStats, habitLines: habitLines, usualTime: usualTime, model: model, mineModel: mineModel, occursOn: occursOn, nextOcc: nextOcc, prevOcc: prevOcc, repHuman: repHuman, inList: inList, tagsOf: tagsOf, subOrder: subOrder, linksIn: linksIn, byTime: byTime, byTimeline: byTimeline, cronFor: cronFor, naotaSchedule: naotaSchedule, kanbanState: kanbanState, addDays: addDays };
+  var model_ = { pulseCalc: pulseCalc, starsOn: starsOn, isTaskItem: isTaskItem, apptState: apptState, habitCalc: habitCalc, habitStats: habitStats, habitLines: habitLines, usualTime: usualTime, model: model, mineModel: mineModel, occursOn: occursOn, nextOcc: nextOcc, prevOcc: prevOcc, repHuman: repHuman, inList: inList, tagsOf: tagsOf, subOrder: subOrder, linksIn: linksIn, byTime: byTime, byTimeline: byTimeline, cronFor: cronFor, naotaSchedule: naotaSchedule, kanbanState: kanbanState, addDays: addDays };
   if (typeof module !== "undefined" && module.exports) { module.exports = model_; return; }
 
   // ---------- page ----------
@@ -517,14 +524,33 @@
   }
   function mine(body) { return postJSON(body.__url, Object.assign({ brain: brain() }, body, { __url: undefined })); }
 
+  // what the page last showed, kept when the page closes, so coming back draws it at once and refreshes behind
+  // it (before, every visit was a blank "Loading" until nine requests had all answered). Same brain and fresh only.
+  var LAST = null;
+  var LAST_MAX_MS = 10 * 60 * 1000;
+  function keepLast() {
+    if (!S || !S.ai) return;
+    LAST = { brain: brain(), at: Date.now(), day: isoOf(new Date()), agents: S.agents, bots: S.bots, brains: S.brains, notify: S.notify,
+      ai: S.ai, my: S.my, me: S.me, gcal: S.gcal, calAt: S.calAt };
+  }
+  function useLast() {
+    if (!LAST || LAST.brain !== brain() || Date.now() - LAST.at > LAST_MAX_MS || LAST.day !== isoOf(new Date())) return false;
+    ["agents", "bots", "brains", "notify", "ai", "my", "me", "gcal", "calAt"].forEach(function (k) { S[k] = LAST[k]; });
+    applyHidden();
+    S.loaded = true;
+    return true;
+  }
+
   async function load() {
     var b = brain(), enc = encodeURIComponent(b);
+    var st = S;
     var res = await Promise.all([
       getJSON("/kanban?brain=" + enc + "&history=40"), getJSON("/viec/all"), getJSON("/reminders?brain=" + enc),
       getJSON("/watch?brain=" + enc), getJSON("/incidents?limit=50"), getJSON("/loops/log?brain=" + enc + "&limit=60"),
       S.agents ? Promise.resolve(null) : getJSON("/agents?brain=" + enc + "&prompt=0&system=1"),
       getJSON("/my-tasks?brain=" + enc), getJSON("/tasks/bots?brain=" + enc)
     ]);
+    if (!S || S !== st) return;   // the page closed (or opened again) while these were on their way
     if (res[6]) S.agents = (res[6].agents || res[6] || []).filter(function (a) { return a && a.slug; });
     S.brains = ((res[1] && res[1].brains) || []).map(function (x) { return { name: x.label || x.name, path: x.path, def: x.is_default }; });
     S.notify = (res[2] && res[2].notify) || {};
@@ -537,6 +563,7 @@
     if (!S.calAt || Date.now() - S.calAt > 300000) { S.calAt = Date.now(); loadCal(); }
     applyHidden();
     S.loaded = true;
+    keepLast();
   }
   // Google Calendar events (read-only) arrive after the page is up, then the Mine lists redraw.
   async function loadCal() {
@@ -774,14 +801,14 @@
   }
   function row(it) {
     if (it.appt) {
-      var t = it.raw;
-      return '<div class="nv-item"><div class="nv-rw"><button type="button" class="nv-row appt' + (it.st === "done" ? " done" : "") + (it.live ? " live" : "") + (S.sel === it.id ? " sel" : "") + '" data-open="' + esc(it.id) + '">'
+      var t = it.raw, ai = apptIcons(it), an = (ai.match(/nv-tri1/g) || []).length;
+      return '<div class="nv-item"><div class="nv-rw' + (it.src === "mine" || it.gcal ? ' mine" style="--n:' + an : "") + '"><button type="button" class="nv-row appt' + (it.st === "done" ? " done" : "") + (it.live ? " live" : "") + (S.sel === it.id ? " sel" : "") + '" data-open="' + esc(it.id) + '">'
         + '<span class="nv-tm">' + esc(it.time || (it.gcal ? tw("nv.g.allday") : "")) + (it.end ? "<small>" + esc(it.end) + "</small>" : "") + '</span><span class="nv-st"><i class="nv-abar" style="background:' + esc(apptColor(it)) + '"></i></span>'
         + '<span class="nv-body"><span class="nv-ti">' + esc(it.title) + '</span><div class="nv-meta">' + phoneWhen(it) + (it.gcal ? "<span>" + ic("calendar") + esc(tw("nv.g.src")) + "</span>" : "") + (t.location ? "<span>" + ic("map-pin") + esc(t.location) + "</span>" : "")
         + (it.rep ? "<span>" + ic("repeat") + esc(it.rep) + "</span>" : "") + (t.remind && t.remind !== "0" ? "<span>" + ic("bell") + esc(tw("nv.ap.before", { n: t.remind })) + "</span>" : "")
         + (t.prep ? "<span>" + avatar(CORE, 14) + esc(tw("nv.ap.prep_short")) + "</span>" : "") + tagChips(it.tags) + "</div></span>"
         + '<span class="nv-chipcol">' + apptChip(it) + "</span></button>"
-        + (it.src === "mine" || it.gcal ? '<span class="nv-starb ph" aria-hidden="true"></span>' : '<button type="button" class="nv-dots" data-act="menu" data-id="' + esc(it.id) + '" aria-label="' + esc(tw("nv.a.more")) + '">' + ic("ellipsis") + "</button>") + "</div></div>";
+        + (it.src === "mine" || it.gcal ? '<span class="nv-ra">' + ai + "</span>" : '<button type="button" class="nv-dots" data-act="menu" data-id="' + esc(it.id) + '" aria-label="' + esc(tw("nv.a.more")) + '">' + ic("ellipsis") + "</button>") + "</div></div>";
     }
     var time = it.over ? '<span class="c-over">' + esc(shortDate(it.date)) + "</span>" + (it.time ? "<small>" + esc(it.time) + "</small>" : "") : esc(it.time || "");
     var lead = it.src === "mine" ? (habitOn(it.raw) && it.id === "m:" + it.raw.id ? habitCk(it.raw) : ck(it)) : stIcon(it);
@@ -802,8 +829,9 @@
         : runBtn(it) + '<button type="button" class="nv-dots" data-act="menu" data-id="' + esc(it.id) + '" aria-label="' + esc(tw("nv.a.more")) + '">' + ic("ellipsis") + "</button>") + "</div>"
       + subFold(it) + "</div>";
   }
-  // "Nhịp hôm nay": the star of a priority task (at most STAR_MAX today) and the three ways out of an overdue one.
-  function starOn(it) { return !!(it && it.raw && it.raw.star && it.date === today()); }
+  // "Nhịp hôm nay": the star of a priority task (at most STAR_MAX on its day) and the three ways out of an overdue one.
+  // A star shows on today's and later tasks; a past day's star is spent (an overdue task starts over unstarred).
+  function starOn(it) { return !!(it && it.raw && it.raw.star && it.date && it.date >= today()); }
   function starBtn(it) {
     // No star on repeats or habits: a priority is a choice for one day, a repeat comes back every day
     // and would keep its star (one of the 3 slots) forever. Routines already have their own pull (streak, reminder).
@@ -816,6 +844,15 @@
   // it held (edit, give to Naota, move to another brain, delete) is in the task's details, one tap on the row.
   // Every open task of mine: Move and Delete as icons, left of the star. A repeat moves or skips only
   // this time and deletes the whole repeat; a missed one also offers Skip.
+  // An appointment: Move and Delete like a task; a repeating one also Skip this time (Move and Skip
+  // touch only that time, Delete removes the whole repeat). A calendar event (read-only) opens in its calendar.
+  function apptIcons(it) {
+    var b = function (act_, icon, key, cls) { return '<button type="button" class="nv-starb nv-tri1' + (cls ? " " + cls : "") + '" data-act="' + act_ + '" data-id="' + esc(it.id) + '" aria-label="' + esc(tw(key) + ": " + it.title) + '" title="' + esc(tw(key)) + '">' + ic(icon) + "</button>"; };
+    if (it.gcal) return it.raw && /^https:\/\//.test(it.raw.link || "") ? b("m-gopen", "external-link", "nv.g.open") : "";
+    if (it.src !== "mine" || it.st === "done") return "";
+    if (it.raw.repeat) return b("tri-skip", "skip-forward", "nv.pu.t_skip") + b("tri-move", "calendar", "nv.pu.t_move_once") + b("m-del", "trash-2", "nv.pu.t_del_rep", "bad");
+    return b("tri-move", "calendar", "nv.pu.t_move") + b("m-del", "trash-2", "nv.pu.t_del", "bad");
+  }
   function triN(it) { return it.raw.repeat ? 3 : 2; }
   function triIcons(it) {
     var b = function (act_, icon, key, cls) { return '<button type="button" class="nv-starb nv-tri1' + (cls ? " " + cls : "") + '" data-act="' + act_ + '" data-id="' + esc(it.id) + '" aria-label="' + esc(tw(key) + ": " + it.title) + '" title="' + esc(tw(key)) + '">' + ic(icon) + "</button>"; };
@@ -1622,6 +1659,8 @@
     var t = it.raw, before = { date: t.date, time: t.time, repeat: t.repeat };
     var body = { __url: "/my-tasks/update", id: t.id };
     if ("date" in patch) { body.date = patch.date; body.time = patch.date ? patch.time || "" : ""; }
+    // A starred task moved to another day keeps its star only while that day still has a free slot.
+    if (t.star && "date" in patch && patch.date !== t.date && (!patch.date || starsOn(S.me, patch.date).length >= STAR_MAX)) { body.star = false; before.star = true; }
     if (t.kind === "appt" && "date" in patch) {
       // An appointment keeps its length when its start moves.
       if (!patch.date || !patch.time) { S.sheet = null; toast(tw("nv.ap.need_time")); renderLayer(); return; }
@@ -1629,7 +1668,7 @@
     }
     if ("rule" in patch) { body.repeat = patch.rule; if (patch.rule && !t.date && !body.date) body.date = today(); }
     S.sheet = null;
-    await act(mine(body), tw("nv.saved"), function () { return mine({ __url: "/my-tasks/update", id: t.id, date: before.date, time: before.time, repeat: before.repeat }); });
+    await act(mine(body), tw("nv.saved"), function () { return mine(Object.assign({ __url: "/my-tasks/update", id: t.id, date: before.date, time: before.time, repeat: before.repeat }, before.star ? { star: true } : {})); });
   }
 
   // Moving a missed repeat moves only that time: a one-off copy on the chosen day, and the missed day is skipped.
@@ -1638,7 +1677,13 @@
     var t = it.raw, day = mineRef(id).date || it.occ || today(), sk = Object.assign({}, t.skip_dates || {}); sk[day] = 1;
     S.sheet = null;
     var made = null;
-    await act(mine({ __url: "/my-tasks", title: t.title, date: patch.date || null, time: patch.date ? patch.time || "" : "", tags: tagsOf(t) }).then(function (r) {
+    var body = { __url: "/my-tasks", title: t.title, date: patch.date || null, time: patch.date ? patch.time || "" : "", tags: tagsOf(t) };
+    if (t.kind === "appt") {
+      // The moved time of an appointment stays an appointment: same length, place and reminder.
+      if (!patch.date || !patch.time) { renderLayer(); toast(tw("nv.ap.need_time")); return; }
+      Object.assign(body, { kind: "appt", end: fromMin(toMin(patch.time) + Math.max(5, toMin(t.end || t.time) - toMin(t.time) || 60)), location: t.location || "", remind: t.remind || "" });
+    }
+    await act(mine(body).then(function (r) {
       made = r; return mine({ __url: "/my-tasks/update", id: t.id, skip_dates: sk });
     }), patch.date ? tw("nv.pu.ok_move_once", { d: dayLabel(patch.date).toLowerCase() }) : tw("nv.pu.ok_move_once_none"), function () {
       return Promise.all([mine({ __url: "/my-tasks/update", id: t.id, skip_dates: t.skip_dates || {} }), made && made.task ? mine({ __url: "/my-tasks/delete", id: made.task.id }) : null]);
@@ -1805,8 +1850,13 @@
       case "star": {
         var sk = it && it.raw; if (!sk) return;
         if (starOn(it)) return act(mine({ __url: "/my-tasks/update", id: sk.id, star: false }), "");
-        if (pulse().star.length >= STAR_MAX) { shake("pu-star"); buzz([8, 30, 8]); popStar(tw("nv.pu.star_full", { n: STAR_MAX }), "suspicious"); return; }
-        var sbody = { __url: "/my-tasks/update", id: sk.id, star: true }, bring = it.date !== today() && !sk.repeat;
+        // The star counts for the task's own day. Only an undated or overdue task is brought to today to be starred.
+        var bring = (!it.date || it.date < today()) && !sk.repeat, sday = bring ? today() : it.date;
+        if (starsOn(S.me, sday).length >= STAR_MAX) {
+          shake("pu-star"); buzz([8, 30, 8]);
+          popStar(sday === today() ? tw("nv.pu.star_full", { n: STAR_MAX }) : tw("nv.pu.star_full_day", { n: STAR_MAX, d: dayLabel(sday).replace(/^./, function (c) { return c.toUpperCase(); }) }), "suspicious"); return;
+        }
+        var sbody = { __url: "/my-tasks/update", id: sk.id, star: true };
         if (bring) sbody.date = today();
         buzz(10);
         var quiet = S.sheet && S.sheet.kind === "morning";
@@ -1815,7 +1865,7 @@
       }
       case "tri-move":
         if (it && it.raw.repeat) { var mt = it.raw, md0 = it.over ? today() : addDays(it.occ && it.occ > today() ? it.occ : today(), 1); S.sheet = { kind: "date", id: id, once: true, d: { date: md0, time: mt.time || "", vm: md0.slice(0, 7) } }; return renderLayer(); }
-        if (it && (it.raw.moves || 0) >= 2) { S.sheet = { kind: "stuck", id: id }; return renderLayer(); }
+        if (it && !it.appt && (it.raw.moves || 0) >= 2) { S.sheet = { kind: "stuck", id: id }; return renderLayer(); }
         return doAct("pick-date", id, el);
       case "tri-skip": {
         // Skip: a deliberate "not this time". The repeat jumps to its next time; the skipped time
@@ -2352,13 +2402,21 @@
     window.addEventListener("resize", fitSide);
     document.addEventListener("scroll", fitSide, { passive: true, capture: true });   // the page scrolls inside #cviewBody
     el.querySelector("#nvQ").addEventListener("input", function (e) { S.q = e.target.value; S.root.querySelector(".nv-view").innerHTML = viewHtml(S.view); });
+    var fixView = function () {
+      if (S.view !== "stats" && !lists().some(function (L) { return L[0] === S.view; }) && S.view.indexOf(S.tab === "me" ? "proj:" : "who:") !== 0) S.view = "today";
+    };
+    // Seen this page a moment ago: draw that at once, then refresh behind it.
+    if (useLast()) { try { fixView(); render(); } catch (e) { S.ai = null; } }
     await load();
     if (!S || S.root !== el) return;
-    if (S.view !== "stats" && !lists().some(function (L) { return L[0] === S.view; }) && S.view.indexOf(S.tab === "me" ? "proj:" : "who:") !== 0) S.view = "today";
-    render(); schedulePoll();
+    fixView();
+    // An open drawer or sheet from the instant draw stays as it is; the next poll redraws once it closes.
+    if (!(S.sheet || S.layer || S.sel)) render();
+    schedulePoll();
   }
   function unmount() {
     if (!S) return;
+    keepLast();
     clearTimeout(S.poll);
     document.removeEventListener("keydown", onKey);
     window.removeEventListener("resize", fitSide);
