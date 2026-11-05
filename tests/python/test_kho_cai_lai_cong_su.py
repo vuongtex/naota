@@ -4,7 +4,7 @@
 
 No network, no real brain, no real STATE_DIR.
 
-The report: install "Linh Hồn Naota Vũ" from the Store, rename it (or delete it) on the Partners page.
+The report: install an agent from the Store, rename it (or delete it) on the Partners page.
 After a delete the Store still said "Installed". After Uninstall + Install the agent never showed up
 again. Two causes, both guarded here end to end through the real installer:
 
