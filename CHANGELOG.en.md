@@ -4,6 +4,14 @@
 
 NAOTA release history. Newest first.
 
+## [1.7.0] - 2026-11-05
+### Added
+- **My tasks gets a daily pulse**: a Clean day streak, a star on up to 3 priorities, Skip this time for repeats, Move and Delete icons on each row (Undo if you delete by mistake), and a word of praise when you finish.
+- **A long answer rings your phone**: from 3 minutes up the bell rings, unless the device is open. A background command reports to the right chat when it ends and carries on with what was planned.
+### Improved
+- **Scheduled jobs made in a partner chat** report to that chat and run as that assistant, and failures go back there too. Jobs made earlier run as before. Schedules on Codex can now hand work to a Team.
+- **The inbox opens a chat at once** and loads only what is new. **Claude plan names are right** per vendor (Ultra, for example).
+
 ## [1.6.1] - 2026-11-04
 ### Added
 - **Edit Agent button in the Chatbot form**: edit the bot's Agent on the spot, and what you typed in the form stays.

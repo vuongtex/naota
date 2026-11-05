@@ -739,6 +739,14 @@ def _build_codex(spec, claude_cli_obj, mode, tag, codex_profile=None):
             cc.profile = codex_profile()   # profile naota = thấy MCP của Naota (POS, connector...)
         except Exception as e:
             print(f"[aux codex profile] {e}", file=sys.stderr)
+    # The turn key (X-Naota-Turn) rides on every query, as on a chat turn (main._apply_codex_hub). Without it a reminder
+    # or Kanban job on Codex reached the hub as "nobody", so naota_team op=dispatch refused it with "lượt không có danh
+    # tính" and the team never woke up. Only when the profile's `naota` entry IS the hub (hub on): an override under
+    # mcp_servers.naota with no hub entry would be a broken half-entry. No bound turn -> no key, nothing sent.
+    try:
+        cc.hub_turn = bool(cc.profile) and bool(cfgmod.read_settings().get("mcp", {}).get("hub", True))
+    except Exception as e:  # noqa: BLE001 - no key means "nobody", never a broken job
+        print(f"[aux codex turn] {e}", file=sys.stderr)
     try:
         import mcp_hub
         mcp_hub.dat_codex_vault(cc.extra_config, getattr(claude_cli_obj, "naota_vault", None))
