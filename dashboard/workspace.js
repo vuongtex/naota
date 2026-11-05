@@ -155,6 +155,11 @@
   // Auto is on right now. Same leading-space trick as TAG_NONE, so it never clashes with a real tag.
   var TAG_AUTO = " auto";
   function autoBat(rs, slug) { var r = rs && rs[slug]; return !!(r && r.enabled && r.status === "active"); }
+  // Naota Core's Auto is always on: its row shows the switch on even before the server's list is in.
+  function coreAutoRow(x) {
+    var r = S.rs[x.slug] || {};
+    return { slug: x.slug, name: x.name, enabled: true, status: "active", goals_open: r.goals_open || 0 };
+  }
   // A pseudo filter (not a real tag): "untagged" or "Auto on". Real tags go through the tag-key path.
   function laLocGia(v) { return v === TAG_NONE || v === TAG_AUTO; }
   function tagsCua(x) {
@@ -317,6 +322,12 @@
             hien: TRANG, lanChay: {},
             menu: null };   // tienDo[session_id] = tiến độ lần chạy đang xem
 
+  // the last chat each partner opened in, by brain and channel. It lives outside S (S is rebuilt on every
+  // visit), so coming back to a partner opens its chat at once, from app.js's chat cache, while the server confirms
+  // it is still the newest one. It is a hint only: the server's answer always wins.
+  var _phienGanNhat = {};
+  function khoaGanNhat(item) { return brain() + "|" + kenh(item); }
+
   function danhSach() { return S.loai === "agent" ? S.agents : S.workflows; }
   function kenh(item) { return (S.loai === "agent" ? "agent:" : "workflow:") + item.slug; }
   function dangChon() { var slug = S.chon[S.loai]; return danhSach().find(function (x) { return x.slug === slug; }) || null; }
@@ -402,6 +413,7 @@
     if (_unLai) { _unLai = false; setTimeout(henUnread, 0); }
     if (round !== lanDung || b0 !== brain() || !d || !d.ok) return false;
     S.un = d.agents || {};
+    S.unBrain = b0;
     S.agents.forEach(function (a) {
       var u = S.un[a.slug];
       if (u && Number(u.last_at) > Number(a.last_chat_at || 0)) a.last_chat_at = Number(u.last_at);
@@ -423,6 +435,13 @@
   function dangXemCongSu(slug) {
     var c = S.loai === "agent" ? dangChon() : null;
     return active && !!c && c.slug === slug && !(typeof document !== "undefined" && document.hidden);
+  }
+  // Performance: opening a partner whose count is known to be zero skips the POST, and with it the
+  // agent_read broadcast that made every open tab, this one included, fetch the unread counts again.
+  function coTinChuaDoc(slug) {
+    if (S.unBrain !== brain()) return true;   // counts not loaded for this brain yet: mark it read to be safe
+    var u = S.un[slug];
+    return !!(u && Number(u.n) > 0);
   }
   function daDoc(slug) {
     if (S.un[slug]) S.un[slug].n = 0;
@@ -1137,8 +1156,10 @@
       // công tắc Auto đứng chung một cụm nhỏ ở góc dưới phải của thẻ. Công tắc có trên MỌI trợ lý, tắt thì màu xám.
       // Cụm nằm ngoài nút chọn mục (không lồng nút trong nút); CSS đặt nó BÊN TRONG thẻ.
       (laAgent ? '<div class="ws-item-end">' + gioNhanHtml(x.last_chat_at) + tinHtml(x) +
-        (!he && window.NaotaResonanceAgent
-          ? window.NaotaResonanceAgent.rowToggleHtml(S.rs[x.slug], { saving: !!S.rsSaving[x.slug] }) : "") + '</div>' : "") +
+        // Naota Core shows the same switch, always on and locked.
+        (window.NaotaResonanceAgent
+          ? window.NaotaResonanceAgent.rowToggleHtml(he ? coreAutoRow(x) : S.rs[x.slug],
+              { saving: !he && !!S.rsSaving[x.slug], locked: he }) : "") + '</div>' : "") +
       (he ? "" : '<button type="button" class="ws-item-more" data-more="' + esc(x.slug) + '" title="' +
         esc(t("ws.manage")) + '" aria-label="' + esc(t("ws.manage")) + '">' + ic("ellipsis-vertical") + '</button>') +
       '</div>';
@@ -1147,7 +1168,13 @@
   // chết theo node cũ.
   function noiDanhSach(host) {
     host.querySelectorAll("[data-slug]").forEach(function (b) {
-      b.addEventListener("mouseenter", function () { hienTheMini(b); });
+      b.addEventListener("mouseenter", function () {
+        hienTheMini(b);
+        // warm the chat this partner last opened in, so the click finds it ready.
+        var x = danhSach().find(function (m) { return m.slug === b.dataset.slug; });
+        var sid = x && _phienGanNhat[khoaGanNhat(x)];
+        try { if (sid && window.NaotaSessions && window.NaotaSessions.prefetch) window.NaotaSessions.prefetch(sid); } catch (e) {}
+      });
       b.addEventListener("mouseleave", anTheMini);
       b.addEventListener("focus", function () { hienTheMini(b); });
       b.addEventListener("blur", anTheMini);
@@ -1520,7 +1547,12 @@
     if (!item) return false;
     var still = function () { return active && ticket === opening && conDangXem(item); };
     try {
-      vePhai(item);
+      // Performance: the right column (settings form, Auto block, history list) belongs to the PARTNER, not
+      // to one chat. New conversation and a history click keep the same partner, so it is not rebuilt: rebuilding it
+      // fetched the agent, the history list and its GitHub icons again and redrew the whole form on every click.
+      if (!phaiDaVeCho(item)) vePhai(item);
+      // New conversation: the old chat leaves the screen at once instead of after the server answers.
+      if (moiHan && window.NaotaSessions && window.NaotaSessions.blank) window.NaotaSessions.blank();
       var b = encodeURIComponent(brain()), ch = kenh(item), id = sidChiDinh || null;
       if (!id && !moiHan && item.system) {
         // Naota Core: open the brain's default chat, the one reports land in (the server makes it when missing).
@@ -1528,11 +1560,20 @@
         if (!still()) return false;
         id = c && c.id;
       }
+      var moSom = null, nho = null;
       if (!id && !moiHan) {
+        // open the remembered chat right away, in parallel with asking which chat is newest. Before, the
+        // chat waited for this answer and then for its own messages: two round trips in a row on every click.
+        nho = !item.system ? _phienGanNhat[khoaGanNhat(item)] : null;
+        if (nho && window.NaotaSessions) {
+          S.sessionCuaPhien[nho] = item.slug;
+          moSom = window.NaotaSessions.open(nho, still);
+        }
         var r = await api("/sessions?brain=" + b + "&channel=" + encodeURIComponent(ch) + "&limit=1");
         if (!still()) return false;
         if (r.sessions && r.sessions[0]) id = r.sessions[0].id;
       }
+      var phienMoiTao = !id;
       if (!id) {
         var n = await api("/sessions/new", { method: "POST", body: fd({ brain: brain(), channel: ch }) });
         if (!still()) return false;
@@ -1544,12 +1585,15 @@
         id = n.id;
       }
       S.sessionCuaPhien[id] = item.slug;
-      if (window.NaotaSessions) await window.NaotaSessions.open(id, still);
+      if (moSom && id === nho) await moSom;   // the remembered chat is still the newest: it is already open
+      // A chat made just now is empty: open it without asking the server for its (zero) messages.
+      else if (window.NaotaSessions) await window.NaotaSessions.open(id, still, phienMoiTao ? { empty: true } : undefined);
       if (!still()) return false;
       if (!window.NaotaSessions || window.NaotaSessions.current() !== id) throw new Error(t("ws.err_session"));
+      if (!item.system) _phienGanNhat[khoaGanNhat(item)] = id;
       chatReady(true);
       luuViTri(id);
-      if (S.loai === "agent") daDoc(item.slug);   // opening the chat reads it
+      if (S.loai === "agent" && coTinChuaDoc(item.slug)) daDoc(item.slug);   // opening the chat reads it
       if (S.loai === "workflow") veBuoc(item, tienDoHienTai(item));
       else ganCongHuong(item, id);
       return true;
@@ -1790,33 +1834,45 @@
     if (input) input.focus();
   }
 
+  // Naota Core may have saved a new name in the turn that just ended (`naota_core_name`): read it back so the list,
+  // the chat header and the card show it without a reload.
+  async function docLaiTenCore(ag) {
+    var d = null;
+    try { d = await api("/agents?brain=" + encodeURIComponent(brain()) + "&prompt=0&system=1"); } catch (e) { return; }
+    var moi = d && Array.isArray(d.agents) && d.agents.filter(function (a) { return a.slug === ag.slug; })[0];
+    if (!moi || (moi.name === ag.name && (moi.style || "") === (ag.style || ""))) return;
+    ag.name = moi.name; ag.custom_name = moi.custom_name; ag.style = moi.style;
+    if (!active || S.loai !== "agent") return;
+    veDanhSach();
+    if (dangChon() === ag) { veGiua(ag); vePhai(ag); }
+  }
+
   // ---------- cột phải ----------
   /** Tab cột phải cho LOẠI đang xem: trợ lý và quy trình nhớ riêng (xem S.tabCua). */
   function tabTheoLoai() { return (S.tabCua && S.tabCua[S.loai]) || S.tabPhai; }
+  // Which partner the right column was last drawn for ("agent:slug" / "workflow:slug"), on which page mount.
+  function khoaPhai(item) { return item ? S.loai + ":" + item.slug + "|" + brain() : ""; }
+  function phaiDaVeCho(item) {
+    var host = S.el && S.el.querySelector("#wsRightSet");
+    return !!(item && host && host.firstChild && S.phaiCua === khoaPhai(item) && S.phaiEl === S.el);
+  }
   function vePhai(item) {
     var host = S.el && S.el.querySelector("#wsRightSet"); if (!host) return;
+    S.phaiCua = khoaPhai(item); S.phaiEl = S.el;
     // TRẢ cây thư mục về trước khi vẽ lại cột phải. Vẽ lại chỉ ghi vào khung Cài đặt, nhưng
     // cây là node mượn và chỉ có một bản: trả rồi mượn lại theo tab đang mở là luật gọn nhất,
     // khỏi phải nhớ chỗ nào được phép ghi đè chỗ nào không.
     traCayThuMuc();
     if (!item) { host.innerHTML = ""; veLichSu(null); chonTabPhai(tabTheoLoai()); return; }
-    if (S.loai === "agent" && item.system) {
-      // Naota Core: no editor, no Delete, no Auto. The definition ships with the app.
-      // The card names the model Core runs on and can pin it (core-model.js), the same pin
-      // as the model bar of a Core chat.
-      host.innerHTML = '<div class="ws-core-card"><div class="ws-core-head">' + avatar(item, 40) + '<h3>' + esc(item.name) + infoBtn() +
-        '</h3><span class="ws-sys">' + esc(t("ws.system_badge")) + '</span></div><p>' + esc(item.role || "") + '</p>' +
-        infoBody(esc(t("ws.core_note"))) + '<div id="wsCoreModel"></div></div>';
-      if (window.NaotaCoreModel) window.NaotaCoreModel.mount(host.querySelector("#wsCoreModel"));
-      // No memory list here any more. Naota already learns from the brain; seeing, editing
-      // or forgetting a memory is a chat message ("quên chuyện đó đi"), done with the naota_memory tool.
-    } else if (S.loai === "agent") {
-      // The column
+    if (S.loai === "agent") {
+      // the column
       // opens on what every assistant app has (picture, name, role, instructions, documents, skills, model). The Auto
       // block sits below and shows only while Auto is on (veAuto); lessons are handled in chat (naota_memory).
+      // Naota Core opens this same form, picture, name, role, instructions, documents, skills,
+      // model. Being the system assistant only drops Export and Delete; its Auto stays on (veAuto).
       host.innerHTML = '<div class="ws-form" id="wsAgentForm"></div><div class="ws-auto-block" id="wsAuto"></div>' +
-        '<div class="ws-acts"><button type="button" class="ws-btn" id="wsExport">' + esc(t("studio.export")) + '</button>' +
-        '<button type="button" class="ws-btn danger" id="wsDel">' + esc(t("common.delete")) + '</button></div>';
+        (item.system ? "" : '<div class="ws-acts"><button type="button" class="ws-btn" id="wsExport">' + esc(t("studio.export")) + '</button>' +
+        '<button type="button" class="ws-btn danger" id="wsDel">' + esc(t("common.delete")) + '</button></div>');
       // MƯỢN chính trình sửa agent của Studio (studio.js), không dựng bản thứ hai: chọn model,
       // chọn skill, nhóm... đã nằm ở đó, chép lại là hai bản trôi lệch nhau ngay lần sửa đầu.
       if (window.NaotaStudio && window.NaotaStudio.editAgent) {
@@ -1824,12 +1880,14 @@
           onSaved: async function () { await sauLuu(item, "agent"); } });
       }
       veAuto(item);
-      host.querySelector("#wsExport").onclick = function () { window.NaotaStudio && window.NaotaStudio.exportItem("agent", item.slug); };
-      host.querySelector("#wsDel").onclick = async function () {
-        if (!confirm(t("studio.del_ag", { ten: item.name }))) return;
-        await api("/agents/delete", { method: "POST", body: fd({ slug: item.slug, brain: brain() }) });
-        S.chon.agent = null; await taiDanhSach(); veTrai(); chonMacDinh();
-      };
+      if (!item.system) {
+        host.querySelector("#wsExport").onclick = function () { window.NaotaStudio && window.NaotaStudio.exportItem("agent", item.slug); };
+        host.querySelector("#wsDel").onclick = async function () {
+          if (!confirm(t("studio.del_ag", { ten: item.name }))) return;
+          await api("/agents/delete", { method: "POST", body: fd({ slug: item.slug, brain: brain() }) });
+          S.chon.agent = null; await taiDanhSach(); veTrai(); chonMacDinh();
+        };
+      }
     } else {
       var td = tienDoHienTai(item);
       // A long description shows two lines; the full text sits behind the (i) on the title.
@@ -1862,15 +1920,15 @@
   // show, so the column stays the plain settings form.
   function veAuto(item) {
     var box = S.el && S.el.querySelector("#wsAuto");
-    if (!box || !item || item.system) return;
-    if (!window.NaotaResonanceAgent || !autoBat(S.rs, item.slug)) { box.innerHTML = ""; return; }
+    if (!box || !item) return;
+    if (!window.NaotaResonanceAgent || !(item.system || autoBat(S.rs, item.slug))) { box.innerHTML = ""; return; }
     if (box.querySelector("#wsResonance")) return;
     box.innerHTML = '<div class="rsa-panel" id="wsResonance"></div><div class="rsa-panel pulse-panel" id="wsPulse"></div>';
     ganCongHuong(item);
   }
   function ganCongHuong(item, sid) {
     var host = S.el && S.el.querySelector("#wsResonance");
-    if (!host || !window.NaotaResonanceAgent || !item || item.system) return;
+    if (!host || !window.NaotaResonanceAgent || !item) return;
     window.NaotaResonanceAgent.mount(host, { slug: item.slug,
       sessionId: sid || (window.NaotaSessions && window.NaotaSessions.current && window.NaotaSessions.current()) || "",
       onNewSession: function () { var x = dangChon(); return x ? moPhien(x, true) : false; } });
@@ -2030,6 +2088,7 @@
         S.agents = sapXep(S.agents, "last_chat_at");
         if (dangXemCongSu(ag.slug)) daDoc(ag.slug);
         if (active) veDanhSach();
+        if (ag.system) docLaiTenCore(ag);   // a new name saved in chat shows at once
       }
     } else if (sid && S.loai === "agent") henUnread();
     if (!sid || !S.tienDo[sid] || S.tienDo[sid].trang_thai !== "dang") return;
@@ -2102,11 +2161,15 @@
     henDemViec();
   });
   // Huy hiệu việc trên thẻ trợ lý theo cùng các sự kiện với tab Công việc (gộp nhịp 800ms).
+  // Performance: a plain chat switch (reason "open") adds no message and no job, so it does not recount.
+  function laDoiPhien(e) { return !!(e && e.detail && e.detail.reason === "open"); }
   ["naota:team-event", "naota:sessions-changed", "naota:agent-jobs-changed"].forEach(function (ev) {
-    window.addEventListener(ev, henDemViec);
+    window.addEventListener(ev, function (e) { if (!laDoiPhien(e)) henDemViec(); });
   });
   // a message landed somewhere, or another tab read or muted a partner: read the unread counts again.
-  ["naota:sessions-changed", "naota:agent-read"].forEach(function (ev) { window.addEventListener(ev, henUnread); });
+  ["naota:sessions-changed", "naota:agent-read"].forEach(function (ev) {
+    window.addEventListener(ev, function (e) { if (!laDoiPhien(e)) henUnread(); });
+  });
   if (typeof document !== "undefined" && document.addEventListener) document.addEventListener("visibilitychange", function () {
     if (document.hidden || !active || S.loai !== "agent") return;
     var c = dangChon();

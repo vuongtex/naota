@@ -4,7 +4,15 @@
 
 NAOTA release history. Newest first.
 
-## [1.7.0] - 2026-11-05
+## [1.8.0] - 2026-11-05
+### Security
+- **Several leaks closed after a review:** chatbots and background work below Full access can no longer write where code runs, scheduled jobs cannot exceed their maker's level, HTML files opened from the brain run in a sandbox, and other pages on the machine cannot send commands into NAOTA.
+### Added
+- **A new Models page:** Disconnect on every card, OpenAI Compatible and Claude Compatible take several keys and switch when one runs out, and Antigravity on a VPS can add accounts (not yet tried with a real `agy`).
+- **Naota Core edits like any assistant** and can have its own name per brain. **One bot serves up to 100 Facebook Pages.** The Avatar has a menu you arrange, and a voice call from an assistant's chat speaks as that assistant.
+### Improved
+- **Background work on an API key runs to the end**, up to 500 tool rounds, with a real terminal at Full access. **Chat can edit every task and appointment** in your to-do list.
+- **Faster and lighter:** switching chats, Tasks, Teams and Assistants is instant, the speak-to-type mic reaches the customer reply box, Enter sends, and Android no longer repeats words.
 ### Added
 - **My tasks gets a daily pulse**: a Clean day streak, a star on up to 3 priorities, Skip this time for repeats, Move and Delete icons on each row (Undo if you delete by mistake), and a word of praise when you finish.
 - **A long answer rings your phone**: from 3 minutes up the bell rings, unless the device is open. A background command reports to the right chat when it ends and carries on with what was planned.
