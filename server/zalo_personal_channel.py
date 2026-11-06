@@ -842,6 +842,9 @@ async def doc_mot_lan(conn: dict) -> dict:
     return {"moi": moi, "trung": trung}
 
 
+# naota-zalo prints "Not logged in" when its stored sign-in no longer works: autoLogin swallows the real reason.
+_SIGNED_OUT_RE = re.compile(r"not logged in|auto-login failed|re-login retry failed|re-login failed", re.I)
+SIGNED_OUT_BELL_GAP_S = 6 * 3600
 # Lỗi chết của tiến trình naota-zalo (src/commands/mcp.js) mà người dùng tự xử được, dịch ra lời thường.
 _LOI_ZALO = (
     (re.compile(r"duplicate zalo web session", re.I),
@@ -851,7 +854,7 @@ _LOI_ZALO = (
      "Zalo closed Naota's session because this account was just opened somewhere else: Zalo Web in a "
      "browser (chat.zalo.me) or another Naota machine signed in to the same account. An account keeps only "
      "one such session. Close the other one; Naota reconnects by itself in about 2 minutes."),
-    (re.compile(r"auto-login failed|re-login retry failed|re-login failed", re.I),
+    (_SIGNED_OUT_RE,
      "Phiên đăng nhập Zalo của tài khoản này đã hết hạn hoặc bị đăng xuất. Vào trang Kết nối, đăng nhập "
      "lại Zalo bằng mã QR.",
      "This account's Zalo sign-in has expired or was signed out. Go to the Connections page and sign in "
@@ -873,6 +876,49 @@ def mo_ta_loi(raw: str, cap: int = 300) -> str:
             return localefmt.chu(vi, en)
     s = _DONG_CAU_HINH.sub("", s).strip()
     return s if len(s) <= cap else "..." + s[-(cap - 3):]
+
+
+def _signed_out_bell_time(conn: dict) -> float:
+    """When the owner was last told this account is signed out. Kept in the inbox store so a restart does not ring again."""
+    cid = str(conn.get("id") or "")
+    tt = _TT.setdefault(cid, {})
+    if tt.get("signed_out_bell") is None:
+        try:
+            tt["signed_out_bell"] = float(conversations.doc_trang_thai(f"zalo_signed_out_bell:{cid}", "0") or 0)
+        except (TypeError, ValueError):
+            tt["signed_out_bell"] = 0.0
+    return tt["signed_out_bell"]
+
+
+def _ring_signed_out(conn: dict, raw: str) -> None:
+    """A failed read that means the account is signed out: the bot hears nothing until someone signs in again, so tell
+    the owner. Once every `SIGNED_OUT_BELL_GAP_S` while it lasts; the read loop retries far more often than that."""
+    if NOTIFY_OWNER is None or not _SIGNED_OUT_RE.search(str(raw or "")):
+        return
+    try:
+        if time.time() - _signed_out_bell_time(conn) < SIGNED_OUT_BELL_GAP_S:
+            return
+        cid = str(conn.get("id") or "")
+        now = time.time()
+        _TT[cid]["signed_out_bell"] = now
+        conversations.ghi_trang_thai(f"zalo_signed_out_bell:{cid}", str(now))
+        cau = f"Zalo ({conn.get('label') or 'Zalo'}): {mo_ta_loi(raw)}"
+        t = asyncio.get_running_loop().create_task(NOTIFY_OWNER("", cau, kind="system", label="Zalo", source="zalo"))
+        _VIEC.add(t)
+        t.add_done_callback(_VIEC.discard)
+    except Exception as e:      # noqa: BLE001 - the notice must never cost a read
+        print(f"[zalo-personal {conn.get('label')}] signed-out notice: {type(e).__name__}: {e}", file=sys.stderr)
+
+
+def _clear_signed_out(conn: dict) -> None:
+    """A good read: the next time this account is signed out rings at once, not after the gap."""
+    try:
+        if _signed_out_bell_time(conn):
+            cid = str(conn.get("id") or "")
+            _TT[cid]["signed_out_bell"] = 0.0
+            conversations.ghi_trang_thai(f"zalo_signed_out_bell:{cid}", "0")
+    except Exception as e:      # noqa: BLE001
+        print(f"[zalo-personal {conn.get('label')}] signed-out notice: {type(e).__name__}: {e}", file=sys.stderr)
 
 
 async def _vong() -> None:
@@ -902,7 +948,9 @@ async def _vong() -> None:
                         tt["loi"] = mo_ta_loi(f"{type(e).__name__}: {e}")
                         tt["nghi_toi"] = time.time() + NHIP_LOI
                         print(f"[zalo-personal {conn.get('label')}] {tt['loi']}", file=sys.stderr)
+                        _ring_signed_out(conn, str(e))
                     else:
+                        _clear_signed_out(conn)
                         _nhan_loi_moi(conn)
                     _soi_tranh_phien(conn)
                     # Hạn sớm hơn một nhịp chút ít: vòng ngủ đúng một nhịp thì lần thức sau chắc chắn đã tới hạn.
