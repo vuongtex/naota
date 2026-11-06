@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.8.1] - 2026-11-07
+### Fixed
+- **A Zalo account that gets signed out now rings the bell:** the bot used to go silent with the owner unaware, because the error only reached the server log. The bell and Telegram now say which account must sign in again, and the bot card gives the real reason.
+
 ## [1.8.0] - 2026-11-05
 ### Security
 - **Several leaks closed after a review:** chatbots and background work below Full access can no longer write where code runs, scheduled jobs cannot exceed their maker's level, HTML files opened from the brain run in a sandbox, and other pages on the machine cannot send commands into NAOTA.
