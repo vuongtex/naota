@@ -3731,6 +3731,8 @@
   "rp.forget_confirm": "Delete all learned cases, thresholds, lessons AND the decision log for this bot? This cannot be undone.",
   "rp.load_err": "Could not load:",
   "rp.tt_on": "reply judge decides",
+  "sess.hist_title": "Conversation history",
+  "sess.hist": "History",
   "sess.bot_badge": "Bot",
   "cb2.s_ai": "Who the bot is",
   "cb2.s_ai_hint": "The Agent writes the bot's role and rules. The bot only reads documents in brain {brain}.",

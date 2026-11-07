@@ -3731,6 +3731,8 @@
   "rp.forget_confirm": "Xoá mọi ca đã học, ngưỡng, bài học VÀ nhật ký quyết định của bot này? Việc này không hoàn tác được.",
   "rp.load_err": "Không tải được:",
   "rp.tt_on": "bộ phán xử tự cân nhắc",
+  "sess.hist_title": "Lịch sử hội thoại",
+  "sess.hist": "Lịch sử",
   "sess.bot_badge": "Bot",
   "cb2.s_ai": "Bot là ai",
   "cb2.s_ai_hint": "Agent viết vai trò và quy định của bot. Bot chỉ đọc tài liệu trong bộ não {brain}.",
