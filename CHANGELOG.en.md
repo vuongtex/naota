@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.9.0] - 2026-11-07
+### Improved
+- In progress.
+
 ## [1.8.1] - 2026-11-07
 ### Fixed
 - **A Zalo account that gets signed out now rings the bell:** the bot used to go silent with the owner unaware, because the error only reached the server log. The bell and Telegram now say which account must sign in again, and the bot card gives the real reason.
