@@ -113,7 +113,7 @@ Nhóm và trang Hội thoại.
 Nhật ký cập nhật được đọc trên màn hình dọc, nên viết CHO NGƯỜI ĐỌC TRÊN ĐIỆN
 THOẠI, không phải cho lập trình viên đọc diff:
 
-- Nhiều nhất 3 đến 4 gạch đầu dòng mỗi phiên bản, mỗi cái 1 đến 2 câu.
+- **Ghi đủ:** mọi tính năng thêm, lỗi đã sửa và thay đổi người dùng nhìn thấy đều có một gạch riêng, 1 đến 2 câu. Không gom nhiều việc vào một gạch, không bỏ việc nhỏ. Việc nội bộ (test, CI) thì không ghi.
 - Nói NGƯỜI DÙNG THẤY GÌ KHÁC, đừng kể tên hàm và đường dẫn file. Chi tiết kỹ thuật để trong
   thân commit và phần mô tả PR.
 - Dùng `**` và dấu nháy ngược vừa phải. Trang có render markdown, nhưng một dòng dày đặc ký

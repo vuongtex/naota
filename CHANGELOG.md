@@ -8,13 +8,30 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 ## [1.9.0] - 2026-11-07
 ### Thêm mới
-- **Trang Link chia sẻ làm lại:** đổi được địa chỉ sau `/s/`, đếm lượt xem từng link, có mã QR, tìm và lọc nhanh.
-- **Cloudflare là kết nối dựng sẵn**, nằm cạnh GitHub. **Mỗi ngày một việc ưu tiên** gắn sao, có âm thanh khi tick (có nút tắt), thói quen lỡ hẹn có Bỏ qua và Xoá. Mọi thứ trong Của tôi đều lên thông báo.
+- **Trang Link chia sẻ làm lại:** đổi được địa chỉ sau `/s/`, đếm lượt xem từng link, tìm, lọc, sắp xếp và phân trang.
+- **Mã QR** cho mọi link chia sẻ.
+- **Cloudflare là kết nối dựng sẵn**, nằm cạnh GitHub, vào bằng token hoặc đăng nhập web.
+- **Mỗi ngày một việc ưu tiên** gắn sao.
+- **Âm thanh khi tick việc**, có nút bật tắt cạnh nút sáng tối.
+- **Thói quen lỡ hẹn** có thêm nút Bỏ qua và Xoá.
+- **Mọi thứ trong Của tôi đều lên thông báo**, không chỉ một phần như trước.
 ### Cải thiện
-- **Đọc chính tả:** chữ hiện ngay trong ô chat, nói xong mô hình viết lại đúng ngữ cảnh rồi mới gửi. Lỗi thì giữ nguyên câu đã nghe.
-- **GitHub bền hơn:** đẩy mã lỗi tự thử lại, nối lại là chạy tiếp, gộp mã vẫn chạy khi đóng bảng. Danh sách repo theo kiểu trang Việc cần làm.
+- **Đọc chính tả viết lại câu:** chữ hiện ngay trong ô chat, nói xong mô hình viết lại đúng ngữ cảnh rồi mới gửi. Lỗi thì giữ nguyên câu đã nghe.
+- **Mic nghe đúng tên AI** như Groq, Claude, Gemini, không còn đẩy từ của anh ra xa.
+- **Đẩy mã GitHub lỗi tự thử lại**, và chạy tiếp ngay khi GitHub được nối lại.
+- **Gộp mã GitHub vẫn chạy** khi đóng bảng hoặc đóng tab.
+- **Danh sách repo GitHub** theo kiểu trang Việc cần làm.
+- **Ô mô hình trong chat** hiện đúng mô hình đang trả lời khi phải chuyển sang thẻ dự phòng.
 ### Sửa lỗi
-- **Không mất tin nhắn** khi vừa gửi đã chuyển app trên điện thoại. Hết lượt ChatGPT Live thì tự chuyển tài khoản hoặc đường gọi khác. Ô mô hình trong chat hiện đúng mô hình đang trả lời.
+- **Không mất tin nhắn** khi vừa gửi đã chuyển app trên điện thoại: tin được giữ tới khi máy chủ nhận.
+- **ChatGPT Live hết lượt** tự chuyển sang tài khoản hoặc đường gọi khác, không kẹt trên gói đã hết.
+- **Android** không còn mất chữ hay lặp chữ khi đọc chính tả.
+- **Đẩy GitHub từ chat** không còn kẹt vì việc kiểm của hệ điều hành khác.
+- **Biểu tượng GitHub trong chat** không còn đứng màu cam sau khi đã gộp xong.
+- **Review chéo GitHub** không còn chọn gói không chạy được việc đó.
+- **iPhone:** menu không còn đè ô chọn ngôn ngữ, app thêm vào màn hình chính bấm lại đúng chỗ.
+- **Nút + trang Việc cần làm** trên điện thoại không còn che dòng cuối.
+- **Không còn bong bóng trả lời rỗng** khi quay lại một chat đang chạy.
 
 ## [1.8.1] - 2026-11-07
 ### Sửa lỗi
