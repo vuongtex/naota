@@ -6,6 +6,16 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.9.0] - 2026-11-07
+### Thêm mới
+- **Trang Link chia sẻ làm lại:** đổi được địa chỉ sau `/s/`, đếm lượt xem từng link, có mã QR, tìm và lọc nhanh.
+- **Cloudflare là kết nối dựng sẵn**, nằm cạnh GitHub. **Mỗi ngày một việc ưu tiên** gắn sao, có âm thanh khi tick (có nút tắt), thói quen lỡ hẹn có Bỏ qua và Xoá. Mọi thứ trong Của tôi đều lên thông báo.
+### Cải thiện
+- **Đọc chính tả:** chữ hiện ngay trong ô chat, nói xong mô hình viết lại đúng ngữ cảnh rồi mới gửi. Lỗi thì giữ nguyên câu đã nghe.
+- **GitHub bền hơn:** đẩy mã lỗi tự thử lại, nối lại là chạy tiếp, gộp mã vẫn chạy khi đóng bảng. Danh sách repo theo kiểu trang Việc cần làm.
+### Sửa lỗi
+- **Không mất tin nhắn** khi vừa gửi đã chuyển app trên điện thoại. Hết lượt ChatGPT Live thì tự chuyển tài khoản hoặc đường gọi khác. Ô mô hình trong chat hiện đúng mô hình đang trả lời.
+
 ## [1.8.1] - 2026-11-07
 ### Sửa lỗi
 - **Nick Zalo rớt đăng nhập thì chuông báo ngay:** trước đây bot im mà chủ không hay biết, vì lỗi chỉ nằm trong nhật ký máy chủ. Nay chuông và Telegram báo rõ nick nào cần đăng nhập lại, và thẻ bot nói đúng lý do.

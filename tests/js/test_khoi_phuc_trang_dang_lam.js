@@ -110,7 +110,7 @@ navCase({ naota_last_page: "not-a-page" }, "home");
 // A live socket has already delivered chat events while the page is in memory. Returning
 // from another app must leave the existing transcript DOM intact.
 {
-  let reloads = 0, dongBo = 0, pings = 0;
+  let reloads = 0, dongBo = 0, pings = 0, drops = 0, overdue = false;
   const ctx = {
     _hiddenAt: Date.now() - 30000,
     ws: { readyState: 1 },
@@ -122,6 +122,8 @@ navCase({ naota_last_page: "not-a-page" }, "home");
     _dongBoNeuLech() { dongBo++; },
     // a live-looking socket is asked right away whether it is really alive.
     _pingNow() { pings++; },
+    _unackedOverdue: () => overdue,
+    _dropDeadSocket() { drops++; },
   };
   vm.createContext(ctx);
   vm.runInContext(fn(appJs, "_resumeSauNgu", ""), ctx);
@@ -134,6 +136,14 @@ navCase({ naota_last_page: "not-a-page" }, "home");
   ctx._resumeSauNgu(false);
   assert.equal(reloads, 1, "missed events must still be recovered after disconnect");
   assert.equal(pings, 1, "a closed socket is reconnected, not pinged");
+  // a message sent before the swipe and never confirmed means the socket died under it. Back in
+  // the app, even after a short sleep, drop it at once so `hello` resends the message.
+  ctx.ws.readyState = 1;
+  ctx._hiddenAt = Date.now() - 3000;
+  overdue = true;
+  ctx._resumeSauNgu(false);
+  assert.equal(drops, 1, "an unconfirmed message must make the page drop the socket on return");
+  assert.equal(reloads, 1, "dropping the socket leaves the resync to hello");
 }
 
 console.log("OK - khoi phuc trang dang lam va phien tro ly");

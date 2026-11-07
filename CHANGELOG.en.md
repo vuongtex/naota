@@ -4,6 +4,16 @@
 
 NAOTA release history. Newest first.
 
+## [1.9.0] - 2026-11-07
+### Added
+- **Share links page rebuilt:** change the address after `/s/`, see views per link, get a QR code, search and filter fast.
+- **Cloudflare is a built-in connection**, next to GitHub. **One priority star a day**, with tick sounds (you can turn them off), and Skip and Delete on a missed habit. Everything in Mine now reaches the notifications.
+### Improved
+- **Dictation:** words appear right in the chat box, and when you finish a model rewrites them in context before sending. On any error the sentence stays as heard.
+- **Sturdier GitHub:** a failed push retries itself, resumes after reconnecting, and a merge keeps running when the panel closes. The repo list takes the look of the Tasks page.
+### Fixed
+- **No lost messages** when you switch apps right after sending on a phone. When ChatGPT Live runs out it moves to another account or call path. The chat's model chip shows the model really answering.
+
 ## [1.8.1] - 2026-11-07
 ### Fixed
 - **A Zalo account that gets signed out now rings the bell:** the bot used to go silent with the owner unaware, because the error only reached the server log. The bell and Telegram now say which account must sign in again, and the bot card gives the real reason.

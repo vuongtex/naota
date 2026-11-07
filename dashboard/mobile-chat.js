@@ -101,6 +101,7 @@
       if (mq.matches) {
         if (!moved.length) {
           moveEl(document.querySelector(".navbar-brain"), false);
+          moveEl(document.getElementById("soundToggle"), true, true);   // loa ngay trước nút sáng/tối
           moveEl(document.getElementById("themeToggle"), true, true);
           // Nút loa header đã bỏ, nút loa thanh nhập cũng bỏ: giọng đi theo
           // mic, bấm mic là bật loa. Không còn nút loa nào để dời cả.
@@ -269,6 +270,24 @@
       document.addEventListener("focusout", function () { henKeyboard(); setTimeout(syncKeyboard, 350); });
       window.addEventListener("orientationchange", function () { mocCao = 0; setTimeout(syncKeyboard, 400); });
     }
+
+    // ---- 8) The page itself never stays slid ----
+    // Every screen is one fixed frame and scrolls inside its own boxes, so the document scroll should always be 0. iOS
+    // can still slide it: a launch from the home screen (standalone, black-translucent bar), a swipe on a page whose
+    // 100dvh is off by the status bar, a return from the background. On a slid page iOS draws the fixed layers in one
+    // place and hit-tests them in another (see above), so every tap lands beside its button and the app looks
+    // frozen (owner, iPhone 13, app added from Chrome). Slide it back whenever nobody is typing; while
+    // the keyboard is up the slide is iOS's own and section 7 handles it. A touch also checks first, so the next tap
+    // after any missed one already lands right.
+    function pageToTop() {
+      if (!mq.matches || dangGo()) return;
+      if (window.scrollY || document.documentElement.scrollTop || document.body.scrollTop) window.scrollTo(0, 0);
+    }
+    window.addEventListener("scroll", pageToTop, { passive: true });
+    window.addEventListener("pageshow", function () { pageToTop(); setTimeout(pageToTop, 300); });
+    window.addEventListener("load", function () { setTimeout(pageToTop, 300); });
+    document.addEventListener("visibilitychange", function () { if (!document.hidden) setTimeout(pageToTop, 60); });
+    document.addEventListener("touchstart", pageToTop, { capture: true, passive: true });
 
     function applyAll() { placeHeader(); placeSystem(); setPlaceholder(); syncBrainMax(); syncKeyboard(); }
     applyAll();
