@@ -6,13 +6,30 @@ NAOTA release history. Newest first.
 
 ## [1.9.0] - 2026-11-07
 ### Added
-- **Share links page rebuilt:** change the address after `/s/`, see views per link, get a QR code, search and filter fast.
-- **Cloudflare is a built-in connection**, next to GitHub. **One priority star a day**, with tick sounds (you can turn them off), and Skip and Delete on a missed habit. Everything in Mine now reaches the notifications.
+- **Share links page rebuilt:** change the address after `/s/`, see views per link, search, filter, sort and page through them.
+- **A QR code** for every share link.
+- **Cloudflare is a built-in connection**, next to GitHub, by token or web sign-in.
+- **One priority star a day.**
+- **Sounds when you tick a task**, with an on/off switch next to the light/dark button.
+- **A missed habit** gets Skip and Delete buttons.
+- **Everything in Mine now reaches the notifications**, not just part of it.
 ### Improved
-- **Dictation:** words appear right in the chat box, and when you finish a model rewrites them in context before sending. On any error the sentence stays as heard.
-- **Sturdier GitHub:** a failed push retries itself, resumes after reconnecting, and a merge keeps running when the panel closes. The repo list takes the look of the Tasks page.
+- **Dictation rewrites the sentence:** words appear right in the chat box, and when you finish a model rewrites them in context before sending. On any error the sentence stays as heard.
+- **The mic hears AI names right**, such as Groq, Claude and Gemini, without pushing your own words aside.
+- **A failed GitHub push retries itself**, and resumes as soon as GitHub is connected again.
+- **A GitHub merge keeps running** when the panel or tab is closed.
+- **The GitHub repo list** takes the look of the Tasks page.
+- **The chat's model chip** shows the model really answering during a fallback.
 ### Fixed
-- **No lost messages** when you switch apps right after sending on a phone. When ChatGPT Live runs out it moves to another account or call path. The chat's model chip shows the model really answering.
+- **No lost messages** when you switch apps right after sending on a phone: a message is kept until the server confirms it.
+- **When ChatGPT Live runs out** it moves to another account or call path instead of staying on the exhausted plan.
+- **Android** no longer loses or repeats words in dictation.
+- **GitHub push from chat** no longer stalls on another OS's check.
+- **The chat's GitHub icon** no longer stays orange after a merge.
+- **GitHub cross review** no longer picks a plan that can never run it.
+- **iPhone:** the menu no longer covers the language picker, and a home screen app takes taps in the right place again.
+- **The + button on the Tasks page** no longer covers the last row on a phone.
+- **No empty answer bubble** when coming back to a chat that is still running.
 
 ## [1.8.1] - 2026-11-07
 ### Fixed
