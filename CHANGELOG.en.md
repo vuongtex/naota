@@ -5,8 +5,17 @@
 NAOTA release history. Newest first.
 
 ## [1.13.0] - 2026-11-08
+### Added
+- **The ChatGPT plan hears your voice**, at no cost beyond the plan. The ear follows the model in use, nothing to set.
+- **Zalo OA connects with Zalo's OAuth v4 sign-in**, no pasted refresh token.
+- **Accept or send back a job** that failed its automatic check, right from chat.
 ### Improved
-- In progress.
+- **GitHub cross review is your call**, off by default, on the chat's own model or the model picked on each card.
+- **A job that fails its automatic check** goes back to the worker instead of asking you an empty question.
+- **Dictation keeps running** when you switch tab or app.
+### Fixed
+- **After an update the dashboard stays on your brain**, so teams no longer vanish.
+- **The Partners page chat box** no longer stays locked after an update.
 
 ## [1.12.0] - 2026-11-08
 ### Added
