@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.12.0] - 2026-11-08
+### Improved
+- In progress.
+
 ## [1.11.0] - 2026-11-08
 ### Added
 - **Name each account** at its first sign-in and rename it later, so two accounts never read alike.
