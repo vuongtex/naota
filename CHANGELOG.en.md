@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.13.0] - 2026-11-08
+### Improved
+- In progress.
+
 ## [1.12.0] - 2026-11-08
 ### Added
 - **Admin channel chats** show in the history of Naota Core and of the linked agent, the owner's Zalo bot included.

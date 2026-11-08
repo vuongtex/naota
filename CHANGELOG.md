@@ -6,6 +6,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.13.0] - 2026-11-08
+### Cải thiện
+- Đang viết.
+
 ## [1.12.0] - 2026-11-08
 ### Thêm mới
 - **Chat của kênh quản trị** hiện trong lịch sử của Naota Core và của agent được nối, kể cả bot Zalo của anh.
