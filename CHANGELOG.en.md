@@ -4,6 +4,19 @@
 
 NAOTA release history. Newest first.
 
+## [1.10.0] - 2026-11-08
+### Added
+- **A suggested next message** shows faded in the empty chat box, press Tab to fill it in.
+- **A red unread dot** on every chat history list, gone once you open that chat.
+- **Pick a ChatGPT Live voice** for each partner.
+- **Turn scheduled jobs off on one machine**, so two machines on the same brain do not run the same job twice.
+### Improved
+- **A voice call with a partner** introduces itself as that partner, not as the main assistant.
+- **A workflow agent** with no model of its own runs on the main model instead of falling back to Claude.
+- **The Chatbot page** opens faster on a big inbox.
+### Fixed
+- **Chat no longer gets stuck on "Lost the connection"** after one failed message or an expired sign-in.
+
 ## [1.9.0] - 2026-11-07
 ### Added
 - **Share links page rebuilt:** change the address after `/s/`, see views per link, search, filter, sort and page through them.

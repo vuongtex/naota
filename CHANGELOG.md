@@ -6,6 +6,19 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.10.0] - 2026-11-08
+### Thêm mới
+- **Gợi ý tin nhắn kế tiếp** hiện mờ trong ô chat trống, bấm Tab là điền vào.
+- **Chấm đỏ chưa đọc** trên mọi danh sách lịch sử chat, tắt khi anh mở chat đó.
+- **Chọn giọng ChatGPT Live riêng** cho từng cộng sự.
+- **Tắt việc hẹn giờ trên một máy**, để hai máy chạy cùng bộ não không làm trùng việc.
+### Cải thiện
+- **Cuộc gọi với cộng sự** tự giới thiệu đúng tên cộng sự đó, không xưng là trợ lý chính.
+- **Agent trong quy trình** chưa chọn mô hình riêng thì chạy bằng mô hình chính, không tự rơi về Claude.
+- **Trang Chatbot** mở nhanh hơn khi hòm thư có nhiều hội thoại.
+### Sửa lỗi
+- **Chat không còn kẹt "Mất kết nối tới máy chủ"** chỉ vì một tin lỗi hoặc phiên đăng nhập đã hết hạn.
+
 ## [1.9.0] - 2026-11-07
 ### Thêm mới
 - **Trang Link chia sẻ làm lại:** đổi được địa chỉ sau `/s/`, đếm lượt xem từng link, tìm, lọc, sắp xếp và phân trang.
