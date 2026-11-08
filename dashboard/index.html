@@ -18,7 +18,13 @@
        rồi "Thêm vào MH chính" lại thì iOS mới đọc lại và chạy standalone. -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <!-- Status bar "default", NOT "black-translucent" (iOS 27). With a see-through bar the page
+       draws under the clock, and iOS 26/27 lays a blur strip over that band in a home-screen app that no CSS turns off:
+       our fixed opaque header was already there and the strip still showed. With "default" the bar is solid and the
+       page starts below it, so nothing sits under it to blur. iOS reads this tag when the app is added to the Home
+       Screen: an icon added before this change keeps the blur until it is removed and added again. The CSS still
+       pads with env(safe-area-inset-*), which is 0 at the top now and still covers the notch in landscape. -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="NAOTA">
   <meta name="theme-color" content="#ffffff">
   <!-- manifest.json khai icon PNG vuông 192/512 có sizes rõ ràng: đó là điều kiện để
@@ -31,8 +37,8 @@
   <!-- Biến --ic-* cho icon dùng trong content: của CSS. Phải đứng TRƯỚC style.css
        vì style.css tham chiếu các biến này. -->
   <link rel="stylesheet" href="/static/vendor/lucide-icons.css?v=1">
-  <link rel="stylesheet" href="/static/style.css?v=172">
-  <link rel="stylesheet" href="/static/console.css?v=156">
+  <link rel="stylesheet" href="/static/style.css?v=173">
+  <link rel="stylesheet" href="/static/console.css?v=157">
   <!-- Áp tông đã lưu TRƯỚC khi vẽ để không nháy tối rồi mới đổi sang sáng.
        Giá trị cũ "dim" (tông tối-nhạt, gỡ) quy về tối; theme.js sẽ ghi đè lại.
        Chưa chọn gì thì SÁNG (NAOTA 1.0.0). Chế độ "auto" (chỉ khi người dùng tự chọn) tính theo khung giờ "HH:MM-HH:MM", cùng quy tắc với
@@ -396,7 +402,7 @@
                   <span class="vc-saved" id="vcVoiceSaved" aria-live="polite"></span>
                 </div>
               </div>
-              <div class="qs-hint" id="vcVoiceNote" data-i18n="qs.voice_ml_note" hidden>Giọng đa ngôn ngữ hỗ trợ tiếng Việt.</div>
+              <div class="qs-hint" id="vcVoiceNote" data-i18n="qs.voice_ml_note" hidden>Tiếng Việt đọc bằng Hoài My hoặc Nam Minh, tiếng Anh bằng giọng đa ngôn ngữ, cùng giới giọng chọn.</div>
               <div class="vc-mismatch" id="vcMismatch" role="status" hidden>
                 <span id="vcMismatchTxt"></span>
                 <button class="gcard-btn" type="button" id="vcMismatchFix"></button>
@@ -991,7 +997,9 @@
   <!-- Hộp đen lỗi giao diện (loi-may-khach.js): đứng sớm để bắt được lỗi của mọi file phía dưới. -->
   <script src="/static/loi-may-khach.js?v=1"></script>
   <!-- Gộp các lượt đọc trùng nhau lúc mở app (fetch-gop.js). Đứng trước mọi file gọi máy chủ. -->
-  <script src="/static/fetch-gop.js?v=2"></script>
+  <script src="/static/fetch-gop.js?v=3"></script>
+  <!-- Recently opened chats kept in this browser for an instant first paint (chat-cache.js). Before app.js. -->
+  <script src="/static/chat-cache.js?v=2"></script>
   <!-- Code của từng trang nạp khi cần (nap-cham.js): các file LỚN chỉ một trang dùng không còn chặn lúc mở app.
        Nhóm nào trang nào cần: console.js renderPage. Trang rảnh thì nạp nốt ở nền theo đúng thứ tự dưới đây. -->
   <script id="naota-lazy" type="application/json">{
@@ -1039,7 +1047,7 @@
 }</script>
   <script src="/static/nap-cham.js?v=2"></script>
   <script src="/static/auto-domain.js?v=1"></script>
-  <script src="/static/i18n/index.js?v=2"></script>
+  <script src="/static/i18n/index.js?v=3"></script>
   <script src="/static/vendor/lucide-icons.js?v=19"></script>
   <script src="/static/icons.js?v=3"></script>
   <script src="/static/info-tip.js?v=2"></script>
@@ -1059,8 +1067,8 @@
   <script src="/static/voice-attention.js?v=2"></script>
   <script src="/static/mic-test.js?v=1" defer></script>
   <script src="/static/voice-chunker.js?v=2"></script>
-  <script src="/static/voice-lang.js?v=1"></script>
-  <script src="/static/voice.js?v=29"></script>
+  <script src="/static/voice-lang.js?v=2"></script>
+  <script src="/static/voice.js?v=30"></script>
   <script src="/static/graph.js?v=18"></script>
   <script src="/static/pan-zoom.js?v=1"></script>
   <script src="/static/chat-render.js?v=24"></script>
@@ -1124,7 +1132,7 @@
   <script src="/static/screen-awake.js?v=1"></script>
   <script src="/static/incoming-call.js?v=1"></script>
   <script src="/static/call-bar.js?v=1"></script>
-  <script src="/static/app.js?v=163"></script>
+  <script src="/static/app.js?v=164"></script>
   <!-- Sau app.js: dải việc nền đọc window.NaotaSessions (app.js dựng) để biết phiên + brain. -->
   <script src="/static/background-strip.js?v=3"></script>
   <!-- Thân bảng chọn model dùng chung: phải đứng TRƯỚC model-picker.js (thanh chat) và
@@ -1148,7 +1156,7 @@
   <script src="/static/brain-picker.js?v=5"></script>
   <!-- One Reorder box (drag or arrows) for projects, pinned chats and tags. Before sessions-ui.js. -->
   <script src="/static/reorder-dialog.js?v=3"></script>
-  <script src="/static/sessions-ui.js?v=28"></script>
+  <script src="/static/sessions-ui.js?v=29"></script>
   <link rel="stylesheet" href="/static/improvement-candidates.css?v=3">
   <script src="/static/improvement-experiments.js?v=1"></script>
   <script src="/static/improvement-candidates.js?v=3"></script>
@@ -1160,7 +1168,7 @@
   <script src="/static/pulse-seen.js?v=1"></script>
   <!-- Tag filter bar and tag picker shared by Cộng sự and Team: load BEFORE workspace.js and teams.js. -->
   <script src="/static/tag-picker.js?v=1"></script>
-  <script src="/static/workspace.js?v=37"></script>
+  <script src="/static/workspace.js?v=38"></script>
   <!-- Hộp chọn thành viên kiểu Zalo: nạp TRƯỚC teams.js, teams.js gọi window.NaotaTeamPicker. -->
   <script src="/static/team-picker.js?v=1"></script>
   <!-- Bộ phán xử nói / chờ / im của từng trợ lý: lịch sử quyết định và nút sửa. Nạp TRƯỚC teams.js
@@ -1190,8 +1198,8 @@
   <script src="/static/login-vault.js?v=2"></script>
   <script src="/static/messenger-connect.js?v=4"></script>
   <script src="/static/voice-catalog.js?v=1"></script>
-  <script src="/static/console.js?v=221"></script>
-  <script src="/static/mobile-chat.js?v=22"></script>
+  <script src="/static/console.js?v=222"></script>
+  <script src="/static/mobile-chat.js?v=23"></script>
   <script src="/static/brain-view.js?v=1"></script>
   <script src="/static/push.js?v=3"></script>
   <script src="/static/install-nudge.js?v=2"></script>
