@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.10.0] - 2026-11-08
+### Improved
+- In progress.
+
 ## [1.9.0] - 2026-11-07
 ### Added
 - **Share links page rebuilt:** change the address after `/s/`, see views per link, search, filter, sort and page through them.
