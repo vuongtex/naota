@@ -4,6 +4,25 @@
 
 NAOTA release history. Newest first.
 
+## [1.11.0] - 2026-11-08
+### Added
+- **Name each account** at its first sign-in and rename it later, so two accounts never read alike.
+- **Upload your own avatar picture** and use it as the browser tab icon, so several NAOTA side by side are easy to tell apart.
+- **Chat over the API without waiting** (`POST /chat/jobs`): send the job, come back for the result later.
+### Improved
+- **The provider list on the Models page** opens in place, not in a separate sheet.
+- **An assistant's role** sits in an (i) button next to the name, no more grey line cut off halfway.
+- **The Team page** folds its explanations and the team description into the (i).
+- **Voice calls with a partner** keep long instructions and pinned rules.
+- **No more time caps** on Grok, Claude Code, ChatGPT, background work and Teams: long jobs run to the end, the Stop button still works.
+- **Pages and chat switches no longer freeze** while background jobs write.
+### Fixed
+- **Missing private Zalo messages** are caught up from the history, only when the history really has new ones.
+- **Zalo voice messages** are heard again by Groq and OpenAI.
+- **Antigravity** no longer stops at 15 minutes.
+- **A chat that moves to a second Claude account** no longer dies with "ProcessError exit code 1".
+- **A merged PR** no longer keeps the chat's "waiting for checks" icon.
+
 ## [1.10.0] - 2026-11-08
 ### Added
 - **A suggested next message** shows faded in the empty chat box, press Tab to fill it in.

@@ -6,6 +6,25 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.11.0] - 2026-11-08
+### Thêm mới
+- **Đặt tên từng tài khoản** ngay lần đăng nhập đầu và đổi tên được sau đó, để hai tài khoản không bao giờ trông giống nhau.
+- **Tải ảnh riêng làm avatar** và dùng ảnh đó làm icon trên tab trình duyệt, mở nhiều NAOTA cạnh nhau vẫn phân biệt được.
+- **Gửi chat qua API không cần chờ** (`POST /chat/jobs`): gửi việc rồi quay lại lấy kết quả sau.
+### Cải thiện
+- **Danh sách nhà cung cấp trên trang Models** mở ngay tại chỗ, không bật bảng riêng.
+- **Vai trò của trợ lý** nằm trong nút (i) cạnh tên, không còn dòng chữ xám bị cắt giữa chừng.
+- **Trang Nhóm** gập phần giải thích và mô tả nhóm vào nút (i).
+- **Cuộc gọi với cộng sự** giữ đủ hướng dẫn dài và luật đã ghim.
+- **Bỏ trần thời gian** của Grok, Claude Code, ChatGPT, việc nền và Nhóm: việc dài chạy tới cùng, vẫn có nút Dừng.
+- **Trang và chuyển chat không còn khựng** khi việc nền đang ghi dữ liệu.
+### Sửa lỗi
+- **Tin Zalo riêng bị sót** được lấy bù từ lịch sử, chỉ khi lịch sử thật sự có tin mới.
+- **Tin thoại Zalo** lại nghe được qua Groq và OpenAI.
+- **Antigravity** không còn dừng ở phút thứ 15.
+- **Chat chuyển sang tài khoản Claude thứ hai** không còn chết với lỗi "ProcessError exit code 1".
+- **PR đã gộp** không còn để biểu tượng "đang chờ kiểm" trong chat.
+
 ## [1.10.0] - 2026-11-08
 ### Thêm mới
 - **Gợi ý tin nhắn kế tiếp** hiện mờ trong ô chat trống, bấm Tab là điền vào.
