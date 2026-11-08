@@ -7,8 +7,17 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
 ## [1.12.0] - 2026-11-08
+### Thêm mới
+- **Chat của kênh quản trị** hiện trong lịch sử của Naota Core và của agent được nối, kể cả bot Zalo của anh.
+- **Thẻ agent hiện tag** ngay dòng dưới tên, cạnh avatar.
 ### Cải thiện
-- Đang viết.
+- **Mở chat và mở trang tức thì** từ bản trình duyệt đã thấy trước đó, rồi cập nhật lại khi máy chủ trả lời.
+- **Mở app, đổi trang, đổi chat** chỉ cần một lượt hỏi máy chủ cho mọi thứ cần đọc.
+- **Lượt chat, việc Kanban và trang đọc nặng** không còn làm chậm các cú bấm khác.
+- **Đọc to** chọn giọng tiếng Anh hay tiếng Việt theo ngôn ngữ của câu trả lời.
+### Sửa lỗi
+- **App trên iPhone (iOS 26, 27)** không còn dải mờ ở đầu màn hình. Icon đã thêm từ trước phải gỡ ra thêm lại mới hết.
+- **Chatbot của khách im lặng** khi gói Claude chạm trần chi tiêu tháng, không gửi câu lỗi tiếng Anh cho khách.
 
 ## [1.11.0] - 2026-11-08
 ### Thêm mới
