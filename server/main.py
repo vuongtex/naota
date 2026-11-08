@@ -162,6 +162,7 @@ import messenger_bot    # Messenger transport + webhook router
 import messenger_setup  # Messenger connect wizard and health check
 import messenger_oauth  # Log in with Facebook for the Messenger card
 import zalo_oa_bot      # Zalo OA transport + webhook router
+import zalo_oa_oauth    # Grant access with Zalo: OAuth v4 + PKCE for the Zalo OA form
 import channel_context   # metadata kênh + gom file trả về kênh chat (port gateway hermes-agent)
 import lang as lang_mod   # chốt ngôn ngữ trả lời cho một lượt
 import lang_registry      # sổ đăng ký: mọi thứ về một ngôn ngữ nằm đúng một chỗ
@@ -315,6 +316,9 @@ _AUTH_PUBLIC_EXACT = ("/", "/favicon.ico", "/health", "/auth/status", "/auth/log
                       # /zalo-oa/webhook: Zalo calls it with no cookie; the route checks
                       # X-ZEvent-Signature under the OA secret keys of the Zalo OA accounts.
                       "/zalo-oa/webhook",
+                      # /zalo-oa/oauth/callback: Zalo sends the browser back here after the OA admin allows the
+                      # app (OAuth v4); the unguessable `state` from an authenticated /zalo-oa/oauth/start is the check.
+                      "/zalo-oa/oauth/callback",
                       # /chatbot-api/v1/turn: a server of the owner asks one Chatbot. No cookie; the route
                       # checks the source address and the key of an internal API channel account itself
                       # (channels/api.py). That key opens this path only, and an API token does not open it.
@@ -1921,7 +1925,7 @@ PROVIDER_DEFS = [   # thứ tự = thứ tự hiển thị card ở trang Models
     {"id": "gemini",        "label": "Google Gemini (API)",     "kind": "api", "key_field": "gemini_api_key",    "catalog_key": "gemini",
      "default_models": ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash"]},
     {"id": "groq",          "label": "Groq (API)",              "kind": "api", "key_field": "groq_api_key",      "catalog_key": "groq",
-     "default_models": ["llama-3.3-70b-versatile", "qwen3-32b", "openai/gpt-oss-120b"]},
+     "default_models": ["openai/gpt-oss-120b", "qwen3-32b"]},
     # DeepSeek: endpoint OpenAI-compatible. The list here is only the offline fallback,
     # /provider/models asks DeepSeek's /models live.
     {"id": "deepseek",      "label": "DeepSeek (API)",          "kind": "api", "key_field": "deepseek_api_key",  "catalog_key": "deepseek",
@@ -3361,6 +3365,34 @@ def _model_cua_agent(brain: str, slug: str) -> dict:
         return {}
     return {"provider": _agent_model_provider(mdl, (meta.get("model_provider") or "").strip()),
             "model": mdl}
+
+
+def _ear_brain_provider(cfg, row=None, agent=None) -> str:
+    """The vendor whose ear hears a sentence (voice_ear.order puts that vendor's ear first).
+
+    Owner: "the ear follows the model in use", and for agents "the agent's own model's vendor, not the main one's".
+      - `agent` {brain, slug} (a dedicated bot, a voice message to an agent): the model that agent file chose;
+      - `row` (the dashboard chat being dictated into): its pinned model (Naota Core's pin in a Core chat), else, in a
+        partner's chat, that partner's model;
+      - otherwise, or when the agent stays on "Default": the main model.
+    Never raises: a missing agent file or session only means the main model's ear."""
+    try:
+        mcfg = (cfg or {}).get("model") or {}
+        if agent and str(agent.get("slug") or "").strip():
+            g = _model_cua_agent(agent.get("brain") or "brain", agent["slug"])
+            if g:
+                return g["provider"]
+        if row:
+            if str(row.get("pinned_provider") or "").strip() or naota_core.is_core_channel(row.get("channel")):
+                return _chat_provider_for_session(mcfg, row)[0]
+            persona = workflow_chat.persona_cua_phien(row)
+            if persona and persona[0] == "agent":
+                g = _model_cua_agent(row.get("brain") or "brain", persona[1])
+                if g:
+                    return g["provider"]
+    except Exception as e:  # noqa: BLE001 - choosing an ear must never cost the sentence
+        print(f"[stt] ear vendor: {type(e).__name__}: {e}", file=sys.stderr)
+    return _effective_main(cfg or {}).get("provider", "")
 
 
 def _chat_provider_bot(mcfg, bot):
@@ -17048,7 +17080,8 @@ async def tts(
 # Voice V2 - nghe bằng Groq, tuỳ chọn giọng nói, nghe nói thẳng (Live)
 # ============================================
 @app.post("/stt")
-async def stt_route(file: UploadFile = File(...), lang: str = Form(""), draft: str = Form("")):
+async def stt_route(file: UploadFile = File(...), lang: str = Form(""), draft: str = Form(""),
+                    session: str = Form("")):
     """Dashboard gửi file ghi âm (webm/opus) sau khi hết câu -> chữ qua Groq Whisper.
 
     Dùng lại đúng `stt.groq_nghe` của kênh Telegram/Zalo. Trả `{"ok": true, "text": ...}` hoặc
@@ -17056,17 +17089,25 @@ async def stt_route(file: UploadFile = File(...), lang: str = Form(""), draft: s
     """
     cfg = cfgmod.read_settings()
     data = await file.read()
+    # `session` is the chat being dictated into. A partner's chat (or a chat pinned to a model) hears with
+    # the ear of that model's vendor, not the main model's (`_ear_brain_provider`).
+    row = None
+    if session.strip():
+        try:
+            row = await asyncio.to_thread(lambda: get_store().get_session(session.strip()[:120]))
+        except Exception:  # noqa: BLE001 - an unknown session is the main model's ear
+            row = None
     # Tai đang được chọn (voice_ear.select_ear). Trình duyệt chỉ tải lên khi /voice/ear báo có
     # tai dạng tải lên; chặn thêm ở đây phòng trang cũ còn mở. Không có tai thì trả ok=false,
     # trình duyệt giữ chữ Web Speech như trước.
-    ear = voice_ear.select_ear(cfg, _effective_main(cfg).get("provider", ""))
+    ear = voice_ear.select_ear(cfg, _ear_brain_provider(cfg, row=row))
     if ear["kind"] != "upload":
         return {"ok": False, "text": "", "model": "",
                 "ly_do": "tai_tat" if ear["reason"] == voice_ear.REASON_OFF else "thieu_key"}
     # Mồi từ vựng, sửa tên trợ lý, đối chiếu bản nháp: xem voice_ear.transcribe_upload.
     # WebSocket còn quét nghe_sua.sua thêm lần nữa (cho cả chữ Web Speech); hàm idempotent.
     return await voice_ear.transcribe_upload(cfg, data, file.filename or "voice.webm", lang, draft,
-                                             provider=ear["provider"])
+                                             provider=ear["provider"], fallbacks=ear.get("fallbacks") or ())
 
 
 @app.post("/stt/fix")
@@ -25951,8 +25992,10 @@ def _tg_inbox_dir(chat=None):
     return str(Path(root) / "inbox" / "telegram")
 
 
-async def _stt_nghe(data, ten=""):
+async def _stt_nghe(data, ten="", agent=None):
     """Nghe tin thoại của kênh chat -> chữ. Đọc key Groq TẠI THỜI ĐIỂM GỌI, cố ý.
+
+    `agent` {brain, slug}: the agent the voice is for (a dedicated bot); its own model's vendor hears first.
 
     Dán key ở trang Models xong là tin thoại tiếp theo nghe được ngay, không phải tắt bật lại
     bot. Đọc lúc dựng bot thì key mới dán nằm im tới lần khởi động sau, mà chẳng có gì trên
@@ -25978,13 +26021,19 @@ async def _stt_nghe(data, ten=""):
     _tv = nghe_sua.fix_vocabulary(_cfg)
     # not Groq only any more. Every ear the owner has is tried in turn (Groq, OpenAI, Gemini, then the
     # offline Whisper from the Tools page); one missing or failing hands over to the next (`stt.listen_any`).
+    # plus the ChatGPT plan's own ear, and the ear of the main brain's vendor goes first, same order as
+    # the dashboard mic (voice_ear.order): on ChatGPT the plan hears the voice message, no key needed.
     _m = _cfg.get("model") or {}
     import local_stt
+    _ear = voice_ear.setting(_cfg)
+    _order = voice_ear.order(_cfg, _ear_brain_provider(_cfg, agent=agent), "auto" if _ear == "off" else _ear)
+    _gpt = await voice_ear.chatgpt_creds() if "chatgpt" in _order else {}
     res = await stt.listen_any(data, ten, {"groq": key, "openai": _m.get("openai_api_key") or "",
-                                           "gemini": _m.get("gemini_api_key") or ""},
+                                           "gemini": _m.get("gemini_api_key") or "", "chatgpt": _gpt},
                                ngon_ngu=(lang_registry.get(_ma).stt if _ma else ""),
                                hotwords=nghe_sua.goi_y_whisper(_tv),
-                               local=local_stt.transcribe if local_stt.installed() else None)
+                               local=local_stt.transcribe if local_stt.installed() else None,
+                               order=_order)
     if res.get("ok") and res.get("text"):
         res["text"] = nghe_sua.sua(res["text"], _tv)
     return res
@@ -26361,7 +26410,8 @@ async def channels_webhook_info(request: Request, channel: str = ""):
     if kenh == "zalo_oa":
         url = _zo_webhook_url(request)
         return {"ok": True, "webhook_url": url, "verify_token": "", "https": url.startswith("https://"),
-                "site_verify": True, "site_codes": _zo_site_codes()}
+                "site_verify": True, "site_codes": _zo_site_codes(),
+                "oauth_redirect": url[: -len("/zalo-oa/webhook")] + zalo_oa_oauth.CALLBACK_PATH}
     if kenh != "messenger":
         return JSONResponse({"ok": False, "error": localefmt.chu("Kênh này không dùng webhook",
                                                                  "This channel does not use a webhook")},
@@ -27020,6 +27070,102 @@ async def zalo_oa_webhook(request: Request):
     return {"ok": True, "events": n}
 
 
+@app.post("/zalo-oa/oauth/start")
+async def zalo_oa_oauth_start(request: Request):
+    """Grant access with Zalo (OAuth v4 + PKCE). Body: `credentials` ("<App ID> <App secret key> <OA secret
+    key>"), `brain`, `label`, and `account_id` to reconnect a saved account (its stored keys fill the gaps)."""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    aid = str(body.get("account_id") or "").strip()
+    stored = ""
+    if aid:
+        a = channel_accounts.get_account(aid)
+        if not a or a.get("channel") != "zalo_oa":
+            return JSONResponse({"ok": False, "error": localefmt.chu("Không có tài khoản Zalo OA này",
+                                                                     "No such Zalo OA account")}, status_code=404)
+        stored = channel_accounts.get_token(aid)
+    res = zalo_oa_oauth.start(str(body.get("credentials") or ""),
+                              _zo_webhook_url(request)[: -len("/zalo-oa/webhook")] + zalo_oa_oauth.CALLBACK_PATH,
+                              str(body.get("brain") or ""), str(body.get("label") or ""), aid, stored)
+    if not res.get("ok"):
+        return JSONResponse(res, status_code=400)
+    return res
+
+
+@app.get("/zalo-oa/oauth/callback")
+async def zalo_oa_oauth_callback(state: str = Query(""), code: str = Query(""), oa_id: str = Query(""),
+                                 error: str = Query(""), error_description: str = Query("")):
+    res = await zalo_oa_oauth.callback(state, code, oa_id, error, error_description)
+    if res.get("ok"):
+        title = localefmt.chu("✓ Đã cấp quyền Zalo OA", "✓ Zalo OA access granted")
+        body = localefmt.chu(f"OA {res.get('oa_name') or res.get('oa_id')}. Quay lại tab Naota, tab này tự đóng.",
+                             f"OA {res.get('oa_name') or res.get('oa_id')}. Go back to the Naota tab, this tab "
+                             "closes by itself.")
+    else:
+        title = localefmt.chu("⚠ Chưa cấp quyền được", "⚠ Access was not granted")
+        body = str(res.get("error", ""))
+    html = ("<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, "
+            "initial-scale=1'><title>Naota</title></head><body style='font-family:system-ui,sans-serif;font-size:18px;"
+            "background:#111;color:#eee;text-align:center;padding:72px 16px'>"
+            f"<h2>{html_mod.escape(title)}</h2><p>{html_mod.escape(body)}</p>"
+            + ("<script>setTimeout(function(){try{window.close()}catch(e){}},1500)</script>" if res.get("ok") else "")
+            + "</body></html>")
+    return HTMLResponse(html)
+
+
+@app.get("/zalo-oa/oauth/result")
+async def zalo_oa_oauth_result(state: str = ""):
+    return zalo_oa_oauth.result(state)
+
+
+@app.post("/zalo-oa/oauth/finish")
+async def zalo_oa_oauth_finish(request: Request):
+    """Save a ready grant: a new Zalo OA account, or the new token pair of the account being reconnected
+    (or of the account that already holds this OA). Bots on that account restart with it."""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    state = str(body.get("state") or "")
+    p = zalo_oa_oauth.take(state)
+    if not p:
+        return JSONResponse(zalo_oa_oauth.result(state) | {"ok": False}, status_code=400)
+    cr, oa_id, name = p["credentials"], p["oa_id"], p.get("oa_name", "")
+    meta = {"bot_name": name, "login": "zalo_oauth_v4"}
+    if p.get("account_type"):
+        meta["account_type"] = p["account_type"]
+    aid = p.get("account_id") or ""
+    if not aid:
+        old = channel_accounts.owner_of(oa_id, "zalo_oa")
+        aid = old["id"] if old else ""
+    updated = bool(aid)
+    if aid:
+        cur = channel_accounts.get_account(aid) or {}
+        if cur.get("external_id") and cur["external_id"] != oa_id:
+            return JSONResponse({"ok": False, "error": localefmt.chu(
+                f"Bạn vừa cấp quyền cho OA {name or oa_id}, không phải OA của tài khoản này. Bấm lại và chọn đúng OA.",
+                f"You granted access to OA {name or oa_id}, not the OA of this account. Click again and pick the right OA.")},
+                status_code=400)
+        ok, loi = await zalo_oa_bot.KEEPER.replace(aid, cr, {"external_id": oa_id,
+                                                             "meta": {**(cur.get("meta") or {}), **meta}})
+        if not ok:
+            return JSONResponse({"ok": False, "error": loi}, status_code=400)
+        for b in chatbot_store.bots_using_account(aid):
+            if b.get("enabled"):
+                chatbot_runtime.start_bot(b["id"])
+    else:
+        aid, loi = channel_accounts.create_account({
+            "channel": "zalo_oa", "token": zalo_oa_bot.dump_credentials(cr), "external_id": oa_id, "meta": meta,
+            "label": str(p.get("label") or "").strip() or name or oa_id, "brain": str(p.get("brain") or "").strip()})
+        if loi:
+            return JSONResponse({"ok": False, "error": loi}, status_code=400)
+    zalo_oa_oauth.forget(state)
+    return {"ok": True, "updated": updated, "oa_id": oa_id, "oa_name": name,
+            "account": channel_accounts.get_account(aid)}
+
+
 @app.post("/zalo-oa/site-verification")
 async def zalo_oa_site_verification(request: Request):
     """Save the domain verification code Zalo shows (file name, meta tag or bare code), so that
@@ -27603,12 +27749,37 @@ def _github_session_info(sid: str) -> dict:
             "model": row.get("pinned_model") or main_m.get("model") or ""}
 
 
-async def _github_review_ask(prompt: str, provider: str) -> str:
+def _github_reviewer_spec(provider: str, settings: dict = None) -> dict:
+    """Model and effort a cross review runs on (the model set up, not one never installed). The background model when the reviewer is the background card, else the model and effort picked on
+    that card of the Models page. Before this the review sent an empty model, so an API card fell back to the
+    provider's built-in default: Groq answered 404 for llama-3.3-70b-versatile, a model the owner never chose and Groq
+    had already shut down."""
+    s = settings if settings is not None else cfgmod.read_settings()
+    m = s.get("model", {}) or {}
+    bg = model_routing.background_spec(m)
+    if bg.get("provider") == provider and bg.get("model"):
+        return {"provider": provider, "model": bg["model"], "reasoning": bg.get("reasoning") or "off"}
+    pr = model_routing.profile(m, provider)
+    return {"provider": provider, "model": pr.get("model") or "", "reasoning": pr.get("reasoning") or "off"}
+
+
+def _github_reviewer_label(provider: str, model: str = "") -> str:
+    """"groq (openai/gpt-oss-120b)" for the chat line, so the owner sees the exact model that reviewed or failed."""
+    try:
+        mdl = model or _github_reviewer_spec(provider).get("model") or ""
+    except Exception:  # noqa: BLE001 - a label must never break the review
+        mdl = ""
+    return f"{provider} ({mdl})" if mdl else provider
+
+
+async def _github_review_ask(prompt: str, provider: str, model: str = "") -> str:
     """Cross review (spec 10): ONE text-only turn on exactly `provider`, no tools, empty folder, like the
     group-chat judge. The diff comes from someone else's repo, so the reviewer gets nothing it could act with."""
     base = _reply_policy_sandbox_engine("Bạn là người review code độc lập. Chỉ trả về đúng khuôn JSON được yêu cầu.",
                                         "gh-review", cwd_name="gh_review_cwd")
-    spec = {"provider": provider, "model": ""}
+    spec = _github_reviewer_spec(provider)
+    if model:
+        spec["model"] = model     # the chat's own model when the chat's engine reviews its own work
     eng = aux_engine.strip_tools(
         aux_engine.swap(base, mode="suggest", tag="gh-review", spec=spec, codex_profile=_write_codex_profile), base)
     eng, info = resonance.pick_text_only_link(eng, base, spec, aux_engine._FallbackChain)
@@ -27634,7 +27805,10 @@ def _github_reviewers() -> list:
     m = s.get("model", {}) or {}
     order = []
     try:
-        order = [x for x in (model_routing.stored_order(m) or []) if isinstance(x, str)]
+        # The background model leads: after the chat's own engine, it is the model the owner set up
+        # for work done without them.
+        order = [model_routing.background_spec(m)["provider"]]
+        order += [x for x in (model_routing.stored_order(m) or []) if isinstance(x, str)]
     except Exception:
         order = []
     order += [aux_engine.CLAUDE, aux_engine.CODEX] + list(aux_engine.API_PROVIDERS)
@@ -27660,7 +27834,7 @@ def _github_reviewers() -> list:
 
 
 github_work.configure(start_turn=_github_start_turn, session_info=_github_session_info,
-                      review=_github_review_ask, reviewers=_github_reviewers,
+                      review=_github_review_ask, reviewers=_github_reviewers, reviewer_label=_github_reviewer_label,
                       brain_root=lambda b: str(_brain_root(b)))
 github_routes._DEPS.busy_jobs = github_work.busy_jobs
 
