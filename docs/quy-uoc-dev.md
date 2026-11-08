@@ -108,6 +108,24 @@ Nhóm và trang Hội thoại.
 - Màn nào cố ý để khác thì ghi lý do trong mô tả PR, và nói rõ với chủ.
 - Thêm test cho từng màn đã đổi, để lần sau lệch là CI đỏ.
 
+## Tính năng Zalo mới vào plugin `zalo-extras`, không tạo plugin mới
+
+"nếu mà update tính năng mới thì cho vào trong plugin của Zalo luôn chứ đừng tạo một plugin
+mới". Lý do: mỗi tính năng Zalo từng đẻ thêm một plugin (gửi ảnh, nhóm, đọc ảnh, kết bạn), trang Plugin bị phân mảnh
+thành bốn mục cho một thứ chủ coi là một. Gói `naota.zalo` 2.0.0 (kho `naota-store`) đã gộp cả bốn thành MỘT plugin.
+
+- Tool Zalo mới mà MCP của naota-zalo chưa có thì viết trong gói `naota.zalo` của `naota-store`, vào plugin
+  `packs/naota.zalo/plugins/zalo-extras/`: thêm hàm vào module đúng mảng (`send_media.py`, `group.py`,
+  `read_images.py`, `friend.py`), hoặc một module mới cạnh đó rồi thêm tên vào `_PARTS` trong `plugin.py`. Thêm tên
+  tool vào `tools` của `plugin.yaml`, nâng số bản của plugin và của gói cùng nhau.
+- **Không tạo thư mục plugin Zalo thứ hai**, trong gói đó hay trong `system/plugins/` của lõi.
+  `tests/naota.zalo/test_zalo_extras.py` của kho đỏ khi gói có thêm thư mục plugin, mất một tool hay một tool bị đổi
+  mức quyền.
+- Mỗi tool tự khai mức quyền khi đăng ký (`min_mode`): đọc là `readonly`, ghi vào brain là `safe`, gửi hay đổi gì trên
+  Zalo là `full`.
+- Không thuộc luật này: phần lõi của kênh Zalo (đăng nhập QR, vòng đọc Hộp thư, bot trả lời) vẫn nằm trong
+  `server/zalo_*.py` như trước. Luật chỉ nói về tool mới cho model gọi.
+
 ## Viết CHANGELOG.md
 
 Nhật ký cập nhật được đọc trên màn hình dọc, nên viết CHO NGƯỜI ĐỌC TRÊN ĐIỆN

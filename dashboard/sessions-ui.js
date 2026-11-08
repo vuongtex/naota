@@ -1918,8 +1918,11 @@
       // chiếm chỗ của giờ và số tin trong một cột hẹp ("agent:ng" trên từng dòng).
       // Lịch sử của một Agent gồm cả hội thoại của bot chuyên trách với khách (kênh `bot:<tên>`):
       // ở đó nhãn kênh KHÔNG thừa, vì nó phân biệt cuộc khách nhắn với cuộc chủ tự chat với Agent.
-      var laBot = (s.channel || "").toString().indexOf("bot:") === 0;
-      var ch = kenhLoc ? "" : (s.channel || "").toString();
+      // the owner's admin-channel chats join the histories too (Naota Core's: `zalo`, `telegram`...; an
+      // agent's: `zalo@<slug>`), labelled by the app they came from. The `@<slug>` part never shows.
+      var rawCh = (s.channel || "").toString();
+      var laBot = rawCh.indexOf("bot:") === 0;
+      var ch = (kenhLoc && rawCh === kenhLoc) ? "" : rawCh.split("@")[0];
       var chLabel = (kenhLoc && laBot) ? window.t("sess.bot_badge")
         : (ch === "telegram" ? "TG" : (ch && ch !== "web" ? ch.slice(0, 8) : ""));
       var isRun = !!(window.NaotaRunning && window.NaotaRunning.has(s.id));
@@ -1983,6 +1986,13 @@
       listEl.appendChild(more);
     }
     listEl.scrollTop = keepScroll;
+    // warm the first chats of the list once the page is idle (app.js prefetchMany), so the first tap on a
+    // phone, which has no hover, finds them ready too.
+    try {
+      if (window.NaotaSessions && window.NaotaSessions.prefetchMany) {
+        window.NaotaSessions.prefetchMany(items.slice(0, 8).map(function (s) { return s.id; }));
+      }
+    } catch (e) {}
   }
 
   async function doSearch(q) {

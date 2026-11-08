@@ -1906,6 +1906,15 @@ class SessionStore:
             return cur.rowcount or 0
         return self._write(_do)
 
+    def relabel_channel(self, session_id: str, old: str, new: str) -> bool:
+        """Move one conversation from channel `old` to `new`, only while it is still on `old` (an admin
+        channel's agent chat made before it carried its agent, so it shows in that agent's history). True if moved."""
+        def _do(conn):
+            cur = conn.execute("UPDATE sessions SET channel = ? WHERE id = ? AND channel = ?",
+                               (str(new), str(session_id), str(old)))
+            return bool(cur.rowcount)
+        return self._write(_do)
+
     def set_compact(self, session_id: str, summary: str, count: int) -> None:
         """Lưu tóm tắt nén hội thoại: summary phủ `count` message user/assistant đầu phiên."""
         self._write(lambda c: c.execute(

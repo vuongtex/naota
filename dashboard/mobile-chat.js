@@ -216,8 +216,9 @@
     // (iPhone cài như app): lúc KHÔNG gõ, 100dvh của iOS standalone có khi lệch với phần
     // màn hình thật sự nhìn thấy (đầu khung chat bị hụt, dưới ô nhập thừa một dải trống). Khung chat lúc nghỉ dùng đúng
     // chiều cao visualViewport (`--app-h`, chỉ chiều cao, không cộng độ lệch: không có bàn phím thì vùng nhìn thấy bắt
-    // đầu từ mép trên), và bàn phím hạ xuống mà iOS để trang trượt lên thì kéo trang về đầu. Giữ nguyên thanh trạng
-    // thái trong suốt (black-translucent) nên giao diện không đổi.
+    // đầu từ mép trên), và bàn phím hạ xuống mà iOS để trang trượt lên thì kéo trang về đầu.
+    // the status bar is now "default" (solid, page starts below it) to stop the iOS 26/27 top blur; see the
+    // note on that meta tag in index.html. Nothing here depends on the bar style.
     var vv = window.visualViewport;
     var rootStyle = document.documentElement.style;
     var mocCao = 0, kbHen = 0, vuaGo = false, vuaMo = false;
@@ -273,7 +274,7 @@
 
     // ---- 8) The page itself never stays slid ----
     // Every screen is one fixed frame and scrolls inside its own boxes, so the document scroll should always be 0. iOS
-    // can still slide it: a launch from the home screen (standalone, black-translucent bar), a swipe on a page whose
+    // can still slide it: a launch from the home screen (standalone), a swipe on a page whose
     // 100dvh is off by the status bar, a return from the background. On a slid page iOS draws the fixed layers in one
     // place and hit-tests them in another (see above), so every tap lands beside its button and the app looks
     // frozen (owner, iPhone 13, app added from Chrome). Slide it back whenever nobody is typing; while

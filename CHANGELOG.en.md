@@ -4,6 +4,19 @@
 
 NAOTA release history. Newest first.
 
+## [1.12.0] - 2026-11-08
+### Added
+- **Admin channel chats** show in the history of Naota Core and of the linked agent, the owner's Zalo bot included.
+- **Agent cards show their tags** on the line under the name, next to the avatar.
+### Improved
+- **Chats and pages open instantly** from what this browser saw before, then update once the server answers.
+- **App start, page and chat switches** read everything they need in one round trip.
+- **Chat turns, Kanban jobs and heavy page reads** no longer slow down other clicks.
+- **Read aloud** picks an English or Vietnamese voice by the answer's language.
+### Fixed
+- **The iPhone app (iOS 26, 27)** no longer shows a blur strip at the top. An icon added before needs to be removed and added again.
+- **Customer chatbots stay silent** when the Claude plan hits its monthly spend limit, instead of sending the English error to a customer.
+
 ## [1.11.0] - 2026-11-08
 ### Added
 - **Name each account** at its first sign-in and rename it later, so two accounts never read alike.
