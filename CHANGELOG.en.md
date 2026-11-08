@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.11.0] - 2026-11-08
+### Improved
+- In progress.
+
 ## [1.10.0] - 2026-11-08
 ### Added
 - **A suggested next message** shows faded in the empty chat box, press Tab to fill it in.
