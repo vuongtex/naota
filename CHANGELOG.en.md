@@ -4,6 +4,12 @@
 
 NAOTA release history. Newest first.
 
+## [1.13.1] - 2026-11-08
+### Fixed
+- **Zalo messages after a short connection drop** now reach the inbox, not only the chat history.
+- **One Zalo message that fails to process** no longer takes the messages that arrived with it down too.
+- **Zalo connection errors are written to the log** instead of being ignored, so a lost message leaves a trace.
+
 ## [1.13.0] - 2026-11-08
 ### Added
 - **The ChatGPT plan hears your voice**, at no cost beyond the plan. The ear follows the model in use, nothing to set.
