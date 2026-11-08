@@ -1607,6 +1607,10 @@
     chatReady(false); veGiua(item);
     if (!item) return false;
     var still = function () { return active && ticket === opening && conDangXem(item); };
+    // The chat box stays locked until this open ends,
+    // so an open that hangs (a read that never answers) left a locked box with no word on screen. Past OPEN_WAIT_MS the
+    // error and its Retry show; the box still unlocks by itself if the open finishes after all.
+    var slow = setTimeout(function () { if (still() && !ready) veLoi(t("ws.err_session_slow")); }, OPEN_WAIT_MS);
     try {
       // Performance: the right column (settings form, Auto block, history list) belongs to the PARTNER, not
       // to one chat. New conversation and a history click keep the same partner, so it is not rebuilt: rebuilding it
@@ -1653,15 +1657,23 @@
       if (!window.NaotaSessions || window.NaotaSessions.current() !== id) throw new Error(t("ws.err_session"));
       if (!item.system) _phienGanNhat[khoaGanNhat(item)] = id;
       chatReady(true);
+      clearOpenError();
       luuViTri(id);
       if (S.loai === "agent" && coTinChuaDoc(item.slug)) daDoc(item.slug);   // opening the chat reads it
       if (S.loai === "workflow") veBuoc(item, tienDoHienTai(item));
       else ganCongHuong(item, id);
       return true;
     } catch (e) {
-      if (still()) { veLoi(t("ws.err_session")); if (window.NaotaSessions) window.NaotaSessions.new(); }
+      if (still()) { clearOpenError(); veLoi(t("ws.err_session")); if (window.NaotaSessions) window.NaotaSessions.new(); }
       return false;
+    } finally {
+      clearTimeout(slow);
     }
+  }
+  var OPEN_WAIT_MS = 12000;
+  function clearOpenError() {
+    var el = S.el && S.el.querySelector("#wsIdentity"); if (!el) return;
+    el.querySelectorAll(".ws-err, #wsRetry").forEach(function (n) { n.remove(); });
   }
   async function chayQuyTrinh() {
     var item = dangChon();
