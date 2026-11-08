@@ -6,6 +6,12 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.13.1] - 2026-11-08
+### Sửa lỗi
+- **Tin Zalo đến lúc mạng chập chờn vài giây** nay vào Hộp thư, không chỉ nằm trong lịch sử chat.
+- **Một tin Zalo xử lý lỗi** không còn kéo mất các tin đến cùng lượt với nó.
+- **Lỗi kết nối Zalo được ghi vào nhật ký** thay vì bị bỏ qua, nên tin bị mất vẫn để lại dấu vết.
+
 ## [1.13.0] - 2026-11-08
 ### Thêm mới
 - **Gói ChatGPT nghe được giọng anh**, không tốn thêm tiền ngoài gói. Tai nghe tự theo mô hình đang dùng, không cần cài.
