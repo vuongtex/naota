@@ -4,6 +4,23 @@
 
 NAOTA release history. Newest first.
 
+## [1.22.0] - 2026-11-09
+### Improved
+- **The app opens noticeably faster.** The ~110 interface files loaded at startup now travel as one bundle. With 150 ms of network delay the Partners list shows after about 2 seconds instead of nearly 5.
+- **No stall on the first page after a restart or an update.** Minified files are kept on disk; only files that just changed are minified again.
+- **The Partners page no longer waits in a queue.** The reads for the list, the Resonance status and background work run off the main loop and stop holding up other requests.
+### Fixed
+- **ChatGPT (Codex) keeps its tools when a chat resumes after a few idle minutes.** Calendar, Zalo and Drive work on the next turn.
+- **On Windows, Codex background work at the "Can write" level writes files again.**
+- **Memories no longer break or lose their details after a chat turn.** A memory with a colon in its description keeps its type, description and tags. A memory already broken heals when edited in the app.
+- **Ollama Local runs Team jobs and background work.** No more "engine is not ready" when Ollama at home has no key.
+- **Behind Caddy (Hostinger VPS) the Facebook sign-in button is no longer locked.**
+- **The CapCut card signs in.**
+- **GitHub in chat uses the saved check commands** and understands apps in a subfolder.
+- **Opening a chat on the Partners page no longer says "taking too long" by mistake.** No error while the page is reconnecting. A Naota Core open that hangs shows the error with Retry, and Retry really loads again.
+- **Background work on ChatGPT (Codex) that was refused file writes now says it is an environment problem**, with what to change, instead of sitting in "waiting for your answer".
+- **Memories written by background work no longer get the source of a chat** that happened to be open at the same time.
+
 ## [1.21.0] - 2026-11-09
 ### Added
 - **Personal Zalo bots show "typing..." in groups.** It starts only after the bot has decided to answer (it was called, or the judge chose to speak up) and lasts until the reply is sent, so a group no longer sits in silence for 20-30 seconds. A message the bot leaves alone shows nothing.
