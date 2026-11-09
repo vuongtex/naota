@@ -6,6 +6,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.25.4] - 2026-11-10
+### Sửa lỗi
+- **Mở hay tải lại trang nhanh trở lại, chừng 1 đến 2 giây.** Màn "Đang khởi động Naota..." từng đứng đủ 12 giây mỗi lần vì chờ dòng "Đang tải thêm..." ở cuối danh sách hội thoại, dòng này không bao giờ mất. Giờ màn khởi động bỏ qua dòng đó.
+
 ## [1.25.3] - 2026-11-10
 ### Sửa lỗi
 - **Không còn chỗ nào hiện mã kiểu `page.chat.label` hay `app.pin_meta` thay cho chữ.** Chú thích khi rê chuột vào menu trái, nút trong cây file, dòng dưới file đang ghim ở ô chat từng kẹt ở mã vì được vẽ trước khi bộ chữ tải xong. Giờ bộ chữ tải xong là các chỗ đó tự đổi thành chữ.

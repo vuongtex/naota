@@ -37,11 +37,21 @@ def test_splash_helpers():
     js = ("const b=require(%s);console.log(JSON.stringify([b.justStarted({up:30}),b.justStarted({up:500}),"
           "b.justStarted({}),b.loaderVisible([{getClientRects:()=>[1],closest:()=>null}]),"
           "b.loaderVisible([{getClientRects:()=>[],closest:()=>null}]),"
-          "b.loaderVisible([{getClientRects:()=>[1],closest:()=>({})}]),b.MAX_MS<=15000]))") % json.dumps(str(DASH / "boot-splash.js"))
+          "b.loaderVisible([{getClientRects:()=>[1],closest:()=>({})}]),b.MAX_MS<=15000,"
+          "b.loaderVisible([{getClientRects:()=>[1],closest:(s)=>s==='[data-boot-skip]'?{}:null}])]))") % json.dumps(str(DASH / "boot-splash.js"))
     out = subprocess.run([node, "-e", js], capture_output=True, text=True, timeout=30)
     assert out.returncode == 0, out.stderr
-    # just restarted, long up, no info, a visible loader, a hidden one, one inside the splash itself, a cap.
-    assert json.loads(out.stdout) == [True, False, False, True, False, False, True]
+    # just restarted, long up, no info, a visible loader, a hidden one, one inside the splash itself, a cap,
+    # a visible line that is never meant to go away (the end of the endless chat list).
+    assert json.loads(out.stdout) == [True, False, False, True, False, False, True, False]
+
+
+def test_endless_chat_list_line_does_not_hold_the_splash():
+    """The "Loading more..." line at the end of the chat list stays on screen forever, so the splash waited the
+    full MAX_MS on every reload. It is marked to be skipped."""
+    js = _read("sessions-ui.js")
+    assert '<div class="cside-more pg-loading" data-boot-skip>' in js
+    assert 'n.closest("[data-boot-skip]")' in _read("boot-splash.js")
 
 
 def test_waiting_screens_share_the_loading_look():
