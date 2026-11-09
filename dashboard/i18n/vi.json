@@ -7300,5 +7300,7 @@
   "office.k_job": "Lệnh chạy nền",
   "office.dur_s": "{s} giây",
   "office.dur_m": "{m} phút {s} giây",
-  "office.dur_h": "{h} giờ {m} phút"
+  "office.dur_h": "{h} giờ {m} phút",
+  "office.mark_ok": "Đạt",
+  "office.mark_bad": "Lỗi"
 }

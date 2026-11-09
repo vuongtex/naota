@@ -309,7 +309,7 @@
       Object.keys(on).forEach(function (k) {
         var w = st.workers[k];
         if (!w || st.runTags[k]) return;
-        var s = label("▶ " + tw("office.running"), null, "run", 1.3);
+        var s = label(tw("office.running"), null, "run", 1.3);
         var p = new st.T.Vector3(); w.getWorldPosition(p);
         s.position.set(p.x, 3.35, p.z); st.world.add(s);
         st.runTags[k] = s;
@@ -321,7 +321,7 @@
       var w = st.workers[jobId];
       if (!w) return;
       var T = st.T;
-      var sym = mark === "ok" ? "✓" : (mark === "bad" ? "✗" : "…");
+      var sym = mark === "ok" ? tw("office.mark_ok") : (mark === "bad" ? tw("office.mark_bad") : "...");
       var s = label(sym, null, mark === "run" ? "off" : mark, 1.1);
       var p = new T.Vector3(); w.getWorldPosition(p);
       s.position.set(p.x, 2.6, p.z);

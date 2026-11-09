@@ -7300,5 +7300,7 @@
   "office.k_job": "Background command",
   "office.dur_s": "{s}s",
   "office.dur_m": "{m} min {s}s",
-  "office.dur_h": "{h} h {m} min"
+  "office.dur_h": "{h} h {m} min",
+  "office.mark_ok": "Pass",
+  "office.mark_bad": "Fail"
 }

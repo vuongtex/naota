@@ -11,8 +11,8 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 - **Văn phòng 3D**: bấm **Xem 3D** trên trang Văn phòng. Mỗi phòng ban một khu, mỗi trợ lý và mỗi việc tự chạy một bàn, đèn trên bàn đúng trạng thái thật.
 - **Chạm vào bàn** để xem việc đó: số lượt đạt, lần chạy cuối, lý do dừng và việc nên làm.
 - **Đang chạy ngay lúc này**: dải trên cùng trang Văn phòng cho biết việc nào đang chạy ở giây này (vòng lặp, lịch hẹn, việc trên bảng, lệnh chạy nền), chạy từ mấy giờ, đã bao lâu. Hỏi lại hệ thống mỗi 5 giây, đồng hồ đếm từng giây.
-- Trong 3D, bàn đang chạy bật **đèn xanh dương**, có nhãn **Đang chạy** và nhân vật gõ phím liên tục; chạy xong là đèn về đúng kết quả và dấu ✓ hoặc ✗ hiện ngay.
-- **Phát lại một ngày**: chọn ngày rồi bấm **Phát lại ngày này**, từng lượt chạy hiện lần lượt theo giờ, dấu ✓ hoặc ✗ bay lên trên bàn.
+- Trong 3D, bàn đang chạy bật **đèn xanh dương**, có nhãn **Đang chạy** và nhân vật gõ phím liên tục; chạy xong là đèn về đúng kết quả và chữ Đạt hoặc Lỗi hiện ngay.
+- **Phát lại một ngày**: chọn ngày rồi bấm **Phát lại ngày này**, từng lượt chạy hiện lần lượt theo giờ, chữ Đạt hoặc Lỗi bay lên trên bàn.
 - Nhân vật chỉ cử động khi nhật ký có lượt chạy mới. Phần 3D chỉ tải khi bấm nút, máy không vẽ được 3D thì vẫn xem dạng thẻ như cũ.
 
 ## [1.14.0] - 2026-11-09

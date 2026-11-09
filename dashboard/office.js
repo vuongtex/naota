@@ -330,7 +330,7 @@
       st.live = live; st.liveAt = Date.now() / 1000;
       paintNow();
       if (st.v3) st.v3.running(runningIds());
-      // a run just ended: fetch the office again so its result, lamp and ✓/✗ show at once
+      // a run just ended: fetch the office again so its result, lamp and pass/fail mark show at once
       if (gone && !st.day) load();
     }
     box.addEventListener("click", function (ev) {
