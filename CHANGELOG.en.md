@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.15.0] - 2026-11-09
+### Added
+- **3D office**: watch your digital staff at work in a 3D office, driven by the real logs.
+
 ## [1.14.0] - 2026-11-09
 ### Added
 - **Office page** (sidebar, under Tasks): one card per department. Green runs right, blinking red is broken or paused itself, grey means nobody.

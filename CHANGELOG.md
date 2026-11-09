@@ -6,6 +6,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.15.0] - 2026-11-09
+### Thêm mới
+- **Văn phòng 3D**: xem nhân sự số làm việc trong một văn phòng 3D, theo đúng nhật ký thật.
+
 ## [1.14.0] - 2026-11-09
 ### Thêm mới
 - **Trang Văn phòng** (thanh bên, ngay dưới Việc cần làm): mỗi phòng ban một thẻ, đèn xanh là chạy đúng, đỏ nhấp nháy là hỏng hoặc tự tạm dừng, xám là chưa có ai.
