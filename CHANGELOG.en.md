@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.16.0] - 2026-11-09
+### Added
+- **Office: assistants hand work to each other** (in progress).
+
 ## [1.15.0] - 2026-11-09
 ### Added
 - **3D office**: press **3D view** on the Office page. One area per department, one desk per assistant and per automated job, each lamp in the job's real state.
