@@ -155,7 +155,7 @@ check("có style cho nút, ẩn trên máy tính", css.indexOf(".rail-foot .rf-i
   && /@media \(min-width: 861px\) and \(pointer: fine\) \{ \.rail-foot \.rf-install \{ display: none; \} \}/.test(css));
 check("install-nudge.js đã bump ?v= (>= 2)", v("install-nudge.js") >= 2, v("install-nudge.js"));
 
-// 2026-11-09 (owner: "nút install app bị vỡ"): a touch tablet or laptop gets the button in the 160px computer rail, where
+// A touch tablet or laptop gets the button in the 160px computer rail, where
 // "Install on phone" ran past the edge. There it shows a short label in the "Give a star" mould, and only the icon once
 // the rail folds; the phone drawer keeps the long label.
 const wideRail = (css.match(/@media \(min-width: 861px\) \{\n  \.rail-foot \.rf-install \{[\s\S]*?\n\}/) || [""])[0];
