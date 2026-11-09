@@ -4,6 +4,11 @@
 
 NAOTA release history. Newest first.
 
+## [1.24.0] - 2026-11-09
+### Improved
+- **A tidier Account page.** The page header is gone, the Account and Security tabs sit right at the top.
+- **CLI API tokens moved to the Integrations page** (Work group, formerly Webhooks), tab API token. Both are doors for another program to call Naota, so they now live together. Existing tokens keep working.
+
 ## [1.23.0] - 2026-11-09
 ### Added
 - **File editors save by themselves, like Google Docs.** About a second after you stop typing the file is saved, and the Save button shows "Saving…" then "Saved". Closing, switching files, reloading or a stray Back swipe no longer loses typed text.
