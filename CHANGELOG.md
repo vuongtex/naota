@@ -6,6 +6,13 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.14.0] - 2026-11-09
+### Thêm mới
+- **Trang Văn phòng** (thanh bên, ngay dưới Việc cần làm): mỗi phòng ban một thẻ, đèn xanh là chạy đúng, đỏ nhấp nháy là hỏng hoặc tự tạm dừng, xám là chưa có ai.
+- **Mục Cần bạn xử lý**: việc nào tự dừng, lỗi, trễ lịch, chưa đạt chỉ tiêu hay đang chờ duyệt, kèm lý do và việc nên làm.
+- **Số liệu thật từ nhật ký**: lượt chạy, lượt hỏng theo giờ của bạn, cập nhật 30 giây một lần; chọn ngày cũ để xem lại.
+- **Chỉ tiêu mỗi ngày** đặt trong `Naota/office.json`. Trang chỉ đọc, che token và đường dẫn máy chủ.
+
 ## [1.13.1] - 2026-11-08
 ### Sửa lỗi
 - **Tin Zalo đến lúc mạng chập chờn vài giây** nay vào Hộp thư, không chỉ nằm trong lịch sử chat.

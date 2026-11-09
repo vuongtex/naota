@@ -1,0 +1,247 @@
+/* Office page.
+ *
+ * One card per department answers five questions for the owner: does anyone work here, is the work running, is it
+ * right, does it reach the target, what waits for me. Above the cards, "Needs you" lists what is broken with what to
+ * do; below them, the latest real runs. Everything comes from GET /office (server/office.py), which reads the brain's
+ * own logs, masks secrets and paths, and returns codes; this file only draws them through i18n.
+ *
+ * Truth rule: nothing here animates or invents. A number the server could not count shows as "[?]". The page reloads
+ * every 30 seconds while it shows today and the tab is visible; a past day is a fixed record.
+ *
+ * Render helpers are pure (tested under node); `mount` wires the API call.
+ */
+(function () {
+  "use strict";
+
+  function tw(key, vars) {
+    var s = (typeof window !== "undefined" && window.t) ? window.t(key, vars) : key;
+    if (vars) {
+      s = String(s).replace(/\{(\w+)\}/g, function (m, name) {
+        return Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : m;
+      });
+    }
+    return s;
+  }
+  function esc(t) {
+    return String(t == null ? "" : t).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  var ic = function (n) { return (typeof window !== "undefined" && window.ic) ? window.ic(n) : ""; };
+  function infoBtn() { var J = typeof window !== "undefined" && window.NaotaInfo; return J ? J.btn(tw("info.more")) : ""; }
+  function infoBody(html) {
+    var J = typeof window !== "undefined" && window.NaotaInfo;
+    return J ? J.body(html) : '<div class="info-body">' + html + "</div>";
+  }
+
+  // Every key is written out whole: the i18n test finds keys by their full name.
+  var DEPT_KEY = { marketing: "office.dept_marketing", sales: "office.dept_sales", care: "office.dept_care",
+    finance: "office.dept_finance", ops: "office.dept_ops", system: "office.dept_system", unsorted: "office.dept_unsorted" };
+  function deptName(id) { return DEPT_KEY[id] ? tw(DEPT_KEY[id]) : String(id || ""); }
+  var STATE_KEY = { ok: "office.st_ok", failed: "office.st_failed", paused: "office.st_paused", late: "office.st_late",
+    never: "office.st_never", off: "office.st_off", removed: "office.st_removed", cancelled: "office.st_cancelled",
+    done: "office.st_done" };
+  var KIND_KEY = { loop: "office.kind_loop", reminder: "office.kind_reminder", once: "office.kind_once" };
+  var RESULT_KEY = { ok: "office.r_ok", fail: "office.r_fail", verified_ok: "office.r_verified_ok",
+    verified_fail: "office.r_verified_fail", run: "office.r_run", other: "office.r_other" };
+  var FILE_KEY = { reminders: "office.f_reminders", work_log: "office.f_work_log", loop_state: "office.f_loop_state",
+    kanban: "office.f_kanban" };
+  // job state -> tone (colour) and i18n key
+  var TONE = { ok: "ok", failed: "bad", paused: "bad", late: "ask", never: "calm", off: "off", removed: "off",
+    cancelled: "off", done: "off" };
+  function stateChip(st) {
+    var tn = TONE[st] || "calm";
+    return '<span class="of-chip of-' + tn + '">' + esc(STATE_KEY[st] ? tw(STATE_KEY[st]) : st) + "</span>";
+  }
+  function num(v) { return v == null ? "[?]" : String(v); }
+
+  function kpiHtml(d) {
+    var t = (d && d.totals) || {};
+    var cell = function (n, key, tone) {
+      return '<div class="of-kpi' + (tone ? " of-k-" + tone : "") + '"><b>' + esc(num(n)) + "</b><span>" + esc(tw(key)) + "</span></div>";
+    };
+    return '<div class="of-kpis">'
+      + cell(t.runs, "office.k_runs")
+      + cell(t.fails, "office.k_fails", t.fails ? "bad" : "")
+      + cell(t.broken, "office.k_broken", t.broken ? "bad" : "")
+      + cell(t.waiting, "office.k_waiting", t.waiting ? "ask" : "")
+      + cell(t.empty_depts, "office.k_empty", t.empty_depts ? "ask" : "")
+      + "</div>";
+  }
+
+  function jobById(d, id) { return ((d && d.jobs) || []).filter(function (j) { return j.id === id; })[0]; }
+
+  // One "needs you" row: what happened, why, and what to do.
+  function issueHtml(d, it) {
+    var j = it.job ? jobById(d, it.job) : null;
+    var name = j ? j.name : "";
+    var what = "", why = "", todo = "", tone = it.level <= 1 ? "bad" : "ask";
+    if (it.kind === "paused") {
+      what = tw("office.i_paused", { name: name });
+      why = j && j.paused_reason ? j.paused_reason : "";
+      todo = tw("office.do_paused");
+    } else if (it.kind === "failed") {
+      what = tw("office.i_failed", { name: name });
+      why = j && j.result ? j.result : "";
+      todo = tw("office.do_failed");
+    } else if (it.kind === "late") {
+      what = tw("office.i_late", { name: name, at: (j && j.last_at) || "[?]" });
+      todo = tw("office.do_late");
+    } else if (it.kind === "below_target") {
+      what = tw("office.i_below", { name: name, ok: j ? j.day.ok : "[?]", target: j ? j.target : "[?]" });
+      todo = tw("office.do_below");
+    } else if (it.kind === "twin_running") {
+      var o = jobById(d, it.other);
+      what = tw("office.i_twin", { name: name, other: o ? o.name : it.other });
+      todo = tw("office.do_twin");
+    } else if (it.kind === "waiting") {
+      what = tw("office.i_waiting", { n: it.count });
+      todo = tw("office.do_waiting");
+    } else if (it.kind === "dept_empty") {
+      what = tw("office.i_empty", { dept: deptName(it.dept) });
+      todo = tw("office.do_empty");
+      tone = "calm";
+    } else if (it.kind === "dept_idle") {
+      what = tw("office.i_idle", { dept: deptName(it.dept), n: it.count });
+      todo = tw("office.do_idle");
+      tone = "calm";
+    } else {
+      return "";
+    }
+    return '<li class="of-issue of-' + tone + '"><div class="of-iw">' + esc(what) + "</div>"
+      + (why ? '<div class="of-iy">' + esc(why) + "</div>" : "")
+      + '<div class="of-id"><b>' + esc(tw("office.todo")) + "</b> " + esc(todo) + "</div></li>";
+  }
+
+  function issuesHtml(d) {
+    var list = (d && d.issues) || [];
+    if (!list.length) return '<section class="of-box"><h3>' + esc(tw("office.needs_you")) + '</h3><div class="of-none">'
+      + ic("check") + " " + esc(tw("office.none")) + "</div></section>";
+    return '<section class="of-box"><h3>' + esc(tw("office.needs_you")) + ' <span class="of-count">' + list.length + "</span></h3>"
+      + '<ul class="of-issues">' + list.map(function (it) { return issueHtml(d, it); }).join("") + "</ul></section>";
+  }
+
+  function jobRowHtml(j) {
+    var day = j.day || {};
+    var target = j.target ? ", " + tw("office.target_day", { n: j.target }) : "";
+    var runs = '<span class="of-runs">' + esc(tw("office.runs_day", { ok: day.ok, n: day.runs }) + target)
+      + (day.fail ? ' <span class="of-bad-t">' + esc(tw("office.fails_day", { n: day.fail })) + "</span>" : "") + "</span>";
+    var detail = [];
+    if (j.last_at) detail.push(tw("office.last_run", { at: j.last_at }));
+    if (j.paused_reason) detail.push(tw("office.why_paused", { why: j.paused_reason }));
+    else if (j.result && j.result !== "ok" && j.result !== "fail") detail.push(j.result);
+    if (j.dept_guessed) detail.push(tw("office.guessed"));
+    return '<details class="of-job"><summary>' + stateChip(j.state) + '<span class="of-jn">' + esc(j.name) + "</span>"
+      + '<span class="of-kind">' + esc(KIND_KEY[j.kind] ? tw(KIND_KEY[j.kind]) : "") + "</span>" + runs + "</summary>"
+      + '<div class="of-jd">' + detail.map(function (x) { return "<div>" + esc(x) + "</div>"; }).join("") + "</div></details>";
+  }
+
+  var STATUS_KEY = { broken: "office.ds_broken", late: "office.ds_late", empty: "office.ds_empty", idle: "office.ds_idle",
+    waiting: "office.ds_waiting", ok: "office.ds_ok" };
+  function deptHtml(d, dep) {
+    var jobs = (dep.jobs || []).map(function (id) { return jobById(d, id); }).filter(Boolean);
+    var staff = dep.staff || [];
+    var people = staff.length ? '<div class="of-staff">' + staff.map(function (s) {
+      return '<span class="of-person" title="' + esc(s.role) + '">' + ic("bot") + " " + esc(s.name) + "</span>";
+    }).join("") + "</div>" : '<div class="of-empty">' + esc(tw("office.no_staff")) + "</div>";
+    var work = jobs.length ? jobs.map(jobRowHtml).join("") : '<div class="of-empty">' + esc(tw("office.no_jobs")) + "</div>";
+    var wait = (dep.waiting || []).length ? '<div class="of-wait">' + ic("circle-help") + " "
+      + esc(tw("office.waiting_n", { n: dep.waiting.length })) + ": " + dep.waiting.map(function (w) { return esc(w.title); }).join(", ") + "</div>" : "";
+    return '<article class="of-dept of-l-' + esc(dep.light) + '"><header><span class="of-light" aria-hidden="true"></span>'
+      + "<h3>" + esc(deptName(dep.id)) + '</h3><span class="of-ds">' + esc(tw(STATUS_KEY[dep.status] || "office.ds_ok")) + "</span></header>"
+      + '<div class="of-sub">' + esc(tw("office.staff_n", { n: staff.length })) + "</div>" + people
+      + '<div class="of-sub">' + esc(tw("office.jobs_n", { n: jobs.length })) + "</div>" + work + wait + "</article>";
+  }
+
+  function deptsHtml(d) {
+    return '<div class="of-depts">' + ((d && d.depts) || []).map(function (dep) { return deptHtml(d, dep); }).join("") + "</div>";
+  }
+
+  var FEED_TONE = { ok: "ok", verified_ok: "ok", fail: "bad", verified_fail: "bad", run: "calm", other: "calm" };
+  function feedHtml(d) {
+    var f = (d && d.feed) || [];
+    var rows = f.length ? f.map(function (x) {
+      return '<li class="of-f of-' + (FEED_TONE[x.result] || "calm") + '"><span class="of-ft">' + esc(x.at) + "</span>"
+        + '<span class="of-fr">' + esc(tw(RESULT_KEY[x.result] || "office.r_other")) + "</span>"
+        + '<span class="of-fn">' + esc(x.name) + (x.note ? ' <span class="of-fx">' + esc(x.note) + "</span>" : "") + "</span></li>";
+    }).join("") : '<li class="of-empty">' + esc(tw("office.feed_empty")) + "</li>";
+    return '<section class="of-box"><h3>' + esc(tw("office.feed")) + '</h3><ul class="of-feed">' + rows + "</ul></section>";
+  }
+
+  function toolbarHtml(d, live) {
+    var days = (d && d.days) || [];
+    var opts = days.map(function (x) {
+      var label = x === d.today ? tw("office.today") : x.split("-").reverse().join("/");
+      return '<option value="' + esc(x) + '"' + (x === d.day ? " selected" : "") + ">" + esc(label) + "</option>";
+    }).join("");
+    return '<div class="of-bar"><label class="of-daypick">' + esc(tw("office.day")) + ' <select class="ofDay">' + opts + "</select></label>"
+      + '<span class="of-live' + (live ? " on" : "") + '">' + esc(live ? tw("office.live") : tw("office.record")) + "</span>"
+      + '<span class="of-sp"></span>' + infoBtn() + "</div>"
+      + infoBody(esc(tw("office.info_1")) + "<br><br>" + esc(tw("office.info_2")) + "<br><br>" + esc(tw("office.info_3")));
+  }
+
+  function footHtml(d) {
+    var miss = Object.keys((d && d.files) || {}).filter(function (k) { return !d.files[k]; });
+    return '<div class="of-foot">' + esc(tw("office.foot", { at: (d && d.now_at) || "[?]" }))
+      + (miss.length ? "<br>" + esc(tw("office.missing", { files: miss.map(function (k) { return FILE_KEY[k] ? tw(FILE_KEY[k]) : k; }).join(", ") })) : "")
+      + "</div>";
+  }
+
+  function pageHtml(d) {
+    var live = d.day === d.today;
+    return '<div class="of-root">' + toolbarHtml(d, live) + kpiHtml(d) + issuesHtml(d) + deptsHtml(d) + feedHtml(d) + footHtml(d) + "</div>";
+  }
+
+  var current_ = null;
+
+  function mount(box, opts) {
+    unmount();
+    opts = opts || {};
+    var st = { day: "", timer: 0, alive: true, data: null };
+    current_ = st;
+    async function load() {
+      if (!st.alive) return;
+      var brain = (opts.current && opts.current()) || "brain";
+      var url = "/office?brain=" + encodeURIComponent(brain) + (st.day ? "&day=" + encodeURIComponent(st.day) : "");
+      var d = null;
+      try { d = await (await fetch(url)).json(); } catch (e) { d = null; }
+      if (!st.alive || !box.isConnected) return;
+      if (!d || !d.depts) {
+        if (!st.data) box.innerHTML = '<div class="of-root"><div class="of-none">' + esc(tw("office.load_fail")) + "</div></div>";
+        return;
+      }
+      // keep open details open across a refresh
+      var open = {};
+      box.querySelectorAll("details.of-job[open] .of-jn").forEach(function (n) { open[n.textContent] = 1; });
+      st.data = d;
+      box.innerHTML = pageHtml(d);
+      box.querySelectorAll("details.of-job").forEach(function (el) {
+        var n = el.querySelector(".of-jn");
+        if (n && open[n.textContent]) el.open = true;
+      });
+    }
+    box.addEventListener("change", function (ev) {
+      if (ev.target && ev.target.classList.contains("ofDay")) {
+        st.day = ev.target.value === (st.data && st.data.today) ? "" : ev.target.value;
+        load();
+      }
+    });
+    st.timer = setInterval(function () {
+      if (document.hidden || st.day) return;   // a past day is a fixed record; a hidden tab costs nothing
+      load();
+    }, 30000);
+    load();
+  }
+
+  function unmount() {
+    if (!current_) return;
+    current_.alive = false;
+    clearInterval(current_.timer);
+    current_ = null;
+  }
+
+  var api_ = { mount: mount, unmount: unmount, pageHtml: pageHtml, issueHtml: issueHtml, deptHtml: deptHtml,
+    jobRowHtml: jobRowHtml, kpiHtml: kpiHtml, feedHtml: feedHtml, deptName: deptName };
+  if (typeof window !== "undefined") window.NaotaOffice = api_;
+  if (typeof module !== "undefined" && module.exports) module.exports = api_;
+})();

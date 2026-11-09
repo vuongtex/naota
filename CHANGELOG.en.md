@@ -4,6 +4,13 @@
 
 NAOTA release history. Newest first.
 
+## [1.14.0] - 2026-11-09
+### Added
+- **Office page** (sidebar, under Tasks): one card per department. Green runs right, blinking red is broken or paused itself, grey means nobody.
+- **Needs you list**: jobs that paused, failed, ran late, missed a target or wait for review, with the reason and what to do.
+- **Real numbers from the logs**: runs and failures in your time zone, refreshed every 30 seconds; pick a past day to look back.
+- **Daily targets** live in `Naota/office.json`. The page only reads, and hides tokens and server paths.
+
 ## [1.13.1] - 2026-11-08
 ### Fixed
 - **Zalo messages after a short connection drop** now reach the inbox, not only the chat history.
