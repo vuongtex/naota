@@ -156,7 +156,7 @@
   // Các id cũ vẫn dùng được qua lệnh UI và lối tắt, nhưng mở tab trong Cài đặt.
   // "coding": coding happens in any chat with a folder attached, so the Coding page left
   // the rail with the Code group; its id still opens it.
-  // "logs" (Cập nhật) ra lại thanh bên dưới Tài khoản (anh Vương 02/11/2026): người dùng phải
+  // "logs" (Cập nhật) ra lại thanh bên dưới Tài khoản: người dùng phải
   // THẤY có bản mới thì mới cập nhật đều, nên nó không còn là một tab chìm trong Cài đặt.
   const RAIL_AN = new Set(["chatbots", "usage", "pet", "coding"]);
 
@@ -171,7 +171,7 @@
     { lbl: "nav.group.nang_luc", ids: ["workspace", "teams", "conversations", "skills"] },
     { lbl: "nav.sec.kien_thuc", ids: ["learn", "files"] },
     { lbl: "nav.group.ket_noi", ids: ["mcp", "channels", "packs"] },
-    // Account sits under Settings again, as in 1.2.1 (owner 03/11/2026); the foot box is only "Advanced" now.
+    // Account sits under Settings again, as in 1.2.1; the foot box is only "Advanced" now.
     { lbl: "nav.group.he_thong", ids: ["models", "settings", "account"] },
   ];
   const RAIL_MENU = [];
@@ -637,7 +637,9 @@
     const nhomCan = NHOM_TRANG[id];
     if (nhomCan && window.NaotaNapCham) {
       const gen = _renderGen;
-      el.innerHTML = placeholder(id, window.t("common.loading"));
+      // the page's code is still on its way: the shared "Loading..." look, not the placeholder that read
+      // "<page> - in development".
+      el.innerHTML = `<div class="pg-loading pg-page">${esc(window.t("common.loading"))}</div>`;
       await window.NaotaNapCham.cho(nhomCan);
       if (gen !== _renderGen) return;
       el.innerHTML = "";
@@ -1563,7 +1565,7 @@
       </div>
       <div id="fmFix"></div>
       <div id="fmMiss"></div>
-      <div id="fmList" class="fm-list">${window.t("common.loading")}</div>
+      <div id="fmList" class="fm-list"><div class="pg-loading">${esc(window.t("common.loading"))}</div></div>
       </div>
       <div class="fm-edit" id="fmEdit"></div>
     </div>`;
@@ -1592,7 +1594,7 @@
       // path === undefined → điểm vào mặc định (brain); "" = trần (ổ đĩa); chuỗi = tương đối trần
       resetSearchUi();
       missEl.innerHTML = "";
-      listEl.innerHTML = window.t("common.loading");
+      listEl.innerHTML = `<div class="pg-loading">${esc(window.t("common.loading"))}</div>`;
       const qp = (path === undefined || path === null) ? "" : `&path=${encodeURIComponent(path)}`;
       let resp, d;
       try { resp = await fetch(`/files/list?brain=${encodeURIComponent(fbrain())}${qp}`); d = await resp.json().catch(() => ({})); }
@@ -2101,7 +2103,7 @@
     _injectExtraCss();
     _injectPluginCss();
     const myGen = _renderGen;   // chống race: đổi trang → load dở tự bỏ
-    el.innerHTML = `<div class="cview-section"><div class="empty">${esc(t("common.loading"))}</div></div>`;
+    el.innerHTML = `<div class="cview-section"><div class="empty pg-loading">${esc(t("common.loading"))}</div></div>`;
 
     const SRC = { bundled: [window.t("cs.pl_src_bundled"), "var(--green)"], pack: [window.t("cs.pl_src_pack"), "var(--accent, #7c5cff)"], user: [window.t("cs.pl_src_user"), "var(--link-ink)"], vault: [window.t("cs.pl_src_vault"), "var(--warn-ink)"] };
     const MM = { readonly: window.t("cs.pl_mm_readonly"), safe: window.t("cs.pl_mm_safe"), full: window.t("cs.pl_mm_full") };
@@ -2366,7 +2368,7 @@
   // ============================================
   async function renderLearn(el) {
     _injectExtraCss();
-    el.innerHTML = `<div class="cview-section"><div class="empty">${esc(t("common.loading"))}</div></div>`;
+    el.innerHTML = `<div class="cview-section"><div class="empty pg-loading">${esc(t("common.loading"))}</div></div>`;
     let cfg = {};
     try { cfg = await (await fetch("/learn/config")).json(); } catch (e) {}
     const caps = cfg.capabilities || {};
@@ -2435,9 +2437,9 @@
         </div>
       </div>
 
-      <div class="si-log"><h3 style="font-size:15px;color:var(--text)">${esc(window.t("improve.auto_title"))}${infoBtn()}</h3>${infoBody(esc(window.t("cs.ln_chat_note")))}<div id="lnChat">${esc(window.t("common.loading"))}</div></div>
-      <div class="si-log"><h3 style="font-size:15px;color:var(--text)">${esc(window.t("cs.ln_review_head"))}</h3><div id="lnReview">${esc(window.t("common.loading"))}</div></div>
-      <div class="si-log"><h3 style="font-size:15px;color:var(--text)">${esc(window.t("cs.ln_log_head"))}</h3><div id="lnLog">${esc(window.t("common.loading"))}</div></div>
+      <div class="si-log"><h3 style="font-size:15px;color:var(--text)">${esc(window.t("improve.auto_title"))}${infoBtn()}</h3>${infoBody(esc(window.t("cs.ln_chat_note")))}<div id="lnChat"><div class="pg-loading">${esc(window.t("common.loading"))}</div></div></div>
+      <div class="si-log"><h3 style="font-size:15px;color:var(--text)">${esc(window.t("cs.ln_review_head"))}</h3><div id="lnReview"><div class="pg-loading">${esc(window.t("common.loading"))}</div></div></div>
+      <div class="si-log"><h3 style="font-size:15px;color:var(--text)">${esc(window.t("cs.ln_log_head"))}</h3><div id="lnLog"><div class="pg-loading">${esc(window.t("common.loading"))}</div></div></div>
     </div>`;
 
     let cur = { enabled: !!cfg.enabled, mode: cfg.mode || "dry-run",
@@ -2639,7 +2641,7 @@
 
   // ---- Trang Tổng quan ----
   async function renderOverview(el) {
-    el.innerHTML = `<div class="cview-placeholder"><div class="ph-ico">${ic("loader", { cls: "ic-xl ic-spin" })}</div><div>${esc(t("common.loading"))}</div></div>`;
+    el.innerHTML = `<div class="pg-loading pg-page">${esc(t("common.loading"))}</div>`;
     const s = await freshSettings();
     const m = s.model || {};
     // Đọc từ model.main + model.providers (nguồn thật của trang Models), KHÔNG từ m.engine -
@@ -2998,7 +3000,7 @@
   function olGb(n) { return (Math.round((n || 0) * 10) / 10) + " GB"; }
 
   async function renderModelsLocalTab(el) {
-    el.innerHTML = `<div class="cview-placeholder"><div class="ph-ico">${ic("loader", { cls: "ic-xl ic-spin" })}</div><div>${esc(t("common.loading"))}</div></div>`;
+    el.innerHTML = `<div class="pg-loading pg-page">${esc(t("common.loading"))}</div>`;
     let st = {};
     try { st = await (await fetch("/ollama-local/status")).json(); } catch (e) { st = {}; }
     if (!st.reachable) return olVeChuaNoi(el, st);
@@ -3350,7 +3352,7 @@
   const isGw = (pid) => GW_CARDS.indexOf(pid) >= 0;
 
   async function renderModelsCloudTab(el) {
-    el.innerHTML = `<div class="cview-placeholder"><div class="ph-ico">${ic("loader", { cls: "ic-xl ic-spin" })}</div><div>${esc(t("common.loading"))}</div></div>`;
+    el.innerHTML = `<div class="pg-loading pg-page">${esc(t("common.loading"))}</div>`;
     const s = await freshSettings();
     const m = s.model || {};
     const providers = m.providers || [];
@@ -4708,7 +4710,7 @@
       };
       const draw = () => {
         const box = sh.body.querySelector(".ord-mlist");
-        if (ids == null) { box.innerHTML = `<div class="mb-empty">${esc(t("mpick.loading"))}</div>`; return; }
+        if (ids == null) { box.innerHTML = `<div class="mb-empty pg-loading">${esc(t("mpick.loading"))}</div>`; return; }
         const f = q.trim().toLowerCase();
         const hit = (id) => !f || (id || defName(pid)).toLowerCase().includes(f);
         const now = cur.model || "";
@@ -6134,7 +6136,7 @@
   let _mcpTab = "danoi";
 
   async function renderConnect(el) {
-    el.innerHTML = `<div class="cview-placeholder"><div class="ph-ico">${ic("loader", { cls: "ic-xl ic-spin" })}</div><div>${esc(t("common.loading"))}</div></div>`;
+    el.innerHTML = `<div class="pg-loading pg-page">${esc(t("common.loading"))}</div>`;
     let d;
     try { d = await (await fetch("/connect/catalog")).json(); } catch (e) { el.innerHTML = placeholder("mcp", window.t("cs.cn_load_err")); return; }
     const cat = d.catalog || [];
@@ -6798,7 +6800,7 @@
   }
 
   async function renderChannels(el) {
-    el.innerHTML = `<div class="cview-placeholder"><div class="ph-ico">${ic("loader", { cls: "ic-xl ic-spin" })}</div><div>${esc(t("common.loading"))}</div></div>`;
+    el.innerHTML = `<div class="pg-loading pg-page">${esc(t("common.loading"))}</div>`;
     const [s, ...stats] = await Promise.all([freshSettings(), ...ADMIN_CH.map(achFetch)]);
     const state = {};
     ADMIN_CH.forEach((def, i) => { state[def.key] = achState(def, stats[i]); });
@@ -7067,7 +7069,7 @@
 
   // ---- Trang Tài khoản: workspace + đăng nhập ----
   async function renderAccount(el) {
-    el.innerHTML = `<div class="cview-placeholder"><div class="ph-ico">${ic("loader", { cls: "ic-xl ic-spin" })}</div><div>${esc(t("common.loading"))}</div></div>`;
+    el.innerHTML = `<div class="pg-loading pg-page">${esc(t("common.loading"))}</div>`;
     const s = await freshSettings();
     const auth = s.auth || {};
     // Security has its own tab: account state, 2FA, devices signed in, sign-in history.
@@ -7127,7 +7129,7 @@
       </div>
       <div id="acPanelSecurity" role="tabpanel" ${acTab === "security" ? "" : "hidden"}>
         <div class="cview-section">
-          <div class="gcard sec-card" style="max-width:560px" id="secOverview"><div class="gcard-meta">${esc(t("common.loading"))}</div></div>
+          <div class="gcard sec-card" style="max-width:560px" id="secOverview"><div class="gcard-meta pg-loading">${esc(t("common.loading"))}</div></div>
         </div>
         ${auth.has_password ? `
         <div class="cview-section">
@@ -7999,7 +8001,7 @@
       if (["all", "file", "chat", "unseen"].indexOf(saved.filter) >= 0) state.filter = saved.filter;
       if (["new", "views", "recent"].indexOf(saved.sort) >= 0) state.sort = saved.sort;
     } catch (e) {}
-    el.innerHTML = `<div class="cview-placeholder"><div class="ph-ico">${ic("loader", { cls: "ic-xl ic-spin" })}</div><div>${esc(t("common.loading"))}</div></div>`;
+    el.innerHTML = `<div class="pg-loading pg-page">${esc(t("common.loading"))}</div>`;
     let links = [];
     try {
       const r = await fetch("/share/list");
@@ -8300,7 +8302,7 @@
   async function renderPetPage(el) {
     const gen = _renderGen;
     parkQuickSet();
-    el.innerHTML = `<div class="cview-placeholder"><div class="ph-ico">${ic("loader", { cls: "ic-xl ic-spin" })}</div><div>${esc(t("common.loading"))}</div></div>`;
+    el.innerHTML = `<div class="pg-loading pg-page">${esc(t("common.loading"))}</div>`;
     const s = await freshSettings();
     if (gen !== _renderGen) return;
     // MỘT CỘT, không phải lưới hai ô. Đã chốt: kiểu hai hàng hai ô trên điện
@@ -8498,7 +8500,7 @@
   async function renderSettings(el, tab = "general") {
     const gen = _renderGen;               // chốt token: nếu user đổi trang trong lúc await → bỏ render này
     parkQuickSet();                       // giữ #quickSet an toàn TRƯỚC khi ghi đè cviewBody
-    el.innerHTML = `<div class="cview-placeholder"><div class="ph-ico">${ic("loader", { cls: "ic-xl ic-spin" })}</div><div>${esc(t("common.loading"))}</div></div>`;
+    el.innerHTML = `<div class="pg-loading pg-page">${esc(t("common.loading"))}</div>`;
     const s = await freshSettings();
     if (gen !== _renderGen) return;       // đã sang trang khác → KHÔNG ghi đè trang mới bằng nội dung cũ
     const model = s.model || {};
@@ -9320,6 +9322,17 @@
   let _neOpenRel = "";         // file đang mở trong trình sửa (đường dẫn theo TRẦN DUYỆT)
   let _neLayNoiDung = null;    // () -> nội dung ĐANG soạn (markdown nếu là .md ở chế độ Sửa)
   let _neGocText = null;       // nội dung lúc VỪA MỞ, để biết có sửa gì chưa (xem _neCoSuaChua)
+  // Autosave and the dictation mic of the open text file (editor-autosave.js, editor-dictate.js).
+  let _neAuto = null;
+  let _neMic = null;
+  // Detach both from the file being left. The mic first, so words still being heard land in the text that close()
+  // writes. `discard` (the file was deleted) writes nothing.
+  function _neDropAssist(discard) {
+    const auto = _neAuto, mic = _neMic;
+    _neAuto = null; _neMic = null;
+    if (mic) { try { mic.destroy(); } catch (e) {} }
+    return auto ? auto.close(discard) : Promise.resolve(true);
+  }
   // Vệt đường đi giữa các note, y hệt lịch sử trình duyệt: bấm [[wikilink]] là đi tới, Lùi là
   // quay lại chỗ vừa đọc. Một mảng + một con trỏ, không phải hai ngăn xếp - dễ đọc hơn và
   // đúng ngữ nghĩa "đi tới giữa chừng thì cắt nhánh tiến".
@@ -9434,6 +9447,7 @@
   }
   async function _vtDelete(rel, name, isDir) {
     if (!confirm(window.t(isDir ? "cs.vt_del_dir" : "cs.vt_del_file", { ten: name }))) return;
+    if (_vtActivePath === rel || (_neOpenRel && (_neOpenRel === rel || _neOpenRel.startsWith(rel + "/")))) await _neDropAssist(true);
     const fd = new FormData(); fd.append("brain", fbrain()); fd.append("path", rel);
     try { await fetch("/files/delete", { method: "POST", body: fd }); } catch (e) {}
     if (_vtActivePath === rel) closeNote();
@@ -9731,7 +9745,7 @@
     _vtWire();
     tree.hidden = false;
     const results = document.getElementById("vaultResults"); if (results) results.hidden = true;
-    tree.innerHTML = `<div class="vt-info">${esc(window.t("common.loading"))}</div>`;
+    tree.innerHTML = `<div class="vt-info pg-loading">${esc(window.t("common.loading"))}</div>`;
     const items = await _vtList(null);
     tree.innerHTML = "";
     if (!items.length) { tree.innerHTML = `<div class="vt-info">${esc(window.t("cs.vt_vault_empty"))}</div>`; return; }
@@ -9808,6 +9822,7 @@
     // Đóng trình sửa ở trang Trò chuyện = trả chỗ lại cho khung chat. Không trả thì khung chat
     // vẫn bị ẩn và người dùng nhìn vào một trang trống, tưởng chat hỏng.
     _returnNoteEditor();
+    _neDropAssist();   // closing writes what is still unsaved, read before the editor is emptied
     document.getElementById("neBody").innerHTML = ""; document.getElementById("neActions").innerHTML = "";
     // Thanh link chia se cua file VUA DONG khong duoc dinh sang file mo ke tiep.
     const _neSh = document.getElementById("neShare");
@@ -9844,6 +9859,7 @@
   async function _neDeleteCur(rel, it) {
     const name = (it && it.name) || rel.split("/").pop();
     if (!confirm(window.t("cs.vt_del_file", { ten: name }))) return;
+    await _neDropAssist(true);   // a pending autosave must not recreate the file after it is deleted
     const fd = new FormData(); fd.append("brain", fbrain()); fd.append("path", rel);
     try { await fetch("/files/delete", { method: "POST", body: fd }); } catch (e) {}
     // Ghim trỏ tới file vừa xoá thì bỏ, đừng để Naota đi mở một đường dẫn không còn tồn tại.
@@ -10208,6 +10224,8 @@
     if (_neOpenRel && _neOpenRel !== (rel || "") && _neCoSuaChua()) {
       if ((await _neSaveFn()) === false) return;   // lưu hỏng thì ở lại, lỗi hiện trên nút Lưu
     }
+    // Write what the old file still has pending (also when this same file is opened again, before it is read back).
+    await _neDropAssist();
     const laLichSu = _neDangDiLichSu;
     _neDangDiLichSu = false;
     if (!laLichSu) _neDayLichSu(rel, it);
@@ -10279,6 +10297,10 @@
         : `<div class="ne-src"><textarea id="neText" spellcheck="false"></textarea></div>`;
       const ta = document.getElementById("neText"); ta.value = d.content || "";
       let mdGetter = null;
+      let auto = null;                                 // this file's autosave, created below
+      const pokeAuto = () => { if (auto) auto.poke(); };
+      let applyText = (txt) => { ta.value = txt; };    // puts a restored draft into the editor
+      let micTarget = () => ({ kind: "ta", el: ta });
       if (isMd) {
         const wys = document.getElementById("neWys");
         // Thu muc chua CHINH file nay: de ![](anh.jpg) trong note nam o thu muc con tim anh
@@ -10292,9 +10314,11 @@
         wys.addEventListener("nt-task-toggle", () => { if (_neSaveFn) _neSaveFn(); });
         const wysToSrc = () => { const md = _mdFromHtml(wys.innerHTML); if (md != null) ta.value = md; };
         const srcToWys = () => { wys.innerHTML = window.mdToHtml ? window.mdToHtml(ta.value, null, { trinhSua: true, thuMuc: neThuMuc }) : esc(ta.value); };
+        applyText = (txt) => { ta.value = txt; srcToWys(); if (demLai) demLai(); };
+        micTarget = () => (curMode === "wys" ? { kind: "wys", el: wys } : { kind: "ta", el: ta });
         let demLai = null;
         _neBuildToolbar(body.querySelector(".ne-fmt"), { mode: () => curMode, ta, wys,
-          onChange: () => { if (demLai) demLai(); } });   // thanh công cụ chạy cả 2 chế độ
+          onChange: () => { if (demLai) demLai(); pokeAuto(); } });   // thanh công cụ chạy cả 2 chế độ
         // Đếm chữ HIỆN RA: chế độ Sửa lấy chữ của bản render, chế độ Mã nguồn bỏ cú pháp markdown.
         demLai = _neGanDemTu(body.querySelector(".ne-fmt"),
           () => (curMode === "wys" ? { text: wys.innerText, md: false } : { text: ta.value, md: true }), [ta, wys]);
@@ -10330,27 +10354,61 @@
       const saveBtn = document.createElement("button"); saveBtn.innerHTML = SAVE_ICON + " " + esc(window.t("common.save")); saveBtn.title = window.t("cs.ne_save_title");
       // Mốc so sánh "đã sửa gì chưa": lấy SAU khi dựng xong khung soạn, tức là bản đã vòng
       // qua markdown một lượt - xem chú thích ở `_neCoSuaChua`.
-      _neLayNoiDung = () => (mdGetter ? mdGetter() : ta.value);
+      const getter = () => (mdGetter ? mdGetter() : ta.value);
+      _neLayNoiDung = getter;
       try { _neGocText = _neLayNoiDung(); } catch (e) { _neGocText = null; }
-      // Trả true/false chứ không nuốt kết quả: chỗ gọi tự động (rời file, bấm Lùi) phải biết
-      // lưu có ăn không để quyết định có đi tiếp hay ở lại.
-      _neSaveFn = async () => {
-        const content = _neLayNoiDung();
+      // One write of the file. Autosave, Save, Ctrl+S and every "save before leaving" path go through it. Returns
+      // true/false: the automatic callers (leaving the file, Back) decide from it whether to go on or stay.
+      const write = async (content, o) => {
         const fd = new FormData(); fd.append("brain", fbrain()); fd.append("path", rel); fd.append("content", content);
         try {
-          const r = await (await fetch("/files/write", { method: "POST", body: fd })).json();
+          const r = await (await fetch("/files/write", { method: "POST", body: fd, keepalive: !!(o && o.keepalive) })).json();
           if (r.ok) {
-            saveBtn.innerHTML = CHECK_ICON + " " + esc(window.t("cs.ne_saved")); saveBtn.classList.add("ne-saved");
-            setTimeout(() => { saveBtn.innerHTML = SAVE_ICON + " " + esc(window.t("common.save")); saveBtn.classList.remove("ne-saved"); }, 1400);
-            _neGocText = content;   // vừa lưu = mốc mới, không thì rời file lại lưu lần nữa
+            if (_neLayNoiDung === getter) _neGocText = content;   // vừa lưu = mốc mới, không thì rời file lại lưu lần nữa
             return true;
           }
-          saveBtn.innerHTML = WARN_ICON + " " + esc(window.t("app.err_cap"));
-        } catch (e) { saveBtn.innerHTML = WARN_ICON + " " + esc(window.t("app.err_cap")); }
+        } catch (e) { /* the autosave keeps the words and tries again */ }
         return false;
       };
-      saveBtn.onclick = _neSaveFn;
+      // The button shows the autosave state, like Google Docs: Save, Saving..., Saved, or the error.
+      const paintSave = (st) => {
+        saveBtn.classList.toggle("ne-saved", st === "saved");
+        saveBtn.classList.toggle("ne-save-err", st === "error");
+        saveBtn.innerHTML = st === "saved" ? CHECK_ICON + " " + esc(window.t("cs.ne_saved"))
+          : st === "saving" ? SAVE_ICON + " " + esc(window.t("cs.ne_saving"))
+          : st === "error" ? WARN_ICON + " " + esc(window.t("cs.ne_save_err"))
+          : SAVE_ICON + " " + esc(window.t("common.save"));
+        saveBtn.title = window.t(st === "error" ? "cs.ne_save_err_title" : "cs.ne_save_title");
+      };
+      if (window.NaotaAutosave) {
+        auto = window.NaotaAutosave.attach({
+          key: fbrain() + "::" + rel,
+          original: d.content || "",
+          get: getter,
+          baseline: _neGocText,
+          save: write,
+          sources: [ta, document.getElementById("neWys")],
+          apply: applyText,
+          onStatus: paintSave,
+          onRestored: () => { try { toast(window.t("cs.ne_draft_restored")); } catch (e) {} },
+        });
+        _neAuto = auto;
+        _neSaveFn = () => auto.flush();
+      } else {
+        _neSaveFn = async () => { const ok = await write(getter()); paintSave(ok ? "saved" : "error"); return ok; };
+      }
+      saveBtn.onclick = () => _neSaveFn();
       actions.appendChild(saveBtn);
+      // Mic: speak and the words land at the cursor (editor-dictate.js), same recorder as the chat box. Prose files
+      // only (.md, .txt): dictating into JSON or code is not something anyone asked for.
+      if (window.NaotaEditorDictate && (isMd || ext === ".txt")) {
+        _neMic = window.NaotaEditorDictate.attach({
+          host: body.querySelector(".ne-fmt") || actions,
+          target: micTarget,
+          onChange: pokeAuto,
+        });
+        if (!body.querySelector(".ne-fmt")) actions.insertBefore(_neMic.button, saveBtn);
+      }
       _neCommonBtns(actions, rel, it);
       _vtMarkActive(isMd ? rel : null);
       if (!body.classList.contains("mode-preview")) ta.focus();   // a preview needs no keyboard (phones)
@@ -10530,6 +10588,8 @@
     // Trang đầu của thiết bị là Trò chuyện; các lần sau quay lại đúng khung đang dùng.
     // Khôi phục ngay, trước các lời gọi mạng ở freshSettings, để tránh nháy màn Naota.
     khoiPhucTrang();
+    // the start-up screen waits from here for the first page's own "Loading..." lines to go (boot-splash.js).
+    try { if (window.NaotaBoot) window.NaotaBoot.pageStarted(); } catch (e) {}
 
     freshSettings().then(async s => {
       // Máy này CHƯA chọn ngôn ngữ (i18n đang đoán theo trình duyệt): ngôn ngữ đã lưu trên

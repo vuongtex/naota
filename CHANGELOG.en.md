@@ -4,6 +4,25 @@
 
 NAOTA release history. Newest first.
 
+## [1.23.0] - 2026-11-09
+### Added
+- **File editors save by themselves, like Google Docs.** About a second after you stop typing the file is saved, and the Save button shows "Saving…" then "Saved". Closing, switching files, reloading or a stray Back swipe no longer loses typed text.
+- **Text survives a lost connection.** Unsaved text is kept in the browser and restored the next time the file opens.
+- **A dictation mic in the .md and .txt editors.** Press, speak, and the words land at the cursor, rewritten in context, like the mic in the chat box.
+- **Export and upload a whole brain as one .zip file:** each row of the brain picker has an Export button. The file carries notes, images, agents, skills, workflows and memory, and leaves out tokens, keys, raw chats and git history. "Upload a brain (.zip)" always makes a new brain and never overwrites one. Plugins, loops and reminders that come with the file arrive switched off; turn them on where they live if you want them. There is no fixed size limit: the server takes what its free disk can hold, up to a million files. Packing and unpacking run in the background with progress, and the upload goes in 32MB pieces, so a large brain still gets through Cloudflare Tunnel.
+- **Rename and delete right on each row of the brain picker**, with New brain, Upload a brain and Open an outside folder at the bottom. The four separate buttons beside the picker in the top bar moved into it.
+### Fixed
+- **Text blocks (such as an email draft's TEXT block) wrap** instead of running off to the right. While editing, a sideways touchpad swipe no longer sends the browser Back.
+### Improved
+- **Start-up screen:** opening Naota shows the logo and "Starting Naota…" until the first page has its data. Right after an update or a restart it also says the first open can take a little longer.
+- **Every screen that waits for data uses the Partners page's loading look:** a small spinner with "Loading", or a centered one for a whole page. A page still loading no longer says "in development" by mistake.
+- **The node and link counts in the top bar show only on the neural graph screen**, so other pages are tidier.
+- **The brain picker shows each brain's node and link counts**, as its graph counts them. They are counted only when the picker opens, so page load is not slowed.
+- **The Partners and Teams pages show "Loading…"** where a list or a conversation has not arrived yet, instead of an empty space that looked frozen.
+- **A team opens with its Info tab showing** in the side panel on a wide screen. Close the panel and Naota remembers it next time.
+- **Team search, settings and close buttons look cleaner:** square, borderless, in the same style as the tabs beside them.
+- **The team list loads about 2.5 times faster**, and opening a team takes the same time whether it holds a hundred or tens of thousands of messages.
+
 ## [1.22.0] - 2026-11-09
 ### Improved
 - **The app opens noticeably faster.** The ~110 interface files loaded at startup now travel as one bundle. With 150 ms of network delay the Partners list shows after about 2 seconds instead of nearly 5.

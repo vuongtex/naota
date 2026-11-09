@@ -40,8 +40,8 @@
   <!-- Biến --ic-* cho icon dùng trong content: của CSS. Phải đứng TRƯỚC style.css
        vì style.css tham chiếu các biến này. -->
   <link rel="stylesheet" href="/static/vendor/lucide-icons.css?v=1">
-  <link rel="stylesheet" href="/static/style.css?v=175">
-  <link rel="stylesheet" href="/static/console.css?v=159">
+  <link rel="stylesheet" href="/static/style.css?v=176">
+  <link rel="stylesheet" href="/static/console.css?v=160">
   <!-- Áp tông đã lưu TRƯỚC khi vẽ để không nháy tối rồi mới đổi sang sáng.
        Giá trị cũ "dim" (tông tối-nhạt, gỡ) quy về tối; theme.js sẽ ghi đè lại.
        Chưa chọn gì thì SÁNG (NAOTA 1.0.0). Chế độ "auto" (chỉ khi người dùng tự chọn) tính theo khung giờ "HH:MM-HH:MM", cùng quy tắc với
@@ -49,6 +49,14 @@
   <script>(function(){try{var m=localStorage.getItem('naota.theme'),L=m!=='dark'&&m!=='dim';if(m==='auto'){var p=/^(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})$/.exec(localStorage.getItem('naota.theme.schedule')||'')||[0,6,0,18,0],a=p[1]*60+ +p[2],b=p[3]*60+ +p[4],d=new Date(),n=d.getHours()*60+d.getMinutes();L=a!==b&&(a<b?n>=a&&n<b:n>=a||n<b);}if(L)document.documentElement.setAttribute('data-theme','light');}catch(e){}})();</script>
 </head>
 <body>
+  <!-- Start-up screen (boot-splash.js): on screen from the first paint, gone once the first page has its
+       data. Text comes from the dictionary (data-i18n); before it loads only the logo and the spinner show. -->
+  <div id="bootSplash" class="boot-splash" role="status" aria-live="polite" aria-busy="true">
+    <img class="boot-logo" src="/brand-logo?v=6" alt="" width="64" height="64">
+    <div class="boot-spin" aria-hidden="true"></div>
+    <div class="boot-text" data-i18n="boot.starting"></div>
+    <div class="boot-sub" id="bootSub" data-i18n="boot.just_started" hidden></div>
+  </div>
   <div class="hud">
 
     <!-- ===== TOP BAR ===== -->
@@ -68,10 +76,9 @@
           <select id="graphSource" class="graph-select">
             <option value="brain">Brain Default</option>
           </select>
-          <button class="graph-folder-btn" id="newBrainBtn" title="Tạo brain mới trong thư mục brains" data-i18n-title="top.brain_new"><i data-ic="plus"></i></button>
-          <button class="graph-folder-btn" id="renameBrainBtn" title="Đổi tên brain đang chọn (thư mục và liên kết giữ nguyên)" data-i18n-title="top.brain_rename"><i data-ic="pencil"></i></button>
-          <button class="graph-folder-btn" id="delBrainBtn" title="Xoá brain đang chọn (xác nhận gõ đúng tên)" data-i18n-title="top.brain_delete"><i data-ic="trash-2"></i></button>
-          <button class="graph-folder-btn" id="pickFolderBtn" title="Chọn brain từ folder ngoài bất kỳ" data-i18n-title="top.brain_pick"><i data-ic="folder-open"></i></button>
+          <!-- New, rename, delete and "outside folder" live inside the brain picker panel now (brain-picker.js).
+               This hidden button stays only because app.js opens the outside-folder browser from its click. -->
+          <button class="graph-folder-btn" id="pickFolderBtn" hidden tabindex="-1" aria-hidden="true"><i data-ic="folder-open"></i></button>
           <span class="graph-stats" id="graphStats">-</span>
         </div>
       </div>
@@ -1014,7 +1021,7 @@
  ],
  "teams": [
   "/static/team-github.js?v=1",
-  "/static/teams.js?v=29"
+  "/static/teams.js?v=30"
  ],
  "packs": [
   "/static/packs.js?v=6"
@@ -1056,6 +1063,8 @@
   <script src="/static/nap-cham.js?v=2"></script>
   <script src="/static/auto-domain.js?v=1"></script>
   <script src="/static/i18n/index.js?v=3"></script>
+  <!-- Start-up screen logic: right after the dictionary, before the page modules. -->
+  <script src="/static/boot-splash.js?v=1"></script>
   <script src="/static/vendor/lucide-icons.js?v=19"></script>
   <script src="/static/icons.js?v=3"></script>
   <script src="/static/info-tip.js?v=2"></script>
@@ -1093,7 +1102,11 @@
   <script src="/static/word-count.js?v=1"></script>
   <!-- .html opens on its preview with a Code tab: before file-editor.js and console.js. -->
   <script src="/static/html-preview.js?v=1"></script>
-  <script src="/static/file-editor.js?v=16"></script>
+  <!-- Autosave and the dictation mic of the file editors: before file-editor.js and console.js, which
+       attach them when a text file opens. editor-dictate.js uses window.NaotaDictate at press time only. -->
+  <script src="/static/editor-autosave.js?v=1"></script>
+  <script src="/static/editor-dictate.js?v=1"></script>
+  <script src="/static/file-editor.js?v=17"></script>
   <!-- Insert images into a note (paste/drop/button): compress, then save into images/. After
        editor-cmds.js because it shares its editor lookup (contextFor). -->
   <script src="/static/note-images.js?v=1"></script>
@@ -1161,10 +1174,10 @@
   <script src="/static/chat-zoom.js?v=6"></script>
   <script src="/static/brains-ui.js?v=10"></script>
   <!-- Brain picker drawn by Naota over #graphSource: after brains-ui.js and app.js. -->
-  <script src="/static/brain-picker.js?v=5"></script>
+  <script src="/static/brain-picker.js?v=6"></script>
   <!-- One Reorder box (drag or arrows) for projects, pinned chats and tags. Before sessions-ui.js. -->
   <script src="/static/reorder-dialog.js?v=3"></script>
-  <script src="/static/sessions-ui.js?v=30"></script>
+  <script src="/static/sessions-ui.js?v=31"></script>
   <link rel="stylesheet" href="/static/improvement-candidates.css?v=3">
   <script src="/static/improvement-experiments.js?v=1"></script>
   <script src="/static/improvement-candidates.js?v=3"></script>
@@ -1176,7 +1189,7 @@
   <script src="/static/pulse-seen.js?v=1"></script>
   <!-- Tag filter bar and tag picker shared by Cộng sự and Team: load BEFORE workspace.js and teams.js. -->
   <script src="/static/tag-picker.js?v=1"></script>
-  <script src="/static/workspace.js?v=41"></script>
+  <script src="/static/workspace.js?v=42"></script>
   <!-- Hộp chọn thành viên kiểu Zalo: nạp TRƯỚC teams.js, teams.js gọi window.NaotaTeamPicker. -->
   <script src="/static/team-picker.js?v=1"></script>
   <!-- Bộ phán xử nói / chờ / im của từng trợ lý: lịch sử quyết định và nút sửa. Nạp TRƯỚC teams.js
@@ -1206,7 +1219,7 @@
   <script src="/static/login-vault.js?v=2"></script>
   <script src="/static/messenger-connect.js?v=4"></script>
   <script src="/static/voice-catalog.js?v=1"></script>
-  <script src="/static/console.js?v=222"></script>
+  <script src="/static/console.js?v=223"></script>
   <script src="/static/mobile-chat.js?v=23"></script>
   <script src="/static/brain-view.js?v=1"></script>
   <script src="/static/push.js?v=3"></script>
