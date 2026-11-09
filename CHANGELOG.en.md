@@ -4,6 +4,13 @@
 
 NAOTA release history. Newest first.
 
+## [1.18.0] - 2026-11-09
+### Fixed
+- **A failed job now always reaches the owner's Telegram.** A job made in a web chat that fails and needs you used to report only to that chat; it now also sends one message to your Telegram, so you hear about it away from the computer.
+- **A Team job that is blocked, fails or waits for your approval** used to stay in the bell only; it now also goes to your Telegram.
+### Improved
+- The **Needs you** section of the Office page says whether failure alerts reach Telegram. With Telegram not connected it says the alerts stay in the bell, with a button to Settings.
+
 ## [1.17.0] - 2026-11-09
 ### Added
 - **Meeting room in the 3D office**: while a team leader splits a job or sums it up, the whole team walks into the meeting room and sits round the table, then walks back to their desks.

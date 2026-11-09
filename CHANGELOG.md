@@ -6,6 +6,13 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.18.0] - 2026-11-09
+### Sửa lỗi
+- **Việc hỏng nay luôn báo về Telegram của chủ.** Việc giao từ khung chat trên web mà hỏng cần bạn xử lý, trước chỉ báo vào đúng khung chat đó; nay gửi thêm một tin vào Telegram của bạn để bạn biết khi không mở máy.
+- **Việc nhóm (Team) bị chặn, hỏng hay chờ bạn duyệt** trước chỉ nằm trong chuông; nay cũng gửi về Telegram của bạn.
+### Cải thiện
+- Mục **Cần bạn xử lý** trên trang Văn phòng ghi rõ tin việc hỏng có đang tới Telegram không. Chưa nối Telegram thì nói thẳng là tin chỉ nằm trong chuông, kèm nút mở Cài đặt.
+
 ## [1.17.0] - 2026-11-09
 ### Thêm mới
 - **Phòng họp trong Văn phòng 3D**: khi trưởng nhóm Team đang chia việc hay tổng hợp, cả nhóm đứng dậy đi vào phòng họp ngồi quanh bàn, xong thì tự về bàn mình.
