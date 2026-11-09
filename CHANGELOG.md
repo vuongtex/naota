@@ -8,6 +8,7 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 ## [1.18.0] - 2026-11-09
 ### Sửa lỗi
+- **Tin việc hỏng cần bạn xử lý nay là tin khẩn.** Trước đây nó ở mức "đáng chú ý", mà bộ lọc thông báo mặc định chỉ cho tin khẩn đi Telegram, nên trên máy mới việc hỏng không bao giờ tới điện thoại. Muốn bớt thì vẫn tắt được nhóm Sự cố trong Thông báo.
 - **Việc hỏng nay luôn báo về Telegram của chủ.** Việc giao từ khung chat trên web mà hỏng cần bạn xử lý, trước chỉ báo vào đúng khung chat đó; nay gửi thêm một tin vào Telegram của bạn để bạn biết khi không mở máy.
 - **Việc nhóm (Team) bị chặn, hỏng hay chờ bạn duyệt** trước chỉ nằm trong chuông; nay cũng gửi về Telegram của bạn.
 ### Cải thiện

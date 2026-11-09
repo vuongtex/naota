@@ -161,3 +161,7 @@
 @media (prefers-reduced-motion: reduce) { .o3-tk { animation: none; padding-left: 10px; } }
 .o3-stage .o3-hint { bottom: 44px; }
 .o3-stage .o3-card { bottom: 44px; }
+.of-root .of-alert { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 10px; padding: 8px 10px; border-radius: 8px; font-size: 13px; }
+.of-root .of-alert-ok { background: var(--surface-2); color: var(--text2); }
+.of-root .of-alert-warn { background: color-mix(in srgb, var(--warn, #d97706) 14%, transparent); color: var(--text); }
+.of-root .of-alert .btn { margin-left: auto; }

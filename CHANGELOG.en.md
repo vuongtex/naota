@@ -6,6 +6,7 @@ NAOTA release history. Newest first.
 
 ## [1.18.0] - 2026-11-09
 ### Fixed
+- **A failure that needs you is now an urgent notice.** It used to be "important", and the default notice filter sends only urgent ones to Telegram, so on a fresh install a failed job never reached your phone. You can still turn the Incidents group down in Notifications.
 - **A failed job now always reaches the owner's Telegram.** A job made in a web chat that fails and needs you used to report only to that chat; it now also sends one message to your Telegram, so you hear about it away from the computer.
 - **A Team job that is blocked, fails or waits for your approval** used to stay in the bell only; it now also goes to your Telegram.
 ### Improved
