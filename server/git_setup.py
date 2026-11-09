@@ -267,7 +267,7 @@ def _install_official() -> None:
     """Git for Windows from its GitHub release, silent and per user (installs into %LOCALAPPDATA%\\Programs\\Git)."""
     import httpx
     import config as cfgmod
-    headers = {"Accept": "application/vnd.github+json", "User-Agent": "naota-os"}
+    headers = {"Accept": "application/vnd.github+json", "User-Agent": "naota"}
     try:
         rel = httpx.get(GFW_LATEST, headers=headers, timeout=60, follow_redirects=True)
         rel.raise_for_status()
@@ -281,7 +281,7 @@ def _install_official() -> None:
     dest = folder / str(asset["name"])
     try:
         sha = hashlib.sha256()
-        with httpx.stream("GET", str(asset["browser_download_url"]), headers={"User-Agent": "naota-os"},
+        with httpx.stream("GET", str(asset["browser_download_url"]), headers={"User-Agent": "naota"},
                           timeout=120, follow_redirects=True) as r:
             r.raise_for_status()
             with open(dest, "wb") as f:
