@@ -2,8 +2,8 @@
 
     python tests/run.py xuat_nhap_bo_nao      (KHÔNG mạng)
 
-Owner: "có thể xuất bộ não đấy ra thành file và tải lên chỗ khác, icon xuất sửa xóa cũng ở bên cạnh luôn", then "20.000
-file ... file text 1gb sẽ được rất nhiều": no fixed size cap, the free disk decides; packing and unpacking run in the
+Export a brain as one file and upload it elsewhere, with export, rename and delete beside each brain; a brain
+can hold tens of thousands of files and gigabytes of text: no fixed size cap, the free disk decides; packing and unpacking run in the
 background and the upload goes in pieces, so Cloudflare Tunnel's per-request limits never bite. The export
 leaves private files out (raw chats, run logs, hub tokens, git), the upload always makes a NEW brain, refuses unsafe
 names, and switches off what would run on its own (plugins, loops, pending reminders). The picker carries the buttons.

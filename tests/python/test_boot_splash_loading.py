@@ -2,7 +2,7 @@
 
     python tests/run.py boot_splash_loading      (no network; node for the pure helpers)
 
-Owner: a start-up screen until the whole interface is ready (most slow spots after an update sit in the first minute),
+Goal: a start-up screen until the whole interface is ready (most slow spots after an update sit in the first minute),
 the Partners page's loading effect on every screen that waits, and the "N notes, M links" counts only on the neural
 graph screen."""
 from _paths import ROOT, SERVER  # noqa: E402,F401
