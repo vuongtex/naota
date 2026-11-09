@@ -7287,5 +7287,18 @@
   "office.replay_at": "{at} · run {n}/{total}",
   "office.replay_done": "Day done, desks show their state now.",
   "office.replay_none": "No run on this day to replay.",
-  "office.close": "Close"
+  "office.close": "Close",
+  "office.now_title": "Running right now",
+  "office.now_none": "Nothing is running. The page asks again every 5 seconds.",
+  "office.now_wait": "Asking the system...",
+  "office.now_running": "running",
+  "office.now_since": "since {at}, {dur}",
+  "office.running": "Running",
+  "office.k_loop": "Loop",
+  "office.k_reminder": "Schedule",
+  "office.k_task": "Board task",
+  "office.k_job": "Background command",
+  "office.dur_s": "{s}s",
+  "office.dur_m": "{m} min {s}s",
+  "office.dur_h": "{h} h {m} min"
 }

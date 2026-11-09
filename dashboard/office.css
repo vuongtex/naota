@@ -113,3 +113,22 @@
 .o3-do { margin-top: 4px; }
 .o3-x { position: absolute; top: 6px; right: 8px; width: 36px; height: 36px; border: 0; background: none; color: var(--text2); font-size: 24px; cursor: pointer; }
 @media (max-width: 600px) { .o3-stage { height: 62vh; } .o3-hint { display: none; } }
+
+/* running right now (GET /office/live) */
+.of-now { border-left: 4px solid var(--of-calm); }
+.of-now.busy { border-left-color: #2f8fff; }
+.of-pulse { width: 10px; height: 10px; border-radius: 50%; background: #2f8fff; flex: none; animation: of-pulse 1.2s ease-in-out infinite; }
+.of-pulse.idle, .of-pulse.off { background: var(--of-calm); animation: none; }
+@keyframes of-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(47, 143, 255, .55); } 50% { box-shadow: 0 0 0 7px rgba(47, 143, 255, 0); } }
+.of-nclock { font-variant-numeric: tabular-nums; color: var(--text2); font-weight: 500; font-size: 15px; }
+.of-nlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.of-nlist li { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: baseline; }
+.of-nk { font-size: 12px; padding: 1px 8px; border-radius: 999px; background: rgba(47, 143, 255, .12); color: #006b9e; white-space: nowrap; }
+.of-nn { min-width: 0; overflow-wrap: anywhere; }
+.of-nt { font-variant-numeric: tabular-nums; color: var(--text2); white-space: nowrap; font-size: 14px; }
+.of-now-none { color: var(--text2); }
+@media (max-width: 560px) {
+  .of-nlist li { grid-template-columns: auto 1fr; }
+  .of-nt { grid-column: 1 / -1; white-space: normal; }
+}
+@media (prefers-reduced-motion: reduce) { .of-pulse { animation: none; } }

@@ -421,3 +421,52 @@ def build(brain: Path, now: float, tz: tzinfo, day: str = "") -> dict:
                    "waiting": len(waiting) if files["kanban"] else None,
                    "empty_depts": sum(1 for d in depts.values() if d["status"] == "empty")},
     }
+
+
+# ---------- what runs right now ----------
+def live(brain: Path, now: float, tz: tzinfo, loop_now: dict | None, rem_now: dict | None,
+         tasks: list | None, procs: list | None) -> dict:
+    """Everything running at this second, oldest first, read only and scrubbed like build().
+
+    loop_now = {"slug", "since"} of the loop iteration running, rem_now = {reminder id: started_at},
+    tasks = the task-board cards (only "running" ones count), procs = shell work Naota watches.
+    Each item: {kind, id, name, since, since_at, secs}; `id` matches the job id in build() for
+    loops and reminders, so the page can light the right desk.
+    """
+    brain = Path(brain)
+    nd = brain / "Naota"
+    today = _day_of(now, tz)
+    items = []
+
+    def add(kind, iid, name, since, extra=None):
+        since = float(since or 0)
+        x = {"kind": kind, "id": str(iid or ""), "name": scrub(name or iid or "", 120), "since": since,
+             "since_at": _at(since, tz, today), "secs": int(max(0.0, now - since)) if since else None}
+        x.update(extra or {})
+        items.append(x)
+
+    slug = str((loop_now or {}).get("slug") or "")
+    if slug:
+        fm = frontmatter(_read(nd / "loops" / f"{slug}.md"))
+        add("loop", slug, str(fm.get("name") or slug), (loop_now or {}).get("since"))
+
+    if rem_now:
+        raw = _json(nd / "reminders.json")
+        rems = raw.get("reminders") if isinstance(raw, dict) else raw
+        names = {str(r.get("id")): str(r.get("label") or (r.get("text") or "")[:60] or r.get("id"))
+                 for r in (rems if isinstance(rems, list) else []) if isinstance(r, dict) and r.get("id")}
+        for rid, since in rem_now.items():
+            if str(rid) in names:   # only this brain's own reminders
+                add("reminder", rid, names[str(rid)], since)
+
+    for t in tasks or []:
+        if isinstance(t, dict) and str(t.get("status") or "") == "running":
+            add("task", t.get("id"), str(t.get("title") or t.get("id") or ""),
+                t.get("updated_at") or t.get("created_at"), {"agent": scrub(t.get("agent") or "", 60)})
+
+    for p in procs or []:
+        if isinstance(p, dict):
+            add("job", p.get("id"), str(p.get("mo_ta") or ""), p.get("bat_dau"))
+
+    items.sort(key=lambda x: x["since"] or now)
+    return {"now": now, "now_at": datetime.fromtimestamp(now, tz).strftime("%H:%M:%S"), "items": items}

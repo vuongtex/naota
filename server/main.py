@@ -31750,6 +31750,31 @@ async def office_get(brain: str = "brain", day: str = ""):
     root = Path(_brain_root(brain))
     return await asyncio.to_thread(office.build, root, time.time(), localefmt.tz(), day)
 
+
+# What runs RIGHT NOW (the Office page asks every 5 seconds while it is open): the loop iteration,
+# the reminders firing, the task-board cards in progress, the shell work Naota watches. Read only.
+@app.get("/office/live")
+async def office_live(brain: str = "brain"):
+    import office
+    root = _brain_root(brain)
+    try:
+        loop_now = loop_feature.running_now(brain)
+    except Exception:
+        loop_now = {}
+    try:
+        rem_now = reminders_feature.running_now(brain)
+    except Exception:
+        rem_now = {}
+    try:
+        tasks = tasks_feature.store.list_tasks(root)
+    except Exception:
+        tasks = []
+    try:
+        procs = tien_trinh_nen.dang_chay(brain_root=root)
+    except Exception:
+        procs = []
+    return office.live(Path(root), time.time(), localefmt.tz(), loop_now, rem_now, tasks, procs)
+
 # Batched reads (performance stage 2): many dashboard GETs in one round trip, streamed back as each one
 # finishes. read_batch.py. Registered at the end so the route table only grows at the end.
 @app.post("/batch")

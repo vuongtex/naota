@@ -168,6 +168,36 @@
     return '<section class="of-box"><h3>' + esc(tw("office.feed")) + '</h3><ul class="of-feed">' + rows + "</ul></section>";
   }
 
+  // ---- what runs at this second (GET /office/live, asked every 5 seconds) ----
+  var NOW_KIND = { loop: "office.k_loop", reminder: "office.k_reminder", task: "office.k_task", job: "office.k_job" };
+  function dur(secs) {
+    secs = Math.max(0, Math.floor(secs || 0));
+    var h = Math.floor(secs / 3600), m = Math.floor((secs % 3600) / 60), s = secs % 60;
+    if (h) return tw("office.dur_h", { h: h, m: m });
+    if (m) return tw("office.dur_m", { m: m, s: s });
+    return tw("office.dur_s", { s: s });
+  }
+  // live = the /office/live answer, ago = seconds since it arrived (the clock keeps ticking between asks)
+  function nowHtml(live, ago) {
+    if (!live) return '<section class="of-box of-now"><h3><span class="of-pulse off"></span>' + esc(tw("office.now_title")) + "</h3>"
+      + '<div class="of-now-none">' + esc(tw("office.now_wait")) + "</div></section>";
+    ago = Math.max(0, ago || 0);
+    var items = live.items || [];
+    var rows = items.map(function (x) {
+      var secs = x.secs == null ? null : x.secs + ago;
+      return '<li><span class="of-nk">' + esc(tw(NOW_KIND[x.kind] || "office.k_job")) + "</span>"
+        + '<span class="of-nn">' + esc(x.name) + (x.agent ? ' <span class="of-fx">' + esc(x.agent) + "</span>" : "") + "</span>"
+        + '<span class="of-nt">' + esc(secs == null ? tw("office.now_running") : tw("office.now_since", { at: x.since_at, dur: dur(secs) })) + "</span></li>";
+    }).join("");
+    var clockAt = live.now ? new Date((live.now + ago) * 1000) : null;
+    var hms = clockAt ? [clockAt.getHours(), clockAt.getMinutes(), clockAt.getSeconds()].map(function (n) { return (n < 10 ? "0" : "") + n; }).join(":") : "";
+    return '<section class="of-box of-now' + (items.length ? " busy" : "") + '"><h3><span class="of-pulse' + (items.length ? "" : " idle") + '"></span>'
+      + esc(tw("office.now_title")) + ' <span class="of-nclock">' + esc(hms) + "</span>"
+      + (items.length ? ' <span class="of-count">' + esc(String(items.length)) + "</span>" : "") + "</h3>"
+      + (items.length ? '<ul class="of-nlist">' + rows + "</ul>" : '<div class="of-now-none">' + esc(tw("office.now_none")) + "</div>")
+      + "</section>";
+  }
+
   function toolbarHtml(d, live, view3d) {
     var days = (d && d.days) || [];
     var opts = days.map(function (x) {
@@ -191,10 +221,10 @@
 
   // view3d: the department cards give way to a slot the 3D stage (office3d.js) is moved into, so the canvas
   // survives the 30-second redraw of everything around it.
-  function pageHtml(d, view3d) {
+  function pageHtml(d, view3d, now, ago) {
     var live = d.day === d.today;
     // in 3D the office comes right under the numbers, before the list of what needs the owner
-    return '<div class="of-root">' + toolbarHtml(d, live, view3d) + kpiHtml(d)
+    return '<div class="of-root">' + toolbarHtml(d, live, view3d) + kpiHtml(d) + nowHtml(now, ago)
       + (view3d ? '<div class="of-3d-slot"></div>' + issuesHtml(d) : issuesHtml(d) + deptsHtml(d)) + feedHtml(d) + footHtml(d) + "</div>";
   }
 
@@ -232,7 +262,8 @@
     unmount();
     opts = opts || {};
     var O3 = typeof window !== "undefined" && window.NaotaOffice3D;
-    var st = { day: "", timer: 0, alive: true, data: null, view3d: !!(O3 && O3.supported() && savedView()), v3: null, host3d: null };
+    var st = { day: "", timer: 0, alive: true, data: null, view3d: !!(O3 && O3.supported() && savedView()), v3: null, host3d: null,
+      live: null, liveAt: 0, liveTimer: 0, tick: 0 };
     current_ = st;
     async function load() {
       if (!st.alive) return;
@@ -254,7 +285,7 @@
     function draw() {
       var d = st.data, open = {};
       box.querySelectorAll("details.of-job[open] .of-jn").forEach(function (n) { open[n.textContent] = 1; });
-      box.innerHTML = pageHtml(d, st.view3d);
+      box.innerHTML = pageHtml(d, st.view3d, st.live, ago());
       if (st.view3d) place3d(d);
       box.querySelectorAll("details.of-job").forEach(function (el) {
         var n = el.querySelector(".of-jn");
@@ -275,6 +306,32 @@
       }
       slot.appendChild(st.host3d);
       st.v3.update(d);
+      st.v3.running(runningIds());
+    }
+    function ago() { return st.liveAt ? Date.now() / 1000 - st.liveAt : 0; }
+    // loop and reminder ids running now, the ones that own a desk in the 3D office
+    function runningIds() {
+      var ids = {};
+      ((st.live && st.live.items) || []).forEach(function (x) { if (x.kind === "loop" || x.kind === "reminder") ids[x.id] = true; });
+      return ids;
+    }
+    function paintNow() {
+      var el = box.querySelector(".of-now");
+      if (el) el.outerHTML = nowHtml(st.live, ago());
+    }
+    async function loadLive() {
+      if (!st.alive) return;
+      var brain = (opts.current && opts.current()) || "brain";
+      var live = null;
+      try { live = await (await fetch("/office/live?brain=" + encodeURIComponent(brain))).json(); } catch (e) { live = null; }
+      if (!st.alive || !box.isConnected || !live || !live.items) return;
+      var before = (st.live && st.live.items) || [];
+      var gone = before.some(function (x) { return !live.items.some(function (y) { return y.kind === x.kind && y.id === x.id; }); });
+      st.live = live; st.liveAt = Date.now() / 1000;
+      paintNow();
+      if (st.v3) st.v3.running(runningIds());
+      // a run just ended: fetch the office again so its result, lamp and ✓/✗ show at once
+      if (gone && !st.day) load();
     }
     box.addEventListener("click", function (ev) {
       if (!ev.target.closest(".ofView") || !st.data) return;
@@ -289,6 +346,9 @@
         load();
       }
     });
+    st.liveTimer = setInterval(function () { if (!document.hidden) loadLive(); }, 5000);
+    st.tick = setInterval(function () { if (!document.hidden && st.live) paintNow(); }, 1000);
+    loadLive();
     st.timer = setInterval(function () {
       if (document.hidden || st.day) return;   // a past day is a fixed record; a hidden tab costs nothing
       load();
@@ -300,12 +360,14 @@
     if (!current_) return;
     current_.alive = false;
     clearInterval(current_.timer);
+    clearInterval(current_.liveTimer);
+    clearInterval(current_.tick);
     if (current_.v3) { try { current_.v3.destroy(); } catch (e) { /* page already gone */ } }
     current_ = null;
   }
 
   var api_ = { mount: mount, unmount: unmount, pageHtml: pageHtml, issueHtml: issueHtml, deptHtml: deptHtml,
-    jobRowHtml: jobRowHtml, kpiHtml: kpiHtml, feedHtml: feedHtml, deptName: deptName, describe: describe };
+    jobRowHtml: jobRowHtml, kpiHtml: kpiHtml, feedHtml: feedHtml, nowHtml: nowHtml, dur: dur, deptName: deptName, describe: describe };
   if (typeof window !== "undefined") window.NaotaOffice = api_;
   if (typeof module !== "undefined" && module.exports) module.exports = api_;
 })();

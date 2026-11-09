@@ -129,6 +129,26 @@ with tempfile.TemporaryDirectory() as tmp:
     check("missing files are reported, counts unknown", d["files"] == {"reminders": False, "work_log": False, "loop_state": False, "kanban": False}
           and d["totals"]["waiting"] is None)
 
+# running right now: ids match the desks, times in the owner's zone, no secret, oldest first
+with tempfile.TemporaryDirectory() as tmp:
+    b = Path(tmp)
+    write(b / "Naota" / "loops" / "dang.md", "---\nname: Đăng bài\n---\n")
+    write(b / "Naota" / "reminders.json", {"reminders": [{"id": "r1", "label": "Báo cáo sáng"}]})
+    now = ts("2026-11-07 21:00")
+    lv = office.live(b, now, TZ, {"slug": "dang", "since": now - 125}, {"r1": now - 30, "gone": now - 5},
+                     [{"id": "t1", "title": "Gửi token=sk-ABCDEF123456", "status": "running", "updated_at": now - 600},
+                      {"id": "t2", "title": "Chờ", "status": "todo"}],
+                     [{"id": "j1", "mo_ta": "render video", "bat_dau": now - 3700}])
+    it = lv["items"]
+    check("live: loop, reminder, running task and shell job, oldest first",
+          [x["kind"] for x in it] == ["job", "task", "loop", "reminder"])
+    lp = next(x for x in it if x["kind"] == "loop")
+    check("live: loop keyed by slug with its name, start and seconds",
+          lp["id"] == "dang" and lp["name"] == "Đăng bài" and lp["since_at"] == "20:57" and lp["secs"] == 125)
+    check("live: a reminder not in this brain is left out", [x["id"] for x in it if x["kind"] == "reminder"] == ["r1"])
+    check("live: task titles are scrubbed", "sk-ABCDEF" not in json.dumps(lv, ensure_ascii=False))
+    check("live: nothing running is an empty list", office.live(b, now, TZ, {}, {}, [], [])["items"] == [])
+
 check("scrub masks key=value secrets", "abc123" not in office.scrub("password: abc123 ok"))
 check("scrub masks Windows paths", "Users" not in office.scrub(r"lỗi ở C:\Users\x\secret.txt"))
 check("scrub keeps normal words", office.scrub("Đăng bài lên fanpage") == "Đăng bài lên fanpage")

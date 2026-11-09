@@ -158,7 +158,7 @@
     }
 
     // ---- materials and labels ----
-    var COL = { ok: 0x2fa86a, bad: 0xe0453a, ask: 0xf0a020, off: 0x9aa0a8 };
+    var COL = { ok: 0x2fa86a, bad: 0xe0453a, ask: 0xf0a020, off: 0x9aa0a8, run: 0x2f8fff };
     function mat(c, extra) { var T = st.T; return new T.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.75, metalness: 0.05 }, extra || {})); }
     function box(w, h, d, m) { var T = st.T; var o = new T.Mesh(new T.BoxGeometry(w, h, d), m); o.castShadow = true; o.receiveShadow = true; return o; }
     function label(text, sub, tone, scale) {
@@ -244,7 +244,8 @@
         lamp.position.set(0.66, 0.92, -0.2); g.add(lamp);
         var glow = new T.PointLight(COL[dk.lamp], dk.lamp === "off" ? 0 : 1.4, 2.6);
         glow.position.set(0.66, 1.1, -0.2); g.add(glow);
-        st.lamps[dk.id] = { mesh: lamp, glow: glow, lamp: dk.lamp, blink: dk.state === "failed" || dk.state === "paused" };
+        var blink = dk.state === "failed" || dk.state === "paused";
+        st.lamps[dk.id] = { mesh: lamp, glow: glow, lamp: dk.lamp, blink: blink, base: dk.lamp, baseBlink: blink };
       }
       // an invisible box for tapping the desk
       var hit = new T.Mesh(new T.BoxGeometry(2, 2.2, 2.2), new T.MeshBasicMaterial({ visible: false }));
@@ -284,6 +285,35 @@
         st.ctl.update();
       }
       clock("");
+      st.runTags = {};
+      applyRunning();
+    }
+
+    // ---- live: a job running at this second gets a blue lamp, a "running" tag and a worker who keeps typing ----
+    function applyRunning() {
+      if (!st.R || st.replay) return;
+      var on = st.running || {};
+      Object.keys(st.lamps).forEach(function (k) {
+        var L = st.lamps[k];
+        if (on[k]) setLamp(k, "run", false);
+        else if (L.lamp === "run") setLamp(k, L.base, L.baseBlink);
+      });
+      Object.keys(st.runTags || {}).forEach(function (k) {
+        if (on[k]) return;
+        var s = st.runTags[k];
+        st.world.remove(s); s.material.map.dispose(); s.material.dispose();
+        var w = st.workers[k];
+        if (w && w.userData.head.userData.y0 != null) w.userData.head.position.y = w.userData.head.userData.y0;
+        delete st.runTags[k];
+      });
+      Object.keys(on).forEach(function (k) {
+        var w = st.workers[k];
+        if (!w || st.runTags[k]) return;
+        var s = label("▶ " + tw("office.running"), null, "run", 1.3);
+        var p = new st.T.Vector3(); w.getWorldPosition(p);
+        s.position.set(p.x, 3.35, p.z); st.world.add(s);
+        st.runTags[k] = s;
+      });
     }
 
     // ---- real events: a worker types and a mark rises ----
@@ -317,6 +347,14 @@
         var L = st.lamps[k];
         if (L.blink) { L.mesh.visible = on; L.glow.intensity = on ? 1.6 : 0; }
         else L.mesh.visible = true;
+        if (L.lamp === "run") L.glow.intensity = 1.2 + Math.sin(now / 160) * 0.9;
+      });
+      if (!st.replay) Object.keys(st.runTags || {}).forEach(function (k) {
+        var w = st.workers[k];
+        if (!w) return;
+        var h = w.userData.head;
+        if (h.userData.y0 == null) h.userData.y0 = h.position.y;
+        h.position.y = h.userData.y0 + Math.abs(Math.sin(now / 1000 * Math.PI * 3)) * 0.06;   // typing while it runs
       });
       st.fx = st.fx.filter(function (f) {
         var t = (now - f.t0) / 1800;
@@ -403,6 +441,8 @@
           act(f.job, f.result === "ok" || f.result === "verified_ok" ? "ok" : (f.result === "fail" || f.result === "verified_fail" ? "bad" : "run"));
         });
       },
+      // ids: {job id: true} of what runs right now (GET /office/live)
+      running: function (ids) { st.running = ids || {}; applyRunning(); },
       ready: function () { return ready; },
       destroy: function () {
         st.alive = false;

@@ -7287,5 +7287,18 @@
   "office.replay_at": "{at} · lượt {n}/{total}",
   "office.replay_done": "Hết ngày, bàn đã về trạng thái hiện tại.",
   "office.replay_none": "Ngày này chưa có lượt chạy nào để phát lại.",
-  "office.close": "Đóng"
+  "office.close": "Đóng",
+  "office.now_title": "Đang chạy ngay lúc này",
+  "office.now_none": "Không có việc nào đang chạy. Trang tự hỏi lại mỗi 5 giây.",
+  "office.now_wait": "Đang hỏi hệ thống...",
+  "office.now_running": "đang chạy",
+  "office.now_since": "từ {at}, đã {dur}",
+  "office.running": "Đang chạy",
+  "office.k_loop": "Vòng lặp",
+  "office.k_reminder": "Lịch hẹn",
+  "office.k_task": "Việc trên bảng",
+  "office.k_job": "Lệnh chạy nền",
+  "office.dur_s": "{s} giây",
+  "office.dur_m": "{m} phút {s} giây",
+  "office.dur_h": "{h} giờ {m} phút"
 }
