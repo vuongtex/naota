@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.14.0] - 2026-11-09
+### Added
+- **Office page**: see what each department's digital staff is doing, which jobs are broken, and what waits for you.
+
 ## [1.13.1] - 2026-11-08
 ### Fixed
 - **Zalo messages after a short connection drop** now reach the inbox, not only the chat history.

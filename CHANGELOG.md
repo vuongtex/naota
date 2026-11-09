@@ -6,6 +6,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.14.0] - 2026-11-09
+### Thêm mới
+- **Trang Văn phòng**: xem nhân sự số của từng phòng ban đang làm gì, việc nào hỏng, việc gì chờ anh.
+
 ## [1.13.1] - 2026-11-08
 ### Sửa lỗi
 - **Tin Zalo đến lúc mạng chập chờn vài giây** nay vào Hộp thư, không chỉ nằm trong lịch sử chat.
