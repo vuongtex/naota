@@ -6,6 +6,18 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.21.0] - 2026-11-09
+### Thêm mới
+- **Bot Zalo cá nhân hiện "đang soạn tin..." trong nhóm.** Chỉ bật sau khi bot đã quyết định trả lời (được gọi tên, hoặc bộ phán xử chọn lên tiếng) và giữ tới lúc gửi xong, nên nhóm không còn im 20-30 giây rồi mới thấy bot nói. Tin bot đọc rồi im thì không hiện gì.
+- **Ô bật tắt "Hiện đang soạn tin... trong nhóm khi bot sắp trả lời"** trong phần cài đặt từng bot ở trang Chatbot, mặc định bật.
+### Sửa lỗi
+- **Nút Nhập tin cũ của Zalo nhập được thật.** Trước đây cuộc chat nào đã có dù chỉ một tin trong Hộp thư đều bị bỏ qua, nên tài khoản đã bật Ghi hội thoại bấm nhập gần như không được gì. Giờ cuộc chat đã có tin nhận thêm các tin cũ hơn tin đầu tiên của nó, xếp lên trên đúng thứ tự thời gian.
+- Tin cũ vừa nhập không nhảy xuống cuối khung chat đang mở, không làm bot hiểu nhầm là tin mới, và nhóm vẫn chỉ giữ các tin gần nhất như cũ.
+- **"Đang soạn tin" ở chat riêng không còn tắt cả tiếng.** Trước đây chỉ một cuộc chat bị Zalo từ chối, hoặc MCP khởi động lại, là dấu này tắt ở mọi cuộc chat của nick suốt một giờ. Giờ chỉ tắt cho đúng lượt đó, và dấu được giữ tới khi tin đã gửi đi.
+### Cải thiện
+- **Mở màn mạng nơ-ron không còn làm cả app đứng.** Bộ theo dõi file của đồ thị được dựng trên luồng riêng, nên bộ não nhiều thư mục không còn khiến mọi thao tác khác chờ tới 2 giây.
+- **Mọi kết nối ra ngoài dùng chung một bộ chứng chỉ bảo mật**, nạp một lần lúc khởi động. Trước đây mỗi lần gọi ra ngoài (Telegram, Zalo, model...) đều nạp lại cả bộ, có lần làm app đứng gần 2 giây.
+- **Đọc lịch sử Zalo cá nhân chạy nền.** Phần dò lại tin bị sót trong file lịch sử không còn chặn các thao tác khác.
 ## [1.20.1] - 2026-11-09
 ### Cải thiện
 - Dọn tài liệu bên thứ ba.

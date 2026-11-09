@@ -126,6 +126,8 @@ import agent_rules   # mục Luật chủ dặn / Bổ sung (tự học) + chố
 import skill_router   # nguồn chân lý khám phá skill (canonical <brain>/skills) dùng chung mọi engine
 import skill_usage     # telemetry: đếm skill nào THẬT SỰ được dùng qua naota_use_skill (tín hiệu DƯƠNG một chiều)
 import share_bundle   # xuất/nhập gói agent/skill/workflow (.zip) để chia sẻ giữa brain/người dùng
+import ssl_shared   # one SSL context for every httpx client, built off the event loop
+ssl_shared.install()
 import share_store    # link CHIA SẺ CÔNG KHAI của một file trong brain (/s/<token>)
 import share_stats    # view counter of those public links
 import share_render   # dựng trang xem cho link chia sẻ (markdown -> html, khung trang)
@@ -5352,6 +5354,13 @@ async def _widen_io_pool():
             concurrent.futures.ThreadPoolExecutor(max_workers=n, thread_name_prefix="naota-io"))
     except Exception as e:  # noqa: BLE001 - the stock pool still works, only smaller
         print(f"[io pool] kept the default pool: {type(e).__name__}: {e}", file=sys.stderr)
+
+
+@app.on_event("startup")
+async def _warm_shared_ssl():
+    """Build the one SSL context every httpx client shares (ssl_shared.py) on a worker thread, so not even the first
+    client loads the certificate bundle on the event loop."""
+    await asyncio.to_thread(ssl_shared.warm)
 
 
 @app.on_event("startup")
@@ -27705,7 +27714,8 @@ async def chatbots_create(name: str = Form(...), agent_slug: str = Form(...),
                           account_label: str = Form(""), reply_policy: str = Form(""),
                           gio_truc: str = Form(""), nhuong_tay_phut: str = Form(""),
                           ngoai_le: str = Form(""), xac_nhan_ngoai_le: str = Form(""),
-                          nhan_ket_ban: str = Form(""), skip_labels: str = Form("")):
+                          nhan_ket_ban: str = Form(""), skip_labels: str = Form(""),
+                          group_typing: str = Form("")):
     # Bot sống TRONG một brain: Agent nó dùng và tài liệu nó đọc là cùng một chỗ. Nhận cả hai
     # tên tham số và tự bù cho nhau, nên người gọi chỉ cần gửi một cái.
     br = (brain or agent_brain or "").strip()
@@ -27745,6 +27755,8 @@ async def chatbots_create(name: str = Form(...), agent_slug: str = Form(...),
         "nhan_ket_ban": nhan_ket_ban,
         # Zalo labels the bot stays out of (personal Zalo): JSON list of label names.
         "skip_labels": skip_labels,
+        # "Đang soạn tin" in groups once the bot decided to answer (personal Zalo): "0" = off, blank = on.
+        "group_typing": group_typing,
     })
     if err:
         return JSONResponse({"ok": False, "error": err}, status_code=400)
