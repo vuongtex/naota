@@ -39,7 +39,7 @@ def check(name, cond, extra=""):
 
 
 NOW = time.time()
-CONN = {"id": "zalo-1", "label": "Minh Quy", "connector_id": "zalo"}
+CONN = {"id": "zalo-1", "label": "Lan Anh", "connector_id": "zalo"}
 
 
 def hist(mid, thread, text, minutes_ago, self_=False, ttype="dm", sender="u-xa", name="Xuan Anh", kind="text"):
@@ -49,7 +49,7 @@ def hist(mid, thread, text, minutes_ago, self_=False, ttype="dm", sender="u-xa",
 
 
 def live(mid, thread, text, minutes_ago, sender_type="customer"):
-    return {"channel": "zalo_personal", "account_id": "zalo-1", "account_name": "Minh Quy",
+    return {"channel": "zalo_personal", "account_id": "zalo-1", "account_name": "Lan Anh",
             "external_chat_id": thread, "chat_type": "private", "sender_type": sender_type,
             "sender_id": "u-xa" if sender_type == "customer" else "", "sender_name": "Xuan Anh",
             "message_type": "text", "text": text, "external_message_id": mid,

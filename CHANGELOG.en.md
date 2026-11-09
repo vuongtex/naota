@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.25.1] - 2026-11-10
+### Improved
+- Tidied sample data in the tests and the pronunciation dictionary.
+
 ## [1.25.0] - 2026-11-09
 ### Added
 - **Every chat in the history column has a ⋯ button** instead of four separate icons. The menu: Pin to top, Move to project, Rename (in place), Share link, Export as .md, Mark as unread, Archive and Delete. Right-click, or a long press on a phone, opens it too.
