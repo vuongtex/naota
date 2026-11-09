@@ -163,7 +163,7 @@ const A = require(path.join(ROOT, "dashboard/editor-autosave.js"));
     napTruoc("editor-autosave.js", ["file-editor.js", "console.js"], html) &&
     napTruoc("editor-dictate.js", ["file-editor.js", "console.js"], html));
   check("dictate.js is on the page for the mic", /static\/dictate\.js\?/.test(html));
-  check("no sideways overscroll while editing (no swipe Back)", /html\.jv-editing[^{]*\{[^}]*overscroll-behavior-x:\s*none/.test(css));
+  check("no sideways overscroll while editing (no swipe Back)", /html\.nt-editing[^{]*\{[^}]*overscroll-behavior-x:\s*none/.test(css));
   check("code blocks in the editor wrap", /\.ne-wys \.code-block\s*\{[^}]*white-space:\s*pre-wrap/.test(css));
 
   // ---- 9. new words on screen exist in both dictionaries ----

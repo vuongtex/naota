@@ -13,7 +13,7 @@
      dropped.
    - Writes once more with fetch keepalive when the page is hidden or unloaded, and asks the browser to confirm
      leaving while something is still unsaved.
-   - While an editor is open, html gets the class jv-editing: style.css turns off horizontal overscroll there, which
+   - While an editor is open, html gets the class nt-editing: style.css turns off horizontal overscroll there, which
      stops a touchpad swipe from becoming the browser's Back gesture (Chrome, Edge).
 
    The editor owns the actual write (save(content, {keepalive}) -> Promise<bool>) and the status display (onStatus:
@@ -77,7 +77,7 @@
   var live = [];   // editors open right now
 
   function syncPageLock() {
-    try { document.documentElement.classList.toggle("jv-editing", live.length > 0); } catch (e) { /* node */ }
+    try { document.documentElement.classList.toggle("nt-editing", live.length > 0); } catch (e) { /* node */ }
   }
 
   // o: key (brain + path), original (the file as read from disk), get() -> the text being edited,
