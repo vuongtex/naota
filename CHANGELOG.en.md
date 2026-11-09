@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.17.0] - 2026-11-09
+### Added
+- **Office: meeting room, talk bubbles, news ticker, AI cost** (in progress).
+
 ## [1.16.0] - 2026-11-09
 ### Added
 - **Office: see assistants hand work to each other.** A new **Handoffs this day** list shows who gave what to whom, when, and whether it is in progress, done or failed. It reads team leaders assigning members, members asking each other for help, board cards given to an assistant, and workflow steps passing work along.
