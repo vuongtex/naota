@@ -7314,5 +7314,18 @@
   "office.hs_failed": "failed",
   "office.hs_waiting": "waiting",
   "office.hs_cancelled": "cancelled",
-  "office.k_team": "Team"
+  "office.k_team": "Team",
+  "office.k_ai": "AI cost, {n} calls",
+  "office.k_ai_none": "AI cost (no figure yet)",
+  "office.k_ai_note": "For the whole server on the day shown. Engines on a monthly plan (Claude Code, ChatGPT...) count 0.",
+  "office.tk_hand": "{at} {from} gave {to}: {title}",
+  "office.tk_run": "{at} {name}: {result}",
+  "office.zone_sub": "{s} assistants, {r} runs",
+  "office.zone_fail": "{f} failed",
+  "office.meeting_room": "Meeting room",
+  "office.talk_plan": "Splitting the work",
+  "office.talk_sum": "Summing up",
+  "office.talk_work": "Working for the team",
+  "office.talk_help": "Helping",
+  "office.talk_reply": "Talking"
 }

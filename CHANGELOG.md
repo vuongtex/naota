@@ -8,7 +8,11 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 ## [1.17.0] - 2026-11-09
 ### Thêm mới
-- **Văn phòng: phòng họp, bong bóng trao đổi, dòng tin chạy, chi phí AI** (đang làm).
+- **Phòng họp trong Văn phòng 3D**: khi trưởng nhóm Team đang chia việc hay tổng hợp, cả nhóm đứng dậy đi vào phòng họp ngồi quanh bàn, xong thì tự về bàn mình.
+- **Bong bóng trao đổi** trên đầu trợ lý đang nói trong Team: đang chia việc, đang trả lời nhóm, đang làm việc nhóm, đang giúp.
+- **Dòng tin chạy** dưới cảnh 3D: ai vừa giao gì cho ai, việc nào vừa chạy đạt hay hỏng, mới nhất trước.
+- **Chi phí AI trong ngày** thêm vào hàng số đầu trang, kèm số lượt gọi AI. Tính cho cả máy chủ; engine chạy bằng gói thuê bao tính 0.
+- **Biển mỗi phòng ban** ghi thêm số trợ lý, số lượt chạy và số lượt hỏng trong ngày. Mỗi phòng có **tường kính** ba mặt, mặt trước để mở cho dễ nhìn.
 
 ## [1.16.0] - 2026-11-09
 ### Thêm mới

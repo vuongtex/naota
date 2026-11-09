@@ -6,7 +6,11 @@ NAOTA release history. Newest first.
 
 ## [1.17.0] - 2026-11-09
 ### Added
-- **Office: meeting room, talk bubbles, news ticker, AI cost** (in progress).
+- **Meeting room in the 3D office**: while a team leader splits a job or sums it up, the whole team walks into the meeting room and sits round the table, then walks back to their desks.
+- **Talk bubbles** over an assistant speaking in a team: splitting the work, talking, working for the team, helping.
+- **News ticker** under the 3D office: who just gave what to whom, which run just passed or failed, newest first.
+- **AI cost of the day** joins the numbers at the top, with the number of AI calls. It covers the whole server; engines on a monthly plan count 0.
+- **Each department sign** now adds its assistants, runs and failures of the day, and each department has **glass walls** on three sides, the front left open.
 
 ## [1.16.0] - 2026-11-09
 ### Added
