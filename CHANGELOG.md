@@ -12,6 +12,7 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 - **Việc hỏng nay luôn báo về Telegram của chủ.** Việc giao từ khung chat trên web mà hỏng cần bạn xử lý, trước chỉ báo vào đúng khung chat đó; nay gửi thêm một tin vào Telegram của bạn để bạn biết khi không mở máy.
 - **Việc nhóm (Team) bị chặn, hỏng hay chờ bạn duyệt** trước chỉ nằm trong chuông; nay cũng gửi về Telegram của bạn.
 ### Cải thiện
+- **Văn phòng 3D hết chữ đè nhau.** Tên mỗi bàn nằm gọn trên đúng bàn đó, không rộng quá bàn, tên dài thì xuống hai dòng. Hai nhãn chạm nhau trên màn hình thì giữ nhãn quan trọng hơn (tên phòng, việc đang chạy, việc hỏng), nhãn kia tạm ẩn và hiện lại khi phóng to.
 - Mục **Cần bạn xử lý** trên trang Văn phòng ghi rõ tin việc hỏng có đang tới Telegram không. Chưa nối Telegram thì nói thẳng là tin chỉ nằm trong chuông, kèm nút mở Cài đặt.
 
 ## [1.17.0] - 2026-11-09
