@@ -4,6 +4,11 @@
 
 NAOTA release history. Newest first.
 
+## [1.25.2] - 2026-11-10
+### Improved
+- **The node and link counts move into the top-left corner of the brain map**, out of the top bar. The eye button hides them with the folder labels.
+- **The brain picker shows the node and link counts on one line**, no longer split in two.
+
 ## [1.25.1] - 2026-11-10
 ### Improved
 - Tidied sample data in the tests and the pronunciation dictionary.
