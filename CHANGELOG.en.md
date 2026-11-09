@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.25.3] - 2026-11-10
+### Fixed
+- **No more codes like `page.chat.label` or `app.pin_meta` in place of text.** Left menu tooltips, file tree buttons and the line under a pinned file in the chat box used to stay as codes when they were drawn before the text dictionary arrived. They now switch to real text as soon as it does.
+
 ## [1.25.2] - 2026-11-10
 ### Improved
 - **The node and link counts move into the top-left corner of the brain map**, out of the top bar. The eye button hides them with the folder labels.

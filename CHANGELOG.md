@@ -6,6 +6,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.25.3] - 2026-11-10
+### Sửa lỗi
+- **Không còn chỗ nào hiện mã kiểu `page.chat.label` hay `app.pin_meta` thay cho chữ.** Chú thích khi rê chuột vào menu trái, nút trong cây file, dòng dưới file đang ghim ở ô chat từng kẹt ở mã vì được vẽ trước khi bộ chữ tải xong. Giờ bộ chữ tải xong là các chỗ đó tự đổi thành chữ.
+
 ## [1.25.2] - 2026-11-10
 ### Cải thiện
 - **Số node và liên kết chuyển vào góc trên bên trái bản đồ bộ não**, rời thanh đầu trang cho gọn. Nút con mắt ẩn nó cùng nhãn thư mục.

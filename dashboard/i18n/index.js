@@ -204,7 +204,52 @@
       try {
         window.dispatchEvent(new CustomEvent("naota:i18n", { detail: { lang: _lang } }));
       } catch (e) { /* trình duyệt quá cũ - giao diện vẫn dùng được, chỉ là không tự vẽ lại */ }
+      _quetHenGio();
       return _lang;
+    });
+  }
+
+  /* Lưới an toàn cho chữ vẽ TRƯỚC khi từ điển về. Nhiều phần (chú thích menu trái, nút trong cây file, dòng dưới
+   * file đang ghim) gọi t() lúc từ điển chưa tới, nhận về nguyên mã khoá (`page.chat.label`, `app.pin_meta`) và
+   * không vẽ lại khi nghe "naota:i18n". Từ điển về thì rà cả trang một lượt: chữ hay thuộc tính nào ĐÚNG BẰNG một
+   * khoá có trong từ điển thì thay bằng bản dịch. Khoá cần tham số (bản dịch có "{") thì bỏ qua, vì không biết
+   * giá trị để điền. Rà thêm hai lần sau đó cho phần vẽ ngay sau sự kiện. */
+  var MA_KHOA = /^[a-z][a-z0-9_]*(\.[a-z0-9_]+)+$/;
+  var THUOC_TINH = ["title", "aria-label", "placeholder"];
+  function _dichKhoa(s) {
+    var k = String(s || "").trim();
+    if (!MA_KHOA.test(k)) return null;
+    if (!Object.prototype.hasOwnProperty.call(_tu, k) && !Object.prototype.hasOwnProperty.call(_goc, k)) return null;
+    var v = t(k);
+    if (!v || v === k || v.indexOf("{") >= 0) return null;
+    return v;
+  }
+  function quetMaSot(root) {
+    root = root || (typeof document !== "undefined" ? document.body : null);
+    if (!root || !root.querySelectorAll) return 0;
+    var n = 0;
+    var ds = root.querySelectorAll("[title],[aria-label],[placeholder]");
+    for (var i = 0; i < ds.length; i++) {
+      for (var j = 0; j < THUOC_TINH.length; j++) {
+        var cu = ds[i].getAttribute(THUOC_TINH[j]);
+        var moi = cu && _dichKhoa(cu);
+        if (moi) { ds[i].setAttribute(THUOC_TINH[j], moi); n++; }
+      }
+    }
+    if (typeof document !== "undefined" && document.createTreeWalker) {
+      var w = document.createTreeWalker(root, 4 /* NodeFilter.SHOW_TEXT */, null);
+      var nut;
+      while ((nut = w.nextNode())) {
+        var chu = _dichKhoa(nut.nodeValue);
+        if (chu) { nut.nodeValue = chu; n++; }
+      }
+    }
+    return n;
+  }
+  function _quetHenGio() {
+    if (typeof document === "undefined") return;
+    [0, 1000, 4000].forEach(function (ms) {
+      setTimeout(function () { try { quetMaSot(); } catch (e) { /* không để lưới an toàn làm hỏng trang */ } }, ms);
     });
   }
 
@@ -274,6 +319,7 @@
     init: init,
     setLang: setLang,
     applyDom: applyDom,
+    quetMaSot: quetMaSot,
     lang: function () { return _lang; },
     ready: function () { return _san_sang; },
     /* true = máy này đã CHỌN ngôn ngữ (lưu trong localStorage), false = đang đoán theo trình
