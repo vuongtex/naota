@@ -305,7 +305,7 @@ h2, h3, .fm-head { font-family: var(--font-head); font-weight: 600; letter-spaci
 .hud-top-right { display: flex; align-items: center; gap: 8px; justify-self: end; }
 .brand { display: flex; align-items: center; gap: 8px; }
 .brand-icon { color: var(--accent-ink); font-size: 18px; }
-/* Chữ NAOTA cùng kiểu logo VUONG.AI: Montserrat đậm, viết hoa, nghiêng (anh Vương chốt 31/10/2026). */
+/* Chữ NAOTA cùng kiểu logo VUONG.AI: Montserrat đậm, viết hoa, nghiêng. */
 .brand-text { font-family: 'Montserrat', var(--font); font-size: 17px; font-weight: 700; font-style: italic; letter-spacing: 0.5px; text-transform: uppercase; }
 .hud-center-title {
   min-width: 0; display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -1525,6 +1525,31 @@ li.task-done > .dv-ttext { text-decoration: line-through; text-decoration-color:
 .steps-sum-now:not(:empty)::before { content: "· "; }
 /* Bước cuối đang chạy: đậm hơn một chút để mắt biết đang đứng ở đâu trong danh sách. */
 .steps-list .step-live { color: var(--text2); }
+/* The turn's plan (chat-steps.js planHtml): the engine's own checklist, open even while the step list is folded.
+   Larger than the steps around it because this is the part people read, on a phone too. */
+.steps-plan {
+  margin: 4px 0 6px; padding: 10px 12px; max-width: 560px;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--surface-1);
+  font-size: 14px; line-height: 1.45; color: var(--text2);
+}
+.plan-head {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
+  font-size: 12.5px; font-weight: 600; letter-spacing: 0.02em; color: var(--text3);
+}
+.plan-head svg { width: 14px; height: 14px; }
+.plan-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.plan-item { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
+.plan-item svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px; }
+.plan-text { min-width: 0; overflow-wrap: anywhere; }
+.plan-done { color: var(--text3); }
+.plan-done .plan-text { text-decoration: line-through; }
+.plan-done svg { color: var(--green); }
+.plan-active { color: var(--text); font-weight: 600; }
+.plan-active svg { color: var(--accent2); }
+.plan-live svg { animation: planPulse 1.4s ease-in-out infinite; }
+@keyframes planPulse { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .plan-live svg { animation: none; } }
+@media (max-width: 640px) { .steps-plan { font-size: 15px; } }
 
 /* Dòng ghi chú thoáng qua (cửa tạp âm bỏ một lượt). Nhạt và căn giữa để mắt lướt qua chứ
    không đọc như một lượt hội thoại - nó tự tắt sau vài giây. */
@@ -4552,7 +4577,7 @@ div.info-body > * { margin: 0; font-size: inherit; }
    The hold still ended in iOS's own text selection, its handle on "Trả lời" in the card. iOS
    selects the nearest selectable text when the spot under the finger is not, and the card, the lifted copy and the
    time row under a bubble were still selectable. Now the whole message and the whole layer are not; fields stay.
-   Android too (owner): pointer: coarse catches phones that misreport hover, and html.mp-holding (set by msg-press.js
+   Android too: pointer: coarse catches phones that misreport hover, and html.mp-holding (set by msg-press.js
    while the card is open) switches selection off on the whole page, whatever the browser.
    Main chat messages (.msg) are selectable again; there only the reaction corner opens the menu
    (msg-press.js holdOnly), and holding the text gives the phone's own selection and Copy. */
