@@ -48,6 +48,10 @@ const mine = steps.filter(s => s.job === "dang");
 check("replay of 07/11: 9 runs of the posting loop, 3 crosses", mine.length === 9 && mine.filter(s => s.mark === "bad").length === 3);
 check("replay keeps the day's order and clock", steps[0].hm === "08:00" && steps[steps.length - 1].hm === "20:00");
 check("the lamp after the last run is red", mine[mine.length - 1].lamp === "bad");
+const mixed = O3.replaySteps({ day_feed: [{ ts: 10, hm: "09:00", job: "x", result: "ok" }, { ts: 30, hm: "11:00", job: "x", result: "fail" }],
+  handoffs: [{ ts: 20, hm: "10:00", from: "owner", to: "a", status: "done", title: "T" }] });
+check("a replay plays handoffs between runs, in time order", mixed.length === 3 && !!mixed[1].hand
+  && mixed[1].hand.to === "a" && mixed[0].mark === "ok" && mixed[2].mark === "bad");
 check("a replay of a day with no run has no steps", O3.replaySteps({ day_feed: [] }).length === 0);
 
 // the desk card (office.js describe)

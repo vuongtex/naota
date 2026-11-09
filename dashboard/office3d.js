@@ -86,13 +86,20 @@
   }
 
   // What a replay shows at each step: the lamp of a job after each of that day's runs, in order.
+  // A handoff of that day becomes a step too ({hand: {from, to}}), in time order with the runs.
   function replaySteps(d) {
     var lamps = {};
-    return ((d && d.day_feed) || []).map(function (f) {
+    var runs = ((d && d.day_feed) || []).map(function (f, i) {
       var good = f.result === "ok" || f.result === "verified_ok";
       var bad = f.result === "fail" || f.result === "verified_fail";
-      lamps[f.job] = good ? "ok" : (bad ? "bad" : (lamps[f.job] || "off"));
-      return { job: f.job, hm: f.hm, mark: good ? "ok" : (bad ? "bad" : "run"), lamp: lamps[f.job], name: f.name, note: f.note || "" };
+      return { ts: f.ts || 0, n: i, f: f, good: good, bad: bad };
+    });
+    var hands = ((d && d.handoffs) || []).map(function (h, i) { return { ts: h.ts || 0, n: 100000 + i, h: h }; });
+    return runs.concat(hands).sort(function (a, b) { return (a.ts - b.ts) || (a.n - b.n); }).map(function (x) {
+      if (x.h) return { hand: { from: x.h.from, to: x.h.to, status: x.h.status }, hm: x.h.hm, name: x.h.title };
+      var f = x.f;
+      lamps[f.job] = x.good ? "ok" : (x.bad ? "bad" : (lamps[f.job] || "off"));
+      return { job: f.job, hm: f.hm, mark: x.good ? "ok" : (x.bad ? "bad" : "run"), lamp: lamps[f.job], name: f.name, note: f.note || "" };
     });
   }
 
@@ -141,7 +148,7 @@
       sun.shadow.camera.left = -40; sun.shadow.camera.right = 40; sun.shadow.camera.top = 40; sun.shadow.camera.bottom = -40;
       scene.add(sun);
       st.R = R; st.scene = scene; st.cam = cam; st.ctl = ctl; st.world = new T.Group(); scene.add(st.world);
-      st.lamps = {}; st.workers = {}; st.picks = []; st.fx = [];
+      st.lamps = {}; st.workers = {}; st.picks = []; st.fx = []; st.flights = [];
       var ro = new ResizeObserver(resize); ro.observe(stage); st.ro = ro;
       resize();
       wire();
@@ -191,7 +198,7 @@
       });
       st.scene.remove(w);
       st.world = new st.T.Group(); st.scene.add(st.world);
-      st.lamps = {}; st.workers = {}; st.picks = []; st.fx = [];
+      st.lamps = {}; st.workers = {}; st.picks = []; st.fx = []; st.flights = [];
     }
 
     function person(color) {
@@ -276,6 +283,12 @@
         sign.center.set(0, 0.5); sign.position.set(z.x - z.w / 2 + 0.3, 0.3, z.z - z.dz / 2 + 0.5); st.world.add(sign);
         z.desks.forEach(function (dk) { desk(dk, z, ACCENT[i % ACCENT.length]); });
       });
+      // the owner stands at the front edge: work the owner hands out starts here
+      var owner = person(0xfccb1d);
+      owner.position.set(0, 0, L.d / 2 + 1.2); owner.scale.setScalar(1.4); st.world.add(owner);
+      st.workers.owner = owner;
+      var otag = label(opts.ownerName ? opts.ownerName() : "owner", null, null, 1.0);
+      otag.position.set(0, 2.9, L.d / 2 + 1.2); st.world.add(otag);
       if (fit) {
         var span = Math.max(L.w, L.d);
         // a narrow (phone) screen backs the camera off so every department still fits
@@ -328,6 +341,34 @@
       st.world.add(s);
       st.fx.push({ sprite: s, t0: performance.now(), worker: w });
     }
+    // a sheet of paper flies in an arc from the giver to the receiver, who then types
+    function arcAt(a, b, t, out) {
+      var e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      var h = 3.2 + a.distanceTo(b) * 0.12;
+      return out.set(a.x + (b.x - a.x) * e, 1.8 + Math.sin(Math.PI * t) * h, a.z + (b.z - a.z) * e);
+    }
+    function hand(from, to, status, title) {
+      var a = st.workers[from] || st.workers.owner, b = st.workers[to];
+      if (!a || !b || a === b) return;
+      var T = st.T, pa = new T.Vector3(), pb = new T.Vector3();
+      a.getWorldPosition(pa); b.getWorldPosition(pb);
+      var tone = status === "failed" ? "bad" : "run";
+      var paper = new T.Mesh(new T.BoxGeometry(1.0, 0.06, 1.3),
+        new T.MeshStandardMaterial({ color: 0xffffff, emissive: COL[tone], emissiveIntensity: 0.35 }));
+      paper.castShadow = true;
+      st.world.add(paper);
+      // the whole route, dashed, so the eye sees who gives to whom before the sheet lands
+      var pts = [];
+      for (var i = 0; i <= 32; i++) pts.push(arcAt(pa, pb, i / 32, new T.Vector3()));
+      var line = new T.Line(new T.BufferGeometry().setFromPoints(pts),
+        new T.LineDashedMaterial({ color: COL[tone], dashSize: 0.5, gapSize: 0.3, transparent: true, opacity: 0.9 }));
+      line.computeLineDistances();
+      st.world.add(line);
+      var tag = title ? label(short(title, 26), null, tone, 0.9) : null;
+      if (tag) st.world.add(tag);
+      st.flights.push({ mesh: paper, line: line, tag: tag, a: pa, b: pb, t0: performance.now(), to: to, status: status });
+    }
+
     function setLamp(jobId, lamp, blink) {
       var L = st.lamps[jobId];
       if (!L) return;
@@ -370,6 +411,30 @@
         h.position.y = h.userData.y0 + Math.abs(Math.sin(t * Math.PI * 6)) * 0.06;   // typing
         return true;
       });
+      st.flights = (st.flights || []).filter(function (f) {
+        var t = (now - f.t0) / 2400;
+        if (t >= 1.35) {
+          [f.mesh, f.line, f.tag].forEach(function (o) {
+            if (!o) return;
+            st.world.remove(o);
+            if (o.geometry) o.geometry.dispose();
+            if (o.material.map) o.material.map.dispose();
+            o.material.dispose();
+          });
+          return false;
+        }
+        if (t >= 1) {
+          // landed: the receiver gets to work, the route fades
+          if (!f.landed) { f.landed = true; act(f.to, f.status === "failed" ? "bad" : (f.status === "done" ? "ok" : "run")); }
+          f.line.material.opacity = 0.9 * (1.35 - t) / 0.35;
+          if (f.tag) f.tag.material.opacity = (1.35 - t) / 0.35;
+          return true;
+        }
+        arcAt(f.a, f.b, t, f.mesh.position);
+        f.mesh.rotation.y = t * Math.PI * 2;
+        if (f.tag) f.tag.position.set(f.mesh.position.x, f.mesh.position.y + 1.0, f.mesh.position.z);
+        return true;
+      });
       st.R.render(st.scene, st.cam);
     }
 
@@ -410,13 +475,15 @@
       if (!steps.length) { clock(tw("office.replay_none")); return; }
       Object.keys(st.lamps).forEach(function (k) { setLamp(k, "off", false); });
       var i = 0;
+      var wait = 0;
       st.replay = setInterval(function () {
+        if (wait > 0) { wait--; return; }
         if (i >= steps.length) { stopReplay(true); return; }
         var s = steps[i++];
-        setLamp(s.job, s.lamp, false);
-        act(s.job, s.mark);
+        if (s.hand) { hand(s.hand.from, s.hand.to, s.hand.status, s.name); wait = steps.length > 40 ? 2 : 1; }
+        else { setLamp(s.job, s.lamp, false); act(s.job, s.mark); }
         clock(tw("office.replay_at", { at: s.hm, n: i, total: steps.length }));
-      }, steps.length > 40 ? 450 : 900);
+      }, steps.length > 40 ? 600 : 1100);
       clock(tw("office.replay_at", { at: steps[0].hm, n: 0, total: steps.length }));
     }
     function stopReplay(finished) {
@@ -432,11 +499,16 @@
         var newest = ((d && d.feed) || []).reduce(function (m, f) { return Math.max(m, f.ts || 0); }, 0);
         var fresh = first ? [] : ((d && d.feed) || []).filter(function (f) { return f.ts > st.seen; });
         st.seen = Math.max(st.seen, newest);
+        var hs = (d && d.handoffs) || [];
+        var hNew = hs.reduce(function (m, h) { return Math.max(m, h.ts || 0); }, 0);
+        var freshH = first || !st.seenH ? [] : hs.filter(function (h) { return h.ts > st.seenH; });
+        st.seenH = Math.max(st.seenH || 0, hNew);
         var sameDay = st.data && st.data.day === d.day;
         st.data = d;
         if (!st.R) return;
         if (st.replay) return;   // a running replay keeps the stage; it redraws when it ends
         draw(d, !sameDay);
+        freshH.forEach(function (h) { hand(h.from, h.to, h.status, h.title); });
         fresh.forEach(function (f) {
           act(f.job, f.result === "ok" || f.result === "verified_ok" ? "ok" : (f.result === "fail" || f.result === "verified_fail" ? "bad" : "run"));
         });

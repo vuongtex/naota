@@ -4,6 +4,12 @@
 
 NAOTA release history. Newest first.
 
+## [1.16.0] - 2026-11-09
+### Added
+- **Office: see assistants hand work to each other.** A new **Handoffs this day** list shows who gave what to whom, when, and whether it is in progress, done or failed. It reads team leaders assigning members, members asking each other for help, board cards given to an assistant, and workflow steps passing work along.
+- **In 3D** each handoff is a sheet flying along a dashed route from the giver's desk to the receiver's, with the job's name; the receiver starts typing. Work you hand out leaves from the **You** figure at the front of the office. **Replay this day** plays the handoffs too, at their real times.
+- An assistant working on a team step or a board card lights its desk and shows in **Running right now**. New work handed out reloads the page at once.
+
 ## [1.15.0] - 2026-11-09
 ### Added
 - **3D office**: press **3D view** on the Office page. One area per department, one desk per assistant and per automated job, each lamp in the job's real state.

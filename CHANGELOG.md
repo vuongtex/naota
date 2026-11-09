@@ -6,6 +6,12 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.16.0] - 2026-11-09
+### Thêm mới
+- **Văn phòng: thấy trợ lý giao việc cho nhau.** Mục mới **Giao việc trong ngày** ghi ai giao việc gì cho ai, lúc mấy giờ, đang làm, xong hay hỏng. Lấy từ trưởng nhóm Team giao cho thành viên, thành viên nhờ nhau, thẻ trên Bảng việc giao cho trợ lý, và các bước nối nhau của Quy trình.
+- **Trong 3D**, mỗi lần giao việc là một tờ giấy bay theo vệt đứt nét từ bàn người giao sang bàn người nhận, kèm tên việc; người nhận gõ phím ngay. Việc anh tự giao đi ra từ nhân vật **Bạn** ở mép trước văn phòng. **Phát lại ngày này** cũng phát cả các lần giao việc theo đúng giờ.
+- Trợ lý đang làm một bước của Team hay một thẻ việc thì bàn sáng đèn và hiện trong dải **Đang chạy ngay lúc này**. Có việc mới được giao thì trang tải lại ngay.
+
 ## [1.15.0] - 2026-11-09
 ### Thêm mới
 - **Văn phòng 3D**: bấm **Xem 3D** trên trang Văn phòng. Mỗi phòng ban một khu, mỗi trợ lý và mỗi việc tự chạy một bàn, đèn trên bàn đúng trạng thái thật.

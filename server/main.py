@@ -31748,7 +31748,52 @@ async def plan_limits_get(goi: int = 0):
 async def office_get(brain: str = "brain", day: str = ""):
     import office
     root = Path(_brain_root(brain))
-    return await asyncio.to_thread(office.build, root, time.time(), localefmt.tz(), day)
+    return await asyncio.to_thread(office.build, root, time.time(), localefmt.tz(), day,
+                                   lambda d: _office_gather(brain, d))
+
+
+def _office_teams(brain: str) -> list:
+    """This brain's teams with their members, [] when no team was ever made."""
+    try:
+        if not _TEAM_API.exists():
+            return []
+        store = _TEAM_API.teams()
+        return [{"team": t, "members": store.members(t["team_id"], include_removed=True)}
+                for t in store.list_teams(_brain_key(brain), limit=200)]
+    except Exception:
+        return []
+
+
+def _office_gather(brain: str, day: str):
+    """Raw data office.handoffs() reads for one day: team steps, board cards, workflow runs. Read only."""
+    import office
+    import workflow_runs
+    tz = localefmt.tz()
+    t0 = office._ts_of(day, "00:00", tz)
+    teams = _office_teams(brain)
+    if teams:
+        store = _TEAM_API.teams()
+        tstore = tasks_feature.store
+        for t in teams:
+            t["steps"] = store.steps_between(t["team"]["team_id"], t0, t0 + 86400)
+            titles = {}
+            for tid in {s.get("task_id") for s in t["steps"]}:
+                try:
+                    got = tstore.get_task(tid)
+                    if got:
+                        titles[tid] = got.get("title") or ""
+                except Exception:
+                    pass
+            t["titles"] = titles
+    try:
+        tasks = tasks_feature.store.list_tasks(_brain_key(brain))
+    except Exception:
+        tasks = []
+    try:
+        runs = workflow_runs.get_store().gan_nhat(_brain_key(brain), limit=200)
+    except Exception:
+        runs = []
+    return teams, tasks, runs
 
 
 # What runs RIGHT NOW (the Office page asks every 5 seconds while it is open): the loop iteration,
@@ -31771,14 +31816,24 @@ def _office_live_sync(brain: str) -> dict:
     except Exception:
         rem_now = {}
     try:
-        tasks = tasks_feature.store.list_tasks(root)
+        tasks = tasks_feature.store.list_tasks(_brain_key(brain))
     except Exception:
         tasks = []
     try:
         procs = tien_trinh_nen.dang_chay(brain_root=root)
     except Exception:
         procs = []
-    return office.live(Path(root), time.time(), localefmt.tz(), loop_now, rem_now, tasks, procs)
+    team_now = []
+    teams = _office_teams(brain)
+    if teams:
+        store = _TEAM_API.teams()
+        for t in teams:
+            try:
+                for s in store.steps_running(t["team"]["team_id"]):
+                    team_now.append({"team": t["team"], "members": t["members"], "step": s})
+            except Exception:
+                pass
+    return office.live(Path(root), time.time(), localefmt.tz(), loop_now, rem_now, tasks, procs, team_now)
 
 # Batched reads (performance stage 2): many dashboard GETs in one round trip, streamed back as each one
 # finishes. read_batch.py. Registered at the end so the route table only grows at the end.
