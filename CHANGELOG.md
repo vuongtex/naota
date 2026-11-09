@@ -6,6 +6,26 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.25.0] - 2026-11-09
+### Thêm mới
+- **Mỗi hội thoại trong cột lịch sử có một nút ⋯** thay cho bốn icon rời (ghim, chuyển project, đổi tên, xoá). Menu có: Ghim lên đầu, Chuyển vào project, Đổi tên (sửa ngay tại dòng), Chia sẻ link, Xuất ra file .md, Đánh dấu chưa đọc, Lưu trữ và Xoá. Bấm chuột phải, hoặc nhấn giữ trên điện thoại, cũng mở menu này.
+- **Lưu trữ hội thoại:** hội thoại lưu trữ rời khỏi danh sách nhưng giữ nguyên nội dung, Naota vẫn nhớ và ô tìm kiếm vẫn tìm thấy. Mục "Đã lưu trữ" ở đáy cột mở danh sách này. Nhắn tiếp vào hội thoại đã lưu trữ thì nó tự trở lại danh sách.
+- **Chọn bộ não nào làm mặc định.** Trong bảng chọn bộ não, bấm ngôi sao ở một bộ não để đặt nó làm mặc định. Đổi xong thì bộ não mặc định cũ thành bộ não thường và xoá được (vẫn vào thùng rác 30 ngày).
+- **Ô xoá bộ não nói rõ trước** bao nhiêu vòng lặp, nhắc việc sẽ dừng theo, và bot nào đang trả lời từ bộ não đó.
+- **Bấm Kết nối GitHub, Naota kiểm tra máy có git chưa, thiếu thì tự cài** rồi mới mở bước đăng nhập. Cài không được thì hiện đúng lệnh để cài tay, nút Thử lại và nút Bỏ qua.
+### Sửa lỗi
+- **Giờ trong thông báo khớp múi giờ trong Cài đặt.** Trên VPS, cảnh báo bảo mật, thông báo hệ thống, giờ đồng bộ sao lưu và giờ sự kiện webhook từng in giờ máy chủ (UTC), lệch 7 tiếng.
+- **Quy trình chạy bằng agent Claude dùng được mọi kết nối của Naota**, không còn báo "thiếu công cụ" khi cần Gmail, Sheet, Zalo hay MCP khác.
+- **Trang Chatbot, mục Hội thoại chỉ hiện hội thoại của bộ não đang mở**, kể cả số đếm.
+- **Git vừa cài xong được nhận ngay**, không phải khởi động lại Naota.
+- **Nút cài app ở chân menu trái không còn tràn ra ngoài** trên máy tính bảng và laptop cảm ứng.
+### Cải thiện
+- **Đổi mật khẩu có thêm ô "Nhập lại mật khẩu mới"**, hai lần gõ phải khớp mới lưu.
+- **Màn mạng nơ-ron và danh sách công cụ MCP không còn làm app khựng vài phút một lần.**
+- **Xoá hội thoại hỏi lại ngay trong menu**, kèm gợi ý Lưu trữ nếu chỉ muốn cho gọn.
+- **Bỏ nút "Xem thêm":** cuộn tới cuối danh sách là tự tải thêm.
+- **Dòng hội thoại gọn hơn:** tin ghim có dấu ghim nhỏ trước tiêu đề.
+
 ## [1.24.0] - 2026-11-09
 ### Cải thiện
 - **Trang Tài khoản gọn hơn.** Bỏ thanh tiêu đề trang, hai tab Tài khoản và Bảo mật nằm ngay trên cùng.

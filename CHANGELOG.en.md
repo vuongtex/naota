@@ -4,6 +4,26 @@
 
 NAOTA release history. Newest first.
 
+## [1.25.0] - 2026-11-09
+### Added
+- **Every chat in the history column has a ⋯ button** instead of four separate icons. The menu: Pin to top, Move to project, Rename (in place), Share link, Export as .md, Mark as unread, Archive and Delete. Right-click, or a long press on a phone, opens it too.
+- **Archive a chat:** it leaves the list but keeps every message; Naota still remembers it and search still finds it. "Archived" at the bottom of the column lists them, and a new message brings one back.
+- **Choose which brain is the default.** Tap the star on a brain in the picker. The old default then becomes an ordinary brain and can be deleted (to the trash for 30 days).
+- **Deleting a brain says first** how many loops and reminders stop with it and which bots answer from it.
+- **Connecting GitHub checks for git and installs it when missing**, before the sign-in step. If it cannot, it shows the command to run by hand, Try again and Skip.
+### Fixed
+- **Notice times follow the timezone in Settings**, not the server clock (UTC on a VPS).
+- **Workflow steps on a Claude agent get every Naota connection**, no more "missing tool" for Gmail, Sheets, Zalo or other MCPs.
+- **Chatbot page, Conversations shows only the open brain's chats**, counts included.
+- **git installed while Naota runs is found right away**, no restart needed.
+- **The install button in the left menu foot no longer overflows** on touch tablets and laptops.
+### Improved
+- **Changing the password asks for the new one twice**, and saves only when they match.
+- **The graph screen and MCP tool lists no longer freeze the app every few minutes.**
+- **Delete asks inside the menu**, suggesting Archive if you only want it out of the way.
+- **No more "Show more":** scrolling to the end loads the next page.
+- **Tidier chat rows:** a pinned chat has a small pin before its title.
+
 ## [1.24.0] - 2026-11-09
 ### Improved
 - **A tidier Account page.** The page header is gone, the Account and Security tabs sit right at the top.
