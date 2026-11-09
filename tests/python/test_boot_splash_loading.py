@@ -66,6 +66,31 @@ def test_graph_counts_show_only_on_the_graph_screen():
     assert 'document.body.classList.toggle("in-console", id !== "home");' in _read("console.js")
 
 
+def test_graph_counts_sit_inside_the_graph_not_the_top_bar():
+    """The node / link counter leaves the top bar and shows inside the graph."""
+    html = _read("index.html")
+    assert html.count('id="graphStats"') == 1
+    top_bar = html.split('<header class="hud-top">', 1)[1].split("</header>", 1)[0]
+    assert 'id="graphStats"' not in top_bar
+    center = html.split('<div class="hud-center">', 1)[1].split('<div class="note-editor"', 1)[0]
+    assert '<span class="graph-stats" id="graphStats">' in center
+    css = _read("style.css")
+    rule = css.split("\n.graph-stats {", 1)[1].split("}", 1)[0]
+    assert "position: absolute;" in rule and "top: 14px; left: 14px;" in rule and "pointer-events: none;" in rule
+    assert ".hud-center.brain-overlays-hidden .graph-stats {" in css     # the eye button hides it with the labels
+    assert ".navbar-brain .graph-stats" not in _read("console.css")
+
+
+def test_brain_picker_counts_stay_on_one_line():
+    """The counts sit on one line in each picker row, never split in two."""
+    css = _read("style.css")
+    rule = css.split("\n.bp-sub {", 1)[1].split("}", 1)[0]
+    assert "white-space: nowrap;" in rule and "text-overflow: ellipsis;" in rule
+    assert "flex-wrap: wrap" not in rule and ".bp-sub-part" not in css
+    js = _read("brain-picker.js")
+    assert "subHtml(" not in js and "bp-sub-part" not in js
+
+
 def test_new_texts_in_both_languages():
     for lang in ("vi", "en"):
         d = json.loads((DASH / "i18n" / ("%s.json" % lang)).read_text(encoding="utf-8"))

@@ -99,9 +99,6 @@ body.in-console .hud-actions { display: none; }
 /* Icon bộ não đứng trước dropdown chọn brain - đi theo khối .navbar-brain kể cả
    khi mobile-chat.js dời cả khối vào rail, nên không cần rule riêng cho mobile. */
 .navbar-brain .brain-select-ico { color: var(--accent-ink); font-size: 17px; }
-@media (max-width: 860px) {
-  .hud-top .navbar-brain .graph-stats { display: none; }   /* mobile: ẩn stats cho gọn */
-}
 /* The new sidebar keeps its own neutral tints (selected items grey, not yellow); the rest of the app keeps
    the 1.2.1 colours (owner 03/11/2026: new left column, old middle). */
 .rail { --accent-ink: #ffffff; --accent-wash: rgba(255, 255, 255, 0.045); --accent-wash-2: rgba(255, 255, 255, 0.085);
@@ -1174,6 +1171,10 @@ body.has-rail .hud { margin-left: var(--rail-w); width: calc(100% - var(--rail-w
      Xếp lại tường minh, mỗi nút một hàng. */
   .graph-timelapse-btn { top: 46px; }
   .brain-max-btn { top: 85px; }
+  /* Node / Link counter: a small pill in the top-left corner. The nearest folder label is centred at 19% of a 210px
+     view (its top edge at 32px), so the pill ends at 26px to leave a gap. */
+  .graph-stats { top: 6px; left: 7px; height: 20px; line-height: 18px; padding: 0 7px; border-radius: 7px;
+    font-size: 10.5px; letter-spacing: .2px; max-width: calc(100% - 56px); }
 
   /* Agents / Skills / Workflows thành một thanh mỏng thay vì một card lớn che neuron.
      Số và nhãn nằm CÙNG MỘT DÒNG: xếp chồng như desktop thì dải cao ~56px, tức một phần tư
