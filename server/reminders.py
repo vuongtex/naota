@@ -60,6 +60,7 @@ import channel_context   # bóc khối NAOTA_* trước khi gửi Telegram - kê
 import once_ledger       # outside actions of one firing run once, across retries
 import work_log          # one line per finished run, for the Tasks page stats
 import turn_context
+import memory_control   # background writers are not stamped with a chat source
 
 
 def _nhan_kw(fn, ten: str) -> bool:
@@ -852,7 +853,9 @@ class RemindersFeature:
                 try:
                     rid_tok = _RUN_RID.set(str(rem.get("id") or ""))
                     try:
-                        body, err = await self._run_task(brain, text, muc_quyen_cua(rem), **extra)
+                        # memories this reminder writes are not stamped with a chat open at the same time.
+                        with memory_control.background_writer(self.deps.brain_root(brain), muc_quyen_cua(rem)):
+                            body, err = await self._run_task(brain, text, muc_quyen_cua(rem), **extra)
                     finally:
                         _RUN_RID.reset(rid_tok)
                 finally:
