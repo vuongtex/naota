@@ -91,7 +91,7 @@ body.in-console .hud-actions { display: none; }
   position: absolute; top: 4px; right: 8px; padding: 0; width: 8px; height: 8px; font-size: 0;
 }
 .rail-item:hover { color: var(--text); background: var(--surface-2); }
-/* Trang đang mở: nền xám nhẹ, chữ đậm. Không vàng, không vạch sáng (anh Vương 03/11/2026). */
+/* Trang đang mở: nền xám nhẹ, chữ đậm. Không vàng, không vạch sáng. */
 .rail-item.active { color: var(--text); background: var(--surface-3); font-weight: 600; }
 /* Select Brain - dời lên navbar (header trái), dùng dropdown sẵn có (.orb-graph-ctl) */
 .hud-top .navbar-brain { position: static; z-index: auto; gap: 8px; }
@@ -3256,7 +3256,7 @@ body.on-teams .cview-head { display: none; }
 .tm-msg[hidden] { display: none; }
 .tm-msg-owner { justify-content: flex-end; }
 .tm-bubble { min-width: 0; flex: 0 1 auto; padding: 8px 12px; border-radius: 16px; background: var(--surface-1); border: 1px solid var(--border); }
-.tm-msg-agent .tm-bubble { border-bottom-left-radius: 6px; max-width: min(680px, calc(100% - 86px)); }
+.tm-msg-agent .tm-bubble { border-bottom-left-radius: 6px; max-width: min(100ch, calc(100% - 86px)); }
 .tm-msg-owner .tm-bubble { background: var(--accent-wash); border-color: var(--accent-line); border-bottom-right-radius: 6px;
   max-width: min(680px, 85%); }
 .tm-msg-late .tm-bubble { opacity: .8; border-style: dashed; }
@@ -3325,7 +3325,7 @@ body.on-teams .cview-head { display: none; }
 /* the bubble and its action row (time, Reply, Copy, Pin) stack in one column, the row right
    under the bubble on its own side, like the main chat (.msg-acts). Beside the bubble it looked cluttered. */
 .tm-col { display: flex; flex-direction: column; min-width: 0; flex: 0 1 auto; }
-.tm-msg-agent .tm-col { align-items: flex-start; max-width: min(680px, calc(100% - 40px)); }
+.tm-msg-agent .tm-col { align-items: flex-start; max-width: min(100ch, calc(100% - 40px)); }
 .tm-msg-owner .tm-col { align-items: flex-end; max-width: min(680px, 85%); }
 .tm-msg .tm-col > .tm-bubble { max-width: 100%; }
 .tm-hacts { display: flex; align-items: center; gap: 2px; height: 26px; margin-top: 2px; opacity: 0; transition: opacity .12s; }
@@ -3747,6 +3747,12 @@ span.tmp-lead { cursor: default; }
 .aj-n { font-size: 12px; opacity: .8; }
 .aj-sec { display: flex; flex-direction: column; gap: 6px; }
 .aj-sec-h { margin: 4px 0 0; font-size: 12px; font-weight: 700; color: var(--text2); }
+/* The assistant's chat turn running now (agent-jobs.js liveHtml): same card as a running job, plus the engine's plan. */
+.aj-live-card { padding: 10px; border-radius: 12px; border: 1px solid var(--border); border-left: 4px solid var(--accent);
+  background: var(--surface-1); display: flex; flex-direction: column; gap: 6px; }
+.aj-live-line { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--text); }
+.aj-live-line svg { width: 16px; height: 16px; flex: none; color: var(--accent); }
+.aj-live-plan { margin: 0; max-width: none; }
 .aj-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .aj-job { padding: 10px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-1); display: flex;
   flex-direction: column; gap: 6px; border-left-width: 4px; }
