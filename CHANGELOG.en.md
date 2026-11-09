@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.20.1] - 2026-11-09
+### Improved
+- Third-party docs cleanup.
+
 ## [1.20.0] - 2026-11-09
 ### Added
 - **The chat shows the engine's task plan as a checklist.** When Claude Code, ChatGPT (Codex) or Grok Build plans a multi-step job, a "Plan 2/5" card appears above the answer: done items ticked and struck through, the running one in bold, the rest open. The activity line under the chat says which step it is on. The card stays after a reload and costs no extra tokens.
