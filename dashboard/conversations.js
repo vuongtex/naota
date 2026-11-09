@@ -71,7 +71,7 @@
   // dictate.js does the listening; the state lives here because the 5-second redraw rebuilds the box.
   var _dict = null, _dictState = "idle", _dictBase = "", _dictHeard = "", _dictConv = 0, _dictSend = false;
   var _statusLoc = "", _typeLoc = "";   // bộ lọc, lưu ở trình duyệt qua NaotaConvFilters
-  var _contactLoc = "";     // 2026-10-25: "1" = only chats where the customer left a phone number or email
+  var _contactLoc = "";     // "1" = only chats where the customer left a phone number or email
   // Chatbot v5 (docs/dev/2026-10-chatbot-v5-spec.md): who is handling the chat (the quick filters), the ticked
   // channel accounts (the channel picker) and tags any/none (the Filter menu). Saved with the rest by NaotaConvFilters.
   var _who = "you", _accs = [], _tagsAny = [], _tagsNone = [], _whoCounts = null;
@@ -2906,7 +2906,6 @@
       var bao = r.so_tin
         ? window.t("ht.da_nhap_cu", { tin: r.so_tin, chat: r.so_cuoc_chat })
         : window.t("ht.khong_co_tin_cu");
-      if (r.bo_qua) bao += "\n" + window.t("ht.nhap_cu_bo_qua", { count: r.bo_qua });
       if (r.het_tran) bao += "\n" + window.t("ht.nhap_cu_het_tran");
       alert(bao);
     } catch (e) { alert(window.t("ht.loi_nhap_cu") + " " + e.message); }
