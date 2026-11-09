@@ -38,7 +38,9 @@ _RESERVED = {"naota_connections", "naota_read_file", "naota_list_dir", "naota_wr
 _GOAL_FILE = Path(__file__).resolve().parent.parent / "system" / "plugins" / "naota-goal" / "plugin.py"
 # Pin the audited data-only branch; a coherent edited source+cache is still not
 # authority to reinterpret an arbitrary predicate as the ordinary-owner result.
-_GOAL_SOURCE_HASH = "27c99bed5ac7f042fe188929a43c2241f505e0cb806bc3b0cabc042fbfd5c76d"
+# Re-pinned after an audit of the diff: the plugin opens the store with `RS.shared()` instead of
+# `RS.GoalStore()` (one opened store per file); `_visible`'s branches and what they return are unchanged.
+_GOAL_SOURCE_HASH = "39625ed24112fb9963195c7323b99d6ddaa742711e808eb2f92cc4300e58d951"
 
 
 def _plain(value):

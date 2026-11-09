@@ -4,6 +4,24 @@
 
 NAOTA release history. Newest first.
 
+## [1.19.0] - 2026-11-09
+### Security
+- **To do after updating:** open each chatbot's Agent, add the price lists, policies and guides the bot should read, then press **Try** to make sure it still answers well. A bot with no listed file answers from its Agent's role only.
+- **A bot reads only the documents in its Agent's Documents section**, plus the `rieng-theo-nhom/` folder and the Google files linked from the Agent. Before, every note of the brain counted as a document, so a bot could quote the owner's private notes to customers.
+- **New Security tab on the Account page.** See 2FA, the devices signed in (IP, browser, last activity) and the history of successful and failed sign-ins and every account change. Sign out one device or all others without changing the password.
+- **Instant alerts on account changes.** Username, password or 2FA changes and sign-ins from a new network reach the owner's bell and Telegram right away.
+- **If the settings file is edited outside NAOTA**, every device is signed out and a red warning shows. The first start on this version only records the current account and signs no one out.
+- **The AI assistant can no longer touch secret files** (settings, encryption key, sessions) at any permission level.
+- **Removing 2FA when locked out:** add `NAOTA_RESET_2FA=1` and redeploy. Each value works once.
+- **Hostinger: port 7777 closes to the Internet once an HTTPS domain is set**, leaving only the encrypted way in.
+- **A leaked admin link stays out of Google.** Every NAOTA page now carries `noindex`, the login screen and share links included.
+- **AI bots cannot read NAOTA.** GPTBot, ClaudeBot, PerplexityBot, SEO tools and scanners such as Shodan and Censys get a 403. NAOTA also serves a `/robots.txt` that forbids them.
+- Real browsers, link previews in Zalo or Telegram, the Meta, Threads and Zalo OA webhooks, `/s/` share links and Naota Gate work as before. To turn the blocking off, set `NAOTA_BLOCK_BOTS=0`.
+- **Account security files stay out of git and Docker images** when you run `git add -A` or a local `docker build`.
+### Fixed
+- **Bot document lookups, auto learning and reminders no longer freeze the app for seconds.** They run on worker threads and no longer walk the whole brain.
+- **The Partners page no longer waits on the Resonance data lock**, and the connection catalog is no longer re-checked on disk at every call.
+
 ## [1.18.0] - 2026-11-09
 ### Fixed
 - **A failure that needs you is now an urgent notice.** It used to be "important", and the default notice filter sends only urgent ones to Telegram, so on a fresh install a failed job never reached your phone. You can still turn the Incidents group down in Notifications.
