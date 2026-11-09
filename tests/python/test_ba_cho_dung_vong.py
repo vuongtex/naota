@@ -2,7 +2,7 @@
 
     python tests/run.py ba_cho_dung_vong      (KHÔNG mạng)
 
-Owner: "ok em làm luôn PR sửa 3 chỗ đứng còn lại đi". From the owner's /health/loop report:
+The three remaining loop stalls from a /health/loop report:
 - graph.py `_fs_watcher`, 3 times, 3.08 s: awatch built its RustNotify (one OS watch per folder) on the loop each time
   the graph screen opened. Now the sync `watch` builds and waits on its own thread and hands batches to the loop.
 - main.py `_load_community_announcements`, 1.82 s: httpx 0.27 builds a new SSL context (the whole certifi bundle) for
