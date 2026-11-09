@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.25.4] - 2026-11-10
+### Fixed
+- **Opening or reloading the page is fast again, about 1 to 2 seconds.** The "Starting Naota..." screen used to stay a full 12 seconds every time, waiting on the "Loading more..." line at the end of the chat list, which never goes away. The start-up screen now skips that line.
+
 ## [1.25.3] - 2026-11-10
 ### Fixed
 - **No more codes like `page.chat.label` or `app.pin_meta` in place of text.** Left menu tooltips, file tree buttons and the line under a pinned file in the chat box used to stay as codes when they were drawn before the text dictionary arrived. They now switch to real text as soon as it does.

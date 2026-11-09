@@ -2039,7 +2039,7 @@
     // Endless list (replaces "Xem thêm"): a loading line at the end; when it scrolls into view the next
     // PAGE loads by itself.
     if (hasMore) {
-      var cuoi = el('<div class="cside-more pg-loading">' + esc(window.t("sess.loading_more")) + '</div>');
+      var cuoi = el('<div class="cside-more pg-loading" data-boot-skip>' + esc(window.t("sess.loading_more")) + '</div>');
       listEl.appendChild(cuoi);
       theoDoiCuoiDanhSach(cuoi);
     }

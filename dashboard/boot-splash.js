@@ -18,11 +18,12 @@
   var QUIET_CHECKS = 2;        // checks in a row with no visible loader before the splash goes
   var JUST_STARTED_S = 120;
 
-  // Is any "Loading..." line visible outside the splash? `nodes` is a list of elements.
+  // Is any "Loading..." line visible outside the splash? `nodes` is a list of elements. A line marked data-boot-skip
+  // never goes away by design (the "Loading more..." line at the end of an endless list), so it is not waited for.
   function loaderVisible(nodes) {
     for (var i = 0; i < nodes.length; i++) {
       var n = nodes[i];
-      if (n.closest && n.closest("#bootSplash")) continue;
+      if (n.closest && (n.closest("#bootSplash") || n.closest("[data-boot-skip]"))) continue;
       if (n.getClientRects && n.getClientRects().length) return true;
     }
     return false;
