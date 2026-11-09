@@ -120,7 +120,7 @@ check(f"git bỏ qua hết {len(NHAY_CAM + CHAY + NANG)} đường dẫn trên"
 
 # Every state file secret_guard.py refuses the AI is a secret by definition, so it must also stay out of git and the
 # image. Read from secret_guard itself: .auth_stamp.json, .sessions_meta.json and the security log were added there
-# (2026-11-09) without ignore entries, and the gap only showed as a flaky "untracked artifact" failure in CI.
+# without ignore entries, and the gap only showed as a flaky "untracked artifact" failure in CI.
 import secret_guard  # noqa: E402
 
 _HOME_ONLY = {".credentials.json", "authorized_keys"}   # live under ~/.claude and ~/.ssh, never in STATE_DIR
