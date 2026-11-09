@@ -26,9 +26,9 @@ from datetime import datetime, timedelta, tzinfo
 from pathlib import Path
 
 try:
-    import yaml  # pyyaml is in requirements; the fallback parser below covers a bare install
+    import fastyaml  # the project's YAML reader (C loader when present); the line parser below covers a bare install
 except Exception:  # noqa: BLE001
-    yaml = None
+    fastyaml = None
 
 # Departments every business has. A department with no staff and no job still shows, empty, so the
 # owner sees the gap. Ids are stable; the page translates them. Tags that match one of these words
@@ -98,9 +98,9 @@ def frontmatter(md: str | None) -> dict:
     m = re.match(r"^---\s*\n(.*?)\n---", md or "", re.S)
     if not m:
         return {}
-    if yaml is not None:
+    if fastyaml is not None:
         try:
-            d = yaml.safe_load(m.group(1))
+            d = fastyaml.safe_load(m.group(1))
             return d if isinstance(d, dict) else {}
         except Exception:  # noqa: BLE001 - fall through to the line parser
             pass

@@ -31742,14 +31742,6 @@ async def plan_limits_get(goi: int = 0):
             "plan": co_goi, "ten_goi": ten, "nguong": {"canh_bao": plan_limits.CANH_BAO, "sat": plan_limits.SAT}}
 
 
-# Batched reads (performance stage 2): many dashboard GETs in one round trip, streamed back as each one
-# finishes. read_batch.py. Registered at the end so the route table only grows at the end.
-@app.post("/batch")
-async def batch_reads(request: Request):
-    import read_batch
-    return await read_batch.handle(app, request)
-
-
 # Office page: each department's digital staff, what runs, what broke, what waits for the owner.
 # Read only, built from the brain's own logs by office.py; no secret or path leaves it.
 @app.get("/office")
@@ -31757,3 +31749,11 @@ async def office_get(brain: str = "brain", day: str = ""):
     import office
     root = Path(_brain_root(brain))
     return await asyncio.to_thread(office.build, root, time.time(), localefmt.tz(), day)
+
+# Batched reads (performance stage 2): many dashboard GETs in one round trip, streamed back as each one
+# finishes. read_batch.py. Registered at the end so the route table only grows at the end.
+@app.post("/batch")
+async def batch_reads(request: Request):
+    import read_batch
+    return await read_batch.handle(app, request)
+
