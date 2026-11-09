@@ -4,6 +4,15 @@
 
 NAOTA release history. Newest first.
 
+## [1.18.0] - 2026-11-09
+### Fixed
+- **A failure that needs you is now an urgent notice.** It used to be "important", and the default notice filter sends only urgent ones to Telegram, so on a fresh install a failed job never reached your phone. You can still turn the Incidents group down in Notifications.
+- **A failed job now always reaches the owner's Telegram.** A job made in a web chat that fails and needs you used to report only to that chat; it now also sends one message to your Telegram, so you hear about it away from the computer.
+- **A Team job that is blocked, fails or waits for your approval** used to stay in the bell only; it now also goes to your Telegram.
+### Improved
+- **No more overlapping text in the 3D Office.** Each desk's name sits on that desk, never wider than it, and a long name wraps onto two lines. Where two cards meet on screen, the more important one stays (department, running job, failed job) and the other hides until you zoom in.
+- The **Needs you** section of the Office page says whether failure alerts reach Telegram. With Telegram not connected it says the alerts stay in the bell, with a button to Settings.
+
 ## [1.17.0] - 2026-11-09
 ### Added
 - **Meeting room in the 3D office**: while a team leader splits a job or sums it up, the whole team walks into the meeting room and sits round the table, then walks back to their desks.

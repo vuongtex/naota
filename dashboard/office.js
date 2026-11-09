@@ -147,12 +147,23 @@
       + '<div class="of-id"><b>' + esc(tw("office.todo")) + "</b> " + esc(todo) + "</div></li>";
   }
 
+  // Does a failure reach the owner's phone? One line under "Needs you", with a way to fix it when it does not.
+  var ALERT_KEY = { ok: "office.tg_ok", off: "office.tg_off", no_owner: "office.tg_no_owner", error: "office.tg_error" };
+  function alertHtml(d) {
+    var a = d && d.alert;
+    if (!a || !ALERT_KEY[a.tg]) return "";
+    var ok = a.tg === "ok";
+    return '<div class="of-alert of-alert-' + (ok ? "ok" : "warn") + '">' + ic(ok ? "bell" : "bell-off") + " "
+      + esc(tw(ALERT_KEY[a.tg]))
+      + (ok ? "" : ' <button type="button" class="btn btn-sm ofTg">' + esc(tw("office.tg_fix")) + "</button>") + "</div>";
+  }
+
   function issuesHtml(d) {
     var list = (d && d.issues) || [];
-    if (!list.length) return '<section class="of-box"><h3>' + esc(tw("office.needs_you")) + '</h3><div class="of-none">'
-      + ic("check") + " " + esc(tw("office.none")) + "</div></section>";
+    if (!list.length) return '<section class="of-box"><h3>' + esc(tw("office.needs_you")) + "</h3>" + alertHtml(d)
+      + '<div class="of-none">' + ic("check") + " " + esc(tw("office.none")) + "</div></section>";
     return '<section class="of-box"><h3>' + esc(tw("office.needs_you")) + ' <span class="of-count">' + list.length + "</span></h3>"
-      + '<ul class="of-issues">' + list.map(function (it) { return issueHtml(d, it); }).join("") + "</ul></section>";
+      + alertHtml(d) + '<ul class="of-issues">' + list.map(function (it) { return issueHtml(d, it); }).join("") + "</ul></section>";
   }
 
   function jobRowHtml(j) {
@@ -403,6 +414,7 @@
       st.liveSeen = true;
     }
     box.addEventListener("click", function (ev) {
+      if (ev.target.closest(".ofTg")) { try { window.NaotaNav.go("channels"); } catch (e) {} return; }
       if (!ev.target.closest(".ofView") || !st.data) return;
       st.view3d = !st.view3d && !!(O3 && O3.supported());
       saveView(st.view3d);
@@ -436,7 +448,7 @@
   }
 
   var api_ = { mount: mount, unmount: unmount, pageHtml: pageHtml, issueHtml: issueHtml, deptHtml: deptHtml,
-    jobRowHtml: jobRowHtml, kpiHtml: kpiHtml, feedHtml: feedHtml, nowHtml: nowHtml, dur: dur, handoffsHtml: handoffsHtml, tickerItems: tickerItems, zoneSub: zoneSub, deptName: deptName, describe: describe };
+    jobRowHtml: jobRowHtml, kpiHtml: kpiHtml, feedHtml: feedHtml, nowHtml: nowHtml, dur: dur, handoffsHtml: handoffsHtml, tickerItems: tickerItems, zoneSub: zoneSub, alertHtml: alertHtml, issuesHtml: issuesHtml, deptName: deptName, describe: describe };
   if (typeof window !== "undefined") window.NaotaOffice = api_;
   if (typeof module !== "undefined" && module.exports) module.exports = api_;
 })();

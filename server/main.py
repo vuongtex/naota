@@ -13240,6 +13240,24 @@ def _owner_telegram_id() -> str:
     return ids[0] if len(ids) == 1 else ""
 
 
+async def _alert_owner_telegram(text: str, *, source: str, level: str = "urgent", group: str = "") -> tuple:
+    """One copy of a "needs you" notice to the owner's own Telegram, for notices whose main route never goes there
+    (a web chat that made the job, a Team notice kept in the bell). A failure must reach the phone even when nobody
+    has the dashboard open. Naota Core's filter still decides: a group the owner turned off or a muted kind is not
+    sent. Returns (sent, reason)."""
+    own = _owner_telegram_id()
+    if not own:
+        return False, "no_owner_telegram"
+    try:
+        g = notify_policy.group_of(source=source, kind="report", group=group)
+        lv = notify_policy.level_of(level=level, group=g)
+        if notify_policy.decide(g, lv, inbox._tieu_de(text), record=False).get("verdict") != "loud":
+            return False, "filtered"
+    except Exception as e:  # noqa: BLE001 - a broken rule store rings, like _notify_decide
+        print(f"[alert telegram] policy check failed: {type(e).__name__}: {e}", file=sys.stderr)
+    return await _gui_qua_kenh(own, text)
+
+
 def _report_route(owner_chat, brain, kind, quiet=False, filtered=False) -> dict:
     """Where one report goes (Naota Core spec section 6). Pure decision, no sending.
 
@@ -13909,10 +13927,18 @@ async def _incident_post(brain: str, text: str, chat: str = "") -> None:
     # Empty chat id: the brain's Naota Core chat, the inbox and the owner's Telegram (_report_route).
     # `chat` is the chat the broken job came from (a partner chat, a Telegram id): the notice goes there, and a
     # deleted chat falls back to Naota Core (_report_route, lost_origin).
+    # A failure that needs the owner is urgent: Naota Core rings only urgent notices by default, so at "important" a
+    # broken job never reached the owner's Telegram on a fresh install. The owner can still mute the group.
     await _notify_owner(chat, text, kind="report", source="incident", brain=brain,
-                        level="important" if text.startswith("⚠") else "info",
+                        level="urgent" if text.startswith("⚠") else "info",
                         viec={"kind": "incident", "status": "failed" if text.startswith("⚠") else "done",
                               "title": text[:120], "id": ""})
+    # A job made in a web chat (or someone else's channel) reports its failures there only, so the owner away from
+    # the computer never heard. A failure that needs them also goes to their own Telegram, once.
+    if text.startswith("⚠") and chat and chat != _owner_telegram_id():
+        ok, why = await _alert_owner_telegram(text, source="incident", level="urgent")
+        if not ok and why not in ("no_owner_telegram", "filtered"):
+            print(f"[incident] Telegram copy not sent: {why}", file=sys.stderr)
 
 
 async def _incident_retry_kanban(inc: dict) -> tuple:
@@ -29096,6 +29122,13 @@ async def _team_notify(session_id, text):
     await _bo_vao_hom_thu(f"{WEB_CHAT_PREFIX}{session_id}", text, kind="report",
                           label=localefmt.chu("Team", "Team"), source="team",
                           group="question" if asks else "team", level="urgent" if asks else "important")
+    # every team notice is a job blocked, failed, or waiting on the owner: it reaches their phone too, not the bell
+    # only, and as urgent (Naota Core rings only urgent by default; the owner can still mute a team or the group)
+    try:
+        await _alert_owner_telegram(str(text or ""), source="team", group="question" if asks else "team",
+                                    level="urgent")
+    except Exception as e:  # noqa: BLE001 - a lost Telegram copy never breaks the team
+        print(f"[team notify] Telegram copy failed: {type(e).__name__}: {e}", file=sys.stderr)
 
 
 _FEEDBACK_PROJECTOR = [None]
@@ -31760,7 +31793,23 @@ def _office_build(brain: str, day: str) -> dict:
         d["ai"] = {"cost": round(float(row["cost"]), 4), "turns": int(row["turns"])} if row else None
     except Exception:
         d["ai"] = None
+    d["alert"] = _office_alert()
     return d
+
+
+def _office_alert() -> dict:
+    """Does a failure reach the owner's phone? {"tg": ok|off|no_owner|error}. Read only, no secret leaves here."""
+    try:
+        tg = cfgmod.read_settings().get("telegram", {}) or {}
+        if not (tg.get("enabled") and tg.get("token") and tg_parse_ids(tg.get("chat_id"))):
+            return {"tg": "off"}
+        if not _owner_telegram_id():
+            return {"tg": "no_owner"}
+        if _TG_BOT and _TG_BOT.status in ("error", "conflict"):
+            return {"tg": "error"}
+        return {"tg": "ok"}
+    except Exception:
+        return {"tg": "off"}
 
 
 def _office_teams(brain: str) -> list:

@@ -169,25 +169,51 @@
     var COL = { ok: 0x2fa86a, bad: 0xe0453a, ask: 0xf0a020, off: 0x9aa0a8, run: 0x2f8fff };
     function mat(c, extra) { var T = st.T; return new T.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.75, metalness: 0.05 }, extra || {})); }
     function box(w, h, d, m) { var T = st.T; var o = new T.Mesh(new T.BoxGeometry(w, h, d), m); o.castShadow = true; o.receiveShadow = true; return o; }
-    function label(text, sub, tone, scale) {
+    // A name card. With `fit` (a width in world units) the card belongs to its spot in the room: it shrinks and grows
+    // with the scene and is never wider than `fit`, so the cards of two neighbouring desks can never cover each other
+    // however far the camera is. A long name then breaks onto two lines instead of running into the next desk.
+    // Without `fit` the card keeps one size on screen (used only for short-lived things away from the desks).
+    function wrap2(g, text, max) {
+      if (g.measureText(text).width <= max || text.indexOf(" ") < 0) return [text];
+      var words = text.split(" "), best = [text], bestW = Infinity;
+      for (var i = 1; i < words.length; i++) {
+        var a = words.slice(0, i).join(" "), b = words.slice(i).join(" ");
+        var w = Math.max(g.measureText(a).width, g.measureText(b).width);
+        if (w < bestW) { bestW = w; best = [a, b]; }
+      }
+      return best;
+    }
+    function label(text, sub, tone, scale, fit) {
       var T = st.T, c = document.createElement("canvas"), g = c.getContext("2d");
       var font = '600 44px "Be Vietnam Pro", system-ui, sans-serif', fsub = '400 32px "Be Vietnam Pro", system-ui, sans-serif';
-      g.font = font; var w1 = g.measureText(text).width; g.font = fsub; var w2 = sub ? g.measureText(sub).width : 0;
-      var W = Math.ceil(Math.max(w1, w2) + 56), H = sub ? 128 : 76;
+      g.font = font;
+      var lines = fit ? wrap2(g, String(text), 380) : [String(text)];
+      var w1 = Math.max.apply(null, lines.map(function (l) { return g.measureText(l).width; }));
+      g.font = fsub; var w2 = sub ? g.measureText(sub).width : 0;
+      var LH = 54, H = 22 + lines.length * LH + (sub ? 50 : 0);
+      var W = Math.ceil(Math.max(w1, w2) + 56);
       c.width = W; c.height = H;
       g.fillStyle = st.dark ? "rgba(32,35,42,.94)" : "rgba(255,255,255,.95)";
       var r = 18; g.beginPath(); g.moveTo(r, 0); g.arcTo(W, 0, W, H, r); g.arcTo(W, H, 0, H, r); g.arcTo(0, H, 0, 0, r); g.arcTo(0, 0, W, 0, r); g.fill();
       if (tone) { g.fillStyle = "#" + COL[tone].toString(16).padStart(6, "0"); g.fillRect(0, 0, 10, H); }
-      g.fillStyle = st.dark ? "#f2f2f2" : "#0e1116"; g.font = font; g.textBaseline = "top"; g.fillText(text, 28, 14);
-      if (sub) { g.fillStyle = st.dark ? "#b8bcc4" : "#555b63"; g.font = fsub; g.fillText(sub, 28, 72); }
+      g.fillStyle = st.dark ? "#f2f2f2" : "#0e1116"; g.font = font; g.textBaseline = "top";
+      lines.forEach(function (l, i) { g.fillText(l, 28, 14 + i * LH); });
+      if (sub) { g.fillStyle = st.dark ? "#b8bcc4" : "#555b63"; g.font = fsub; g.fillText(sub, 28, 14 + lines.length * LH + 4); }
       var tex = new T.CanvasTexture(c); tex.colorSpace = T.SRGBColorSpace; tex.anisotropy = 4;
-      // a fixed size on screen, so a far department reads as well as a near one
-      var s = new T.Sprite(new T.SpriteMaterial({ map: tex, depthTest: false, transparent: true, sizeAttenuation: false }));
-      var k = (scale || 1) * 0.00028 * (st.lab || 1);
-      s.scale.set(W * k, H * k, 1);
+      var s = new T.Sprite(new T.SpriteMaterial({ map: tex, depthTest: false, transparent: true, sizeAttenuation: !!fit }));
+      if (fit) {
+        var k = (scale || 1) * 0.0085, w = W * k, h = H * k;
+        if (w > fit) { h *= fit / w; w = fit; }
+        s.scale.set(w, h, 1);
+      } else {
+        var k2 = (scale || 1) * 0.00028 * (st.lab || 1);
+        s.scale.set(W * k2, H * k2, 1);
+      }
       s.renderOrder = 10;
       return s;
     }
+    // every card that floats over a desk is at most this wide, a little less than the gap between two desks
+    var TAG_FIT = DESK_DX - 0.35;
     function short(s, n) { s = String(s || ""); return s.length > n ? s.slice(0, n - 1) + "…" : s; }
 
     // ---- building the office from the data ----
@@ -199,7 +225,7 @@
       });
       st.scene.remove(w);
       st.world = new st.T.Group(); st.scene.add(st.world);
-      st.lamps = {}; st.workers = {}; st.picks = []; st.fx = []; st.flights = [];
+      st.lamps = {}; st.workers = {}; st.picks = []; st.fx = []; st.flights = []; st.tags = [];
     }
 
     function person(color) {
@@ -243,10 +269,12 @@
         who.position.set(0, 0, 0.72); g.add(who);
         st.workers[dk.id] = who;
         // labels hang in the world, not in the scaled desk group, so they keep their screen size
-        var tag = label(short(dk.name, 22), null, dk.kind === "job" ? dk.lamp : null, 1.0);
-        tag.position.set(dk.x, 2.7, dk.z + 0.6); st.world.add(tag);
+        var tag = label(short(dk.name, 40), null, dk.kind === "job" ? dk.lamp : null, 1.0, TAG_FIT);
+        // floors of a desk, low to high: the name, "running", a talk bubble, a mark that rises and fades
+        tag.position.set(dk.x, 2.6, dk.z + 0.6); st.world.add(tag);
+        st.tags.push({ s: tag, pri: dk.lamp === "bad" ? 3 : (dk.kind === "staff" ? 2 : 1) });
       } else {
-        var sign = label(tw("office.empty_desk"), null, "off", 1.0); sign.position.set(dk.x, 2.2, dk.z); st.world.add(sign);
+        var sign = label(tw("office.empty_desk"), null, "off", 1.0, TAG_FIT); sign.position.set(dk.x, 2.2, dk.z); st.world.add(sign); st.tags.push({ s: sign, pri: 0 });
       }
       if (dk.kind === "job") {
         var lamp = new T.Mesh(new T.SphereGeometry(0.13, 16, 12), new T.MeshStandardMaterial({ color: COL[dk.lamp], emissive: COL[dk.lamp], emissiveIntensity: 1.2 }));
@@ -280,9 +308,10 @@
         var edge = new T.Mesh(new T.PlaneGeometry(z.w, 0.4), new T.MeshBasicMaterial({ color: COL[tone] }));
         edge.rotation.x = -Math.PI / 2; edge.position.set(z.x, 0.02, z.z - z.dz / 2 + 0.14); st.world.add(edge);
         var name = opts.deptName ? opts.deptName(z.dep.id) : z.dep.id;
-        var sign = label(name, opts.deptStatus ? opts.deptStatus(z.dep) : "", tone, 1.9);
+        var sign = label(name, opts.deptStatus ? opts.deptStatus(z.dep) : "", tone, 1.5, z.w - 0.6);
         // pinned by its left edge to the back-left corner of the zone, clear of the desks
         sign.center.set(0, 0.5); sign.position.set(z.x - z.w / 2 + 0.3, 0.3, z.z - z.dz / 2 + 0.5); st.world.add(sign);
+        st.tags.push({ s: sign, pri: 5 });
         glass(z.x, z.z, z.w, z.dz);
         z.desks.forEach(function (dk) { desk(dk, z, ACCENT[i % ACCENT.length]); });
       });
@@ -291,8 +320,8 @@
       var owner = person(0xfccb1d);
       owner.position.set(0, 0, L.d / 2 + 1.2); owner.scale.setScalar(1.4); st.world.add(owner);
       st.workers.owner = owner;
-      var otag = label(opts.ownerName ? opts.ownerName() : "owner", null, null, 1.0);
-      otag.position.set(0, 2.9, L.d / 2 + 1.2); st.world.add(otag);
+      var otag = label(opts.ownerName ? opts.ownerName() : "owner", null, null, 1.0, TAG_FIT);
+      otag.position.set(0, 2.9, L.d / 2 + 1.2); st.world.add(otag); st.tags.push({ s: otag, pri: 5 });
       if (fit) {
         // the meeting room and the owner sit in front of the departments, so the view takes them in too
         var span = Math.max(L.w, L.d + 8), fz = 4;
@@ -345,8 +374,9 @@
         var ch = box(0.7, 0.1, 0.7, mat(st.dark ? 0x2b2f36 : 0x3d434c)); ch.position.set(sx, 0.66, sz); st.world.add(ch);
         st.seats.push({ x: sx, z: sz, face: Math.atan2(cx - sx, cz - sz) });
       }
-      var sign = label(opts.meetingName ? opts.meetingName() : "", null, "run", 1.5);
+      var sign = label(opts.meetingName ? opts.meetingName() : "", null, "run", 1.3, 5);
       sign.center.set(0, 0.5); sign.position.set(cx - w / 2 + 0.3, 0.3, cz - dz / 2 + 0.5); st.world.add(sign);
+      st.tags.push({ s: sign, pri: 5 });
     }
 
     // ---- people: who walks to the meeting room, who has a bubble over their head ----
@@ -373,7 +403,7 @@
       });
       Object.keys(talking).forEach(function (s) {
         if (st.bubbles[s]) return;
-        var b = label("... " + (opts.talkText ? opts.talkText(talking[s]) : talking[s]), null, "run", 1.0);
+        var b = label("... " + (opts.talkText ? opts.talkText(talking[s]) : talking[s]), null, "run", 0.9, TAG_FIT);
         st.world.add(b);
         st.bubbles[s] = { sprite: b, role: talking[s] };
       });
@@ -434,9 +464,9 @@
       Object.keys(on).forEach(function (k) {
         var w = st.workers[k];
         if (!w || st.runTags[k]) return;
-        var s = label(tw("office.running"), null, "run", 1.3);
+        var s = label(tw("office.running"), null, "run", 0.9, TAG_FIT);
         var p = new st.T.Vector3(); w.getWorldPosition(p);
-        s.position.set(p.x, 3.35, p.z); st.world.add(s);
+        s.position.set(p.x, 3.6, p.z); st.world.add(s);
         st.runTags[k] = s;
       });
     }
@@ -447,9 +477,9 @@
       if (!w) return;
       var T = st.T;
       var sym = mark === "ok" ? tw("office.mark_ok") : (mark === "bad" ? tw("office.mark_bad") : "...");
-      var s = label(sym, null, mark === "run" ? "off" : mark, 1.1);
+      var s = label(sym, null, mark === "run" ? "off" : mark, 0.9, TAG_FIT);
       var p = new T.Vector3(); w.getWorldPosition(p);
-      s.position.set(p.x, 2.6, p.z);
+      s.position.set(p.x, 4.35, p.z);
       st.world.add(s);
       st.fx.push({ sprite: s, t0: performance.now(), worker: w });
     }
@@ -476,7 +506,7 @@
         new T.LineDashedMaterial({ color: COL[tone], dashSize: 0.5, gapSize: 0.3, transparent: true, opacity: 0.9 }));
       line.computeLineDistances();
       st.world.add(line);
-      var tag = title ? label(short(title, 26), null, tone, 0.9) : null;
+      var tag = title ? label(short(title, 40), null, tone, 0.9, TAG_FIT) : null;
       if (tag) st.world.add(tag);
       st.flights.push({ mesh: paper, line: line, tag: tag, a: pa, b: pb, t0: performance.now(), to: to, status: status });
     }
@@ -489,12 +519,47 @@
       L.glow.color.setHex(COL[lamp]); L.glow.intensity = lamp === "off" ? 0 : 1.4;
     }
 
+    // ---- no card on top of another: where two cards meet on screen, the more important one stays ----
+    // Order: a department sign, then what is happening now (running, talking), then a broken desk, then the nearer one.
+    // A card set aside comes back as soon as the camera moves closer and there is room for it.
+    function screenRect(s, cam, W, H) {
+      var T = st.T, p = s.position.clone().project(cam);
+      if (p.z > 1 || p.z < -1) return null;
+      var right = new T.Vector3().setFromMatrixColumn(cam.matrixWorld, 0).multiplyScalar(s.scale.x);
+      var up = new T.Vector3().setFromMatrixColumn(cam.matrixWorld, 1).multiplyScalar(s.scale.y);
+      var pr = s.position.clone().add(right).project(cam), pu = s.position.clone().add(up).project(cam);
+      var w = Math.abs(pr.x - p.x) / 2 * W, h = Math.abs(pu.y - p.y) / 2 * H;
+      var cx = (p.x + 1) / 2 * W, cy = (1 - p.y) / 2 * H;
+      var x0 = cx - w * s.center.x, y0 = cy - h * (1 - s.center.y);
+      return { x0: x0, y0: y0, x1: x0 + w, y1: y0 + h, z: p.z };
+    }
+    function declutter(now) {
+      if (st.lastDc && now - st.lastDc < 120) return;
+      st.lastDc = now;
+      var cam = st.cam, W = stage.clientWidth || 1, H = stage.clientHeight || 1;
+      cam.updateMatrixWorld();
+      var all = (st.tags || []).map(function (t) { return { s: t.s, pri: t.pri }; });
+      Object.keys(st.runTags || {}).forEach(function (k) { all.push({ s: st.runTags[k], pri: 4 }); });
+      Object.keys(st.bubbles || {}).forEach(function (k) { all.push({ s: st.bubbles[k].sprite, pri: 4 }); });
+      all.forEach(function (t) { t.r = screenRect(t.s, cam, W, H); });
+      all.sort(function (a, b) { return (b.pri - a.pri) || ((a.r ? a.r.z : 9) - (b.r ? b.r.z : 9)); });
+      var kept = [];
+      all.forEach(function (t) {
+        var r = t.r;
+        if (!r) { t.s.visible = false; return; }
+        var hit = kept.some(function (k) { return r.x0 < k.x1 + 2 && r.x1 > k.x0 - 2 && r.y0 < k.y1 + 2 && r.y1 > k.y0 - 2; });
+        t.s.visible = !hit;
+        if (!hit) kept.push(r);
+      });
+    }
+
     function loop() {
       if (!st.alive) return;
       st.raf = requestAnimationFrame(loop);
       if (document.hidden) return;
       var now = performance.now();
       st.ctl.update();
+      declutter(now);
       var on = Math.floor(now / 550) % 2 === 0;
       Object.keys(st.lamps).forEach(function (k) {
         var L = st.lamps[k];
@@ -518,7 +583,7 @@
           h.position.y = h.userData.y0;
           return false;
         }
-        f.sprite.position.y = 2.6 + t * 1.4;
+        f.sprite.position.y = 4.35 + t * 1.2;
         f.sprite.material.opacity = 1 - t * t;
         h.position.y = h.userData.y0 + Math.abs(Math.sin(t * Math.PI * 6)) * 0.06;   // typing
         return true;
@@ -535,7 +600,7 @@
         var f = figureOf(s);
         if (!f) return;
         var p = new st.T.Vector3(); f.getWorldPosition(p);
-        st.bubbles[s].sprite.position.set(p.x, 3.1 + Math.sin(now / 300) * 0.06, p.z);
+        st.bubbles[s].sprite.position.set(p.x, 4.35 + Math.sin(now / 300) * 0.06, p.z);
       });
       st.flights = (st.flights || []).filter(function (f) {
         var t = (now - f.t0) / 2400;
