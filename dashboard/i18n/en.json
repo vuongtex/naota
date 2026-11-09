@@ -7275,5 +7275,17 @@
   "office.f_work_log": "work log",
   "office.f_loop_state": "loop state",
   "office.f_kanban": "task board",
-  "office.load_fail": "Could not read the office data. Reload the page."
+  "office.load_fail": "Could not read the office data. Reload the page.",
+  "office.view_3d": "3D view",
+  "office.view_cards": "Cards view",
+  "office.loading_3d": "Building the 3D office...",
+  "office.no_webgl": "This device cannot draw 3D. Press Cards view to go back.",
+  "office.hint_3d": "Drag to turn, pinch or scroll to zoom, tap a desk to see its job.",
+  "office.empty_desk": "No digital staff yet",
+  "office.replay": "Replay this day",
+  "office.replay_stop": "Stop replay",
+  "office.replay_at": "{at} · run {n}/{total}",
+  "office.replay_done": "Day done, desks show their state now.",
+  "office.replay_none": "No run on this day to replay.",
+  "office.close": "Close"
 }

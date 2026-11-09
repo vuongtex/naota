@@ -168,7 +168,7 @@
     return '<section class="of-box"><h3>' + esc(tw("office.feed")) + '</h3><ul class="of-feed">' + rows + "</ul></section>";
   }
 
-  function toolbarHtml(d, live) {
+  function toolbarHtml(d, live, view3d) {
     var days = (d && d.days) || [];
     var opts = days.map(function (x) {
       var label = x === d.today ? tw("office.today") : x.split("-").reverse().join("/");
@@ -176,7 +176,9 @@
     }).join("");
     return '<div class="of-bar"><label class="of-daypick">' + esc(tw("office.day")) + ' <select class="ofDay">' + opts + "</select></label>"
       + '<span class="of-live' + (live ? " on" : "") + '">' + esc(live ? tw("office.live") : tw("office.record")) + "</span>"
-      + '<span class="of-sp"></span>' + infoBtn() + "</div>"
+      + '<span class="of-sp"></span>'
+      + '<button type="button" class="of-btn ofView">' + ic(view3d ? "list" : "layers") + " "
+      + esc(view3d ? tw("office.view_cards") : tw("office.view_3d")) + "</button>" + infoBtn() + "</div>"
       + infoBody(esc(tw("office.info_1")) + "<br><br>" + esc(tw("office.info_2")) + "<br><br>" + esc(tw("office.info_3")));
   }
 
@@ -187,17 +189,50 @@
       + "</div>";
   }
 
-  function pageHtml(d) {
+  // view3d: the department cards give way to a slot the 3D stage (office3d.js) is moved into, so the canvas
+  // survives the 30-second redraw of everything around it.
+  function pageHtml(d, view3d) {
     var live = d.day === d.today;
-    return '<div class="of-root">' + toolbarHtml(d, live) + kpiHtml(d) + issuesHtml(d) + deptsHtml(d) + feedHtml(d) + footHtml(d) + "</div>";
+    // in 3D the office comes right under the numbers, before the list of what needs the owner
+    return '<div class="of-root">' + toolbarHtml(d, live, view3d) + kpiHtml(d)
+      + (view3d ? '<div class="of-3d-slot"></div>' + issuesHtml(d) : issuesHtml(d) + deptsHtml(d)) + feedHtml(d) + footHtml(d) + "</div>";
   }
+
+  // What to do about a job, from its state (the 3D desk card).
+  var TODO_KEY = { paused: "office.do_paused", failed: "office.do_failed", late: "office.do_late" };
+  // The card a tapped desk opens in the 3D view.
+  function describe(d, pick) {
+    if (!pick || pick.kind === "empty") return "";
+    if (pick.kind === "staff") {
+      var dep = ((d && d.depts) || []).filter(function (x) { return (x.staff || []).some(function (s) { return s.slug === pick.id; }); })[0];
+      return '<div class="o3-t">' + esc(pick.name) + "</div>" + (pick.role ? "<div>" + esc(pick.role) + "</div>" : "")
+        + (dep ? '<div class="o3-m">' + esc(deptName(dep.id)) + "</div>" : "");
+    }
+    var j = jobById(d, pick.id);
+    if (!j) return "";
+    var day = j.day || {};
+    var lines = [tw("office.runs_day", { ok: day.ok, n: day.runs }) + (j.target ? ", " + tw("office.target_day", { n: j.target }) : "")
+      + (day.fail ? ", " + tw("office.fails_day", { n: day.fail }) : "")];
+    if (j.last_at) lines.push(tw("office.last_run", { at: j.last_at }));
+    if (j.paused_reason) lines.push(tw("office.why_paused", { why: j.paused_reason }));
+    else if (j.result && j.result !== "ok" && j.result !== "fail") lines.push(j.result);
+    return '<div class="o3-t">' + stateChip(j.state) + " " + esc(j.name) + "</div>"
+      + '<div class="o3-m">' + esc(KIND_KEY[j.kind] ? tw(KIND_KEY[j.kind]) : "") + "</div>"
+      + lines.map(function (x) { return "<div>" + esc(x) + "</div>"; }).join("")
+      + (TODO_KEY[j.state] ? '<div class="o3-do"><b>' + esc(tw("office.todo")) + "</b> " + esc(tw(TODO_KEY[j.state])) + "</div>" : "");
+  }
+
+  var VIEW_KEY = "naota.office.view";
+  function savedView() { try { return localStorage.getItem(VIEW_KEY) === "3d"; } catch (e) { return false; } }
+  function saveView(v) { try { localStorage.setItem(VIEW_KEY, v ? "3d" : "cards"); } catch (e) { /* private mode */ } }
 
   var current_ = null;
 
   function mount(box, opts) {
     unmount();
     opts = opts || {};
-    var st = { day: "", timer: 0, alive: true, data: null };
+    var O3 = typeof window !== "undefined" && window.NaotaOffice3D;
+    var st = { day: "", timer: 0, alive: true, data: null, view3d: !!(O3 && O3.supported() && savedView()), v3: null, host3d: null };
     current_ = st;
     async function load() {
       if (!st.alive) return;
@@ -214,12 +249,40 @@
       var open = {};
       box.querySelectorAll("details.of-job[open] .of-jn").forEach(function (n) { open[n.textContent] = 1; });
       st.data = d;
-      box.innerHTML = pageHtml(d);
+      draw();
+    }
+    function draw() {
+      var d = st.data, open = {};
+      box.querySelectorAll("details.of-job[open] .of-jn").forEach(function (n) { open[n.textContent] = 1; });
+      box.innerHTML = pageHtml(d, st.view3d);
+      if (st.view3d) place3d(d);
       box.querySelectorAll("details.of-job").forEach(function (el) {
         var n = el.querySelector(".of-jn");
         if (n && open[n.textContent]) el.open = true;
       });
     }
+    function place3d(d) {
+      var slot = box.querySelector(".of-3d-slot");
+      if (!slot) return;
+      if (!st.host3d) {
+        st.host3d = document.createElement("div");
+        st.host3d.className = "o3-host";
+        st.v3 = O3.create(st.host3d, {
+          describe: function (pick) { return describe(st.data, pick); },
+          deptName: deptName,
+          deptStatus: function (dep) { return tw(STATUS_KEY[dep.status] || "office.ds_ok"); },
+        });
+      }
+      slot.appendChild(st.host3d);
+      st.v3.update(d);
+    }
+    box.addEventListener("click", function (ev) {
+      if (!ev.target.closest(".ofView") || !st.data) return;
+      st.view3d = !st.view3d && !!(O3 && O3.supported());
+      saveView(st.view3d);
+      if (!st.view3d && st.v3) { st.v3.destroy(); st.v3 = null; st.host3d = null; }
+      draw();
+    });
     box.addEventListener("change", function (ev) {
       if (ev.target && ev.target.classList.contains("ofDay")) {
         st.day = ev.target.value === (st.data && st.data.today) ? "" : ev.target.value;
@@ -237,11 +300,12 @@
     if (!current_) return;
     current_.alive = false;
     clearInterval(current_.timer);
+    if (current_.v3) { try { current_.v3.destroy(); } catch (e) { /* page already gone */ } }
     current_ = null;
   }
 
   var api_ = { mount: mount, unmount: unmount, pageHtml: pageHtml, issueHtml: issueHtml, deptHtml: deptHtml,
-    jobRowHtml: jobRowHtml, kpiHtml: kpiHtml, feedHtml: feedHtml, deptName: deptName };
+    jobRowHtml: jobRowHtml, kpiHtml: kpiHtml, feedHtml: feedHtml, deptName: deptName, describe: describe };
   if (typeof window !== "undefined") window.NaotaOffice = api_;
   if (typeof module !== "undefined" && module.exports) module.exports = api_;
 })();

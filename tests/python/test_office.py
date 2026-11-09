@@ -112,6 +112,12 @@ with tempfile.TemporaryDirectory() as tmp:
           and sorted(p.name for p in (b / "Naota").iterdir()) == ["kanban.json", "loop-log", "loop-state.json", "loops",
                                                                     "office.json", "reminders.json", "work-log.jsonl"])
 
+    df = d["day_feed"]
+    check("replay feed: every run of 07/11, oldest first", len(df) == 12 and [x["ts"] for x in df] == sorted(x["ts"] for x in df))
+    check("replay feed: the posting loop's 9 runs with 3 crosses, last at 20:00",
+          [x["result"] for x in df if x["job"] == "dang-theo-lich"].count("verified_fail") == 3 and df[-1]["hm"] == "20:00")
+    check("replay feed carries no secret", "sk-ABCDEF" not in json.dumps(df, ensure_ascii=False))
+
     # another day: a fixed record, the paused loop shows no runs that day
     d2 = office.build(b, now, TZ, "2026-11-06")
     check("a past day with no log has no runs", next(j for j in d2["jobs"] if j["id"] == "dang-theo-lich")["day"]["runs"] == 0)

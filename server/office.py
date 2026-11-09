@@ -393,13 +393,17 @@ def build(brain: Path, now: float, tz: tzinfo, day: str = "") -> dict:
     # activity: reminder runs and loop runs, newest first
     names = {j["id"]: j["name"] for j in jobs}
     feed = [{"ts": float(x["ts"]), "job": str(x.get("ref") or ""), "name": names.get(x.get("ref"), scrub(x.get("title") or "", 120)),
-             "result": {"ok": "ok", "fail": "fail"}.get(x.get("status"), "other"), "note": ""} for x in work[-80:]]
+             "result": {"ok": "ok", "fail": "fail"}.get(x.get("status"), "other"), "note": ""} for x in work]
     for d, rs in runs_by_day.items():
         for r in rs:
             feed.append({"ts": _ts_of(r["day"], r["hm"], tz), "job": r["slug"], "name": names.get(r["slug"], r["slug"]),
                          "result": "verified_ok" if r["verified"] is True else ("verified_fail" if r["verified"] is False else "run"),
                          "note": r["note"]})
     feed.sort(key=lambda x: -x["ts"])
+    # the replay of the chosen day: every run of that day, oldest first, with its clock time
+    day_feed = sorted((dict(f) for f in feed if _day_of(f["ts"], tz) == day), key=lambda x: x["ts"])[:400]
+    for f in day_feed:
+        f["hm"] = datetime.fromtimestamp(f["ts"], tz).strftime("%H:%M")
     feed = feed[:30]
     for f in feed:
         f["at"] = _at(f["ts"], tz, today)
@@ -410,7 +414,7 @@ def build(brain: Path, now: float, tz: tzinfo, day: str = "") -> dict:
     return {
         "now": now, "day": day, "today": today, "days": days, "files": files,
         "depts": [depts[k] for k in order if k in depts],
-        "jobs": jobs, "issues": issues, "feed": feed,
+        "jobs": jobs, "issues": issues, "feed": feed, "day_feed": day_feed,
         "now_at": datetime.fromtimestamp(now, tz).strftime("%H:%M:%S"), "tz": str(getattr(tz, "key", "") or tz),
         "totals": {"runs": sum(j["day"]["runs"] for j in jobs), "fails": sum(j["day"]["fail"] for j in jobs),
                    "broken": sum(1 for j in jobs if j["state"] in ("failed", "paused")),

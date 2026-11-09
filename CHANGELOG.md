@@ -8,7 +8,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 ## [1.15.0] - 2026-11-09
 ### Thêm mới
-- **Văn phòng 3D**: xem nhân sự số làm việc trong một văn phòng 3D, theo đúng nhật ký thật.
+- **Văn phòng 3D**: bấm **Xem 3D** trên trang Văn phòng. Mỗi phòng ban một khu, mỗi trợ lý và mỗi việc tự chạy một bàn, đèn trên bàn đúng trạng thái thật.
+- **Chạm vào bàn** để xem việc đó: số lượt đạt, lần chạy cuối, lý do dừng và việc nên làm.
+- **Phát lại một ngày**: chọn ngày rồi bấm **Phát lại ngày này**, từng lượt chạy hiện lần lượt theo giờ, dấu ✓ hoặc ✗ bay lên trên bàn.
+- Nhân vật chỉ cử động khi nhật ký có lượt chạy mới. Phần 3D chỉ tải khi bấm nút, máy không vẽ được 3D thì vẫn xem dạng thẻ như cũ.
 
 ## [1.14.0] - 2026-11-09
 ### Thêm mới

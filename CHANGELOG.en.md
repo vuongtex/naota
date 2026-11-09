@@ -6,7 +6,10 @@ NAOTA release history. Newest first.
 
 ## [1.15.0] - 2026-11-09
 ### Added
-- **3D office**: watch your digital staff at work in a 3D office, driven by the real logs.
+- **3D office**: press **3D view** on the Office page. One area per department, one desk per assistant and per automated job, each lamp in the job's real state.
+- **Tap a desk** to see that job: runs passed, last run, why it stopped and what to do.
+- **Replay a day**: pick a day and press **Replay this day**; each run appears in order with a ✓ or ✗ over its desk.
+- Workers move only when the logs show a new run. The 3D part loads only when you ask, and a device without 3D keeps the cards.
 
 ## [1.14.0] - 2026-11-09
 ### Added
