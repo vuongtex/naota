@@ -4,6 +4,22 @@
 
 NAOTA release history. Newest first.
 
+## [1.20.0] - 2026-11-09
+### Added
+- **The chat shows the engine's task plan as a checklist.** When Claude Code, ChatGPT (Codex) or Grok Build plans a multi-step job, a "Plan 2/5" card appears above the answer: done items ticked and struck through, the running one in bold, the rest open. The activity line under the chat says which step it is on. The card stays after a reload and costs no extra tokens.
+- **The seven API-key brains show the Plan card too.** OpenRouter, OpenAI, Anthropic API, Gemini, Groq, DeepSeek and Ollama get a `naota_plan` tool: for a job of three steps or more the model lists the steps and ticks each one off. It costs about 200 tokens a request; switch it off in the composer **+** menu, **Plan long jobs (API brains)**. Only the owner's chat gets it, not customer bots or background jobs.
+- **The Jobs tab on the Partners page shows what the assistant is doing in the chat**: a "Working in the chat" card with the step count and the plan, gone when the turn ends.
+- **The Jobs tab lists the workflow runs the assistant took part in.** A running one says which step and whose, one waiting for review sits under Needs you, a failed one is marked failed, and Open goes to that workflow. The source filter gains "Workflows".
+- **Each chat in the left column carries a small folder tag with its project name.** The tag hides while the list is filtered to that one project.
+- **The engine tag names the brain:** "Claude", "Codex", "Grok", "OpenRouter" and so on instead of internal ids such as "cli".
+### Improved
+- **Answers stretch across the whole chat** instead of leaving a wide gap on the right. On the Partners page on an iPad an answer grows from about 780px to over 1,000px; on a very wide monitor it stops at about 120 letters per line. The Chat and Teams pages follow the same rule.
+### Fixed
+- **The status dot on an assistant's card agrees with its Jobs tab.** A job you pressed Done on or deleted no longer lights the green or red dot.
+- **A workflow run cut off mid-way** (the server stopped during it) no longer stays In progress for ever.
+- **Reinstalling a Store agent brings it back on the Partners page.** Renaming or editing a pack's agent, uninstalling and installing again used to skip it. Your copy is kept and the pack's copy is added under a new name, shown on screen.
+- **Deleting a pack's agents, workflows or skills in the app makes the Store stop saying "Installed"**, and the card offers Install again. Uninstalling a pack also cleans up a turned-off skill and the copy Claude Code loads.
+
 ## [1.19.0] - 2026-11-09
 ### Security
 - **To do after updating:** open each chatbot's Agent, add the price lists, policies and guides the bot should read, then press **Try** to make sure it still answers well. A bot with no listed file answers from its Agent's role only.

@@ -6,6 +6,22 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.20.0] - 2026-11-09
+### Thêm mới
+- **Khung trò chuyện hiện kế hoạch của bộ não như một danh sách việc.** Khi Claude Code, ChatGPT (Codex) hay Grok Build tự lập kế hoạch cho một việc nhiều bước, thẻ "Kế hoạch 2/5" hiện ngay trên câu trả lời: việc xong có dấu tích và gạch ngang, việc đang làm in đậm, việc còn lại để trống. Dòng trạng thái dưới khung chat ghi đang ở bước nào. Thẻ được giữ lại khi tải lại trang, và không tốn thêm token.
+- **Bảy bộ não chạy bằng API key cũng có thẻ Kế hoạch.** OpenRouter, OpenAI, Anthropic API, Gemini, Groq, DeepSeek và Ollama có công cụ `naota_plan`: gặp việc từ 3 bước trở lên, model lập danh sách và đánh dấu từng mục khi xong. Tốn thêm khoảng 200 token mỗi lượt; muốn tắt thì vào menu **+** ở ô nhập, mục **Kế hoạch việc dài (bộ não API)**. Chỉ khung chat của chủ có công cụ này, bot trả lời khách và việc nền thì không.
+- **Tab Công việc ở trang Cộng sự hiện việc cộng sự đang làm trong chat**: thẻ "Đang làm trong chat" kèm số bước và kế hoạch, xong lượt là thẻ tự tắt.
+- **Tab Công việc hiện các lần chạy Quy trình mà cộng sự có tham gia.** Đang chạy thì ghi bước nào và của ai, chờ duyệt thì nằm ở Cần bạn, hỏng thì đánh dấu hỏng, bấm Mở là tới đúng quy trình. Bộ lọc nguồn có thêm "Quy trình".
+- **Mỗi hội thoại ở cột trái có nhãn thư mục nhỏ ghi tên project.** Đang lọc đúng một project thì nhãn tự ẩn cho đỡ lặp.
+- **Nhãn bộ não ghi tên dễ hiểu:** "Claude", "Codex", "Grok", "OpenRouter"... thay cho mã nội bộ như "cli".
+### Cải thiện
+- **Câu trả lời trải rộng hết khung chat**, không chừa khoảng trống lớn bên phải. Ở trang Cộng sự trên iPad câu trả lời rộng từ khoảng 780px lên hơn 1.000px; màn rất rộng thì dừng ở khoảng 120 chữ mỗi dòng cho đỡ mỏi mắt. Trang Trò chuyện và trang Team đổi theo cùng kiểu.
+### Sửa lỗi
+- **Chấm trạng thái trên thẻ cộng sự khớp với tab Công việc.** Việc đã bấm Xong hay đã xoá không còn làm chấm xanh hay chấm đỏ sáng lên.
+- **Lần chạy Quy trình bị cắt giữa chừng** (máy chủ tắt khi đang chạy) không còn nằm mãi ở Đang làm.
+- **Cài lại trợ lý từ Kho nay hiện lại ở trang Cộng sự.** Trước đây đổi tên hay sửa trợ lý của gói, gỡ rồi cài lại thì bị bỏ qua. Nay bản của bạn giữ nguyên, bản của gói được cài thêm dưới tên mới và màn hình nói rõ tên đó.
+- **Xoá trợ lý, quy trình, kỹ năng của gói trong app thì Kho thôi báo "Đã cài"**, thẻ hiện lại nút Cài. Gỡ gói thì dọn sạch cả kỹ năng đang tắt và bản Claude Code đọc.
+
 ## [1.19.0] - 2026-11-09
 ### Bảo mật
 - **Cần làm sau khi cập nhật:** mở Agent của từng chatbot, ghim các file bảng giá, chính sách, hướng dẫn mà bot cần đọc, rồi bấm **Thử** để chắc bot vẫn trả lời đúng. Bot chưa ghim file nào chỉ trả lời theo vai trò của Agent.
