@@ -59,6 +59,19 @@ check("durations pick their unit", O.dur(42) === "office.dur_s" && O.dur(125) ==
 check("the strip sits under the numbers in both views", O.pageHtml(data, false, live, 0).includes("of-now")
   && O.pageHtml(data, true, live, 0).indexOf("of-now") < O.pageHtml(data, true, live, 0).indexOf("of-3d-slot"));
 
+// handoffs: newest first, names escaped, the owner named, empty day says so
+const hd = Object.assign({}, data, { handoffs: [
+  { kind: "team", from: "a", to: "s", from_name: "Người <b>viết</b>", to_name: "SEO", title: "Bài", where: "Nhóm", ts: 1, hm: "09:00", status: "done" },
+  { kind: "board", from: "owner", to: "a", from_name: "", to_name: "Người viết", title: "Ảnh", where: "", ts: 2, hm: "10:00", status: "running" },
+] });
+const hh = O.handoffsHtml(hd);
+check("handoffs listed newest first", hh.indexOf("10:00") < hh.indexOf("09:00"));
+check("handoff names are escaped", hh.includes("&lt;b&gt;") && !hh.includes("<b>viết"));
+check("the owner is named, not 'owner'", hh.includes("office.owner") && !hh.includes(">owner<"));
+check("handoff status shown", hh.includes("office.hs_running") && hh.includes("office.hs_done"));
+check("a day with no handoff says so", O.handoffsHtml(data).includes("office.hand_empty"));
+check("handoffs sit on the page in both views", O.pageHtml(hd, false).includes("of-hand") && O.pageHtml(hd, true).includes("of-hand"));
+
 // every office.* and page.office.* key used in the file exists in both languages
 const src = fs.readFileSync(path.join(__dirname, "../../dashboard/office.js"), "utf8");
 const vi = JSON.parse(fs.readFileSync(path.join(__dirname, "../../dashboard/i18n/vi.json"), "utf8"));

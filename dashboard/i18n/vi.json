@@ -7302,5 +7302,17 @@
   "office.dur_m": "{m} phút {s} giây",
   "office.dur_h": "{h} giờ {m} phút",
   "office.mark_ok": "Đạt",
-  "office.mark_bad": "Lỗi"
+  "office.mark_bad": "Lỗi",
+  "office.hand_title": "Giao việc trong ngày",
+  "office.hand_empty": "Chưa ai giao việc cho ai trong ngày này.",
+  "office.owner": "Bạn",
+  "office.h_team": "Team",
+  "office.h_board": "Bảng việc",
+  "office.h_workflow": "Quy trình",
+  "office.hs_running": "đang làm",
+  "office.hs_done": "xong",
+  "office.hs_failed": "hỏng",
+  "office.hs_waiting": "đang chờ",
+  "office.hs_cancelled": "đã huỷ",
+  "office.k_team": "Team"
 }

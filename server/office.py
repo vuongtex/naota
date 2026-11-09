@@ -197,7 +197,8 @@ def _in_quiet(hour: int, quiet) -> bool:
 
 
 # ---------- building the office ----------
-def build(brain: Path, now: float, tz: tzinfo, day: str = "") -> dict:
+def build(brain: Path, now: float, tz: tzinfo, day: str = "", gather=None) -> dict:
+    """`gather(day)` -> (teams, tasks, runs) for handoffs(); the server passes it, tests may leave it out."""
     brain = Path(brain)
     nd = brain / "Naota"
     today = _day_of(now, tz)
@@ -415,6 +416,7 @@ def build(brain: Path, now: float, tz: tzinfo, day: str = "") -> dict:
         "now": now, "day": day, "today": today, "days": days, "files": files,
         "depts": [depts[k] for k in order if k in depts],
         "jobs": jobs, "issues": issues, "feed": feed, "day_feed": day_feed,
+        "handoffs": _handoffs_of(brain, now, tz, day, gather),
         "now_at": datetime.fromtimestamp(now, tz).strftime("%H:%M:%S"), "tz": str(getattr(tz, "key", "") or tz),
         "totals": {"runs": sum(j["day"]["runs"] for j in jobs), "fails": sum(j["day"]["fail"] for j in jobs),
                    "broken": sum(1 for j in jobs if j["state"] in ("failed", "paused")),
@@ -423,9 +425,19 @@ def build(brain: Path, now: float, tz: tzinfo, day: str = "") -> dict:
     }
 
 
+def _handoffs_of(brain, now, tz, day, gather):
+    if gather is None:
+        return []
+    try:
+        teams, tasks, runs = gather(day)
+        return handoffs(brain, now, tz, day, teams, tasks, runs)
+    except Exception:  # noqa: BLE001 - a broken store never takes the whole page down
+        return []
+
+
 # ---------- what runs right now ----------
 def live(brain: Path, now: float, tz: tzinfo, loop_now: dict | None, rem_now: dict | None,
-         tasks: list | None, procs: list | None) -> dict:
+         tasks: list | None, procs: list | None, team_now: list | None = None) -> dict:
     """Everything running at this second, oldest first, read only and scrubbed like build().
 
     loop_now = {"slug", "since"} of the loop iteration running, rem_now = {reminder id: started_at},
@@ -459,10 +471,21 @@ def live(brain: Path, now: float, tz: tzinfo, loop_now: dict | None, rem_now: di
             if str(rid) in names:   # only this brain's own reminders
                 add("reminder", rid, names[str(rid)], since)
 
+    names = staff_names(brain)
     for t in tasks or []:
         if isinstance(t, dict) and str(t.get("status") or "") == "running":
+            to = _card_agent(t)
             add("task", t.get("id"), str(t.get("title") or t.get("id") or ""),
-                t.get("updated_at") or t.get("created_at"), {"agent": scrub(t.get("agent") or "", 60)})
+                t.get("updated_at") or t.get("created_at"),
+                {"agent": scrub(names.get(to) or to, 60), "agent_slug": to})
+
+    for x in team_now or []:
+        s = x.get("step") or {}
+        m = next((m for m in x.get("members") or [] if str(m.get("agent_key")) == str(s.get("agent_key"))), {})
+        slug = _member_slug(m) if m else str(s.get("agent_key") or "")
+        add("team", s.get("step_id"), str(s.get("brief") or ""), s.get("updated_at") or s.get("created_at"),
+            {"agent": scrub(names.get(slug) or (m.get("identity") or {}).get("name") or slug, 60), "agent_slug": slug,
+             "where": scrub((x.get("team") or {}).get("name") or "", 80)})
 
     for p in procs or []:
         if isinstance(p, dict):
@@ -470,3 +493,124 @@ def live(brain: Path, now: float, tz: tzinfo, loop_now: dict | None, rem_now: di
 
     items.sort(key=lambda x: x["since"] or now)
     return {"now": now, "now_at": datetime.fromtimestamp(now, tz).strftime("%H:%M:%S"), "items": items}
+
+
+
+# ---------- who handed what to whom ----------
+OWNER = "owner"
+_STEP_STATUS = {"queued": "waiting", "held": "waiting", "waiting": "waiting", "waiting_owner": "waiting",
+                "running": "running", "done": "done", "continued": "done", "failed": "failed", "cancelled": "cancelled"}
+_TASK_STATUS = {"running": "running", "done": "done", "cancelled": "cancelled", "archived": "done", "blocked": "failed"}
+
+
+def staff_names(brain: Path) -> dict:
+    """{slug: name} of the brain's assistants, from agents/*.md (old Naota/agents/ as a fallback)."""
+    brain = Path(brain)
+    adir = brain / "agents"
+    if not adir.is_dir():
+        adir = brain / "Naota" / "agents"
+    out = {}
+    for p in sorted(adir.glob("*.md")) if adir.is_dir() else []:
+        out[p.stem] = str(frontmatter(_read(p)).get("name") or p.stem)
+    return out
+
+
+def _member_slug(m: dict) -> str:
+    ident = m.get("identity") or {}
+    return str(ident.get("slug") or m.get("slug_at_join") or m.get("agent_key") or "")
+
+
+def _card_agent(task: dict) -> str:
+    """Slug of the assistant a board card was given to: the "Giao việc" key first, then the router's pick."""
+    k = str(task.get("idempotency_key") or "")
+    if k.startswith("agent:"):
+        parts = k[len("agent:"):].split(":")
+        if len(parts) >= 2 and parts[1]:
+            return parts[1]
+    ag = (task.get("metadata") or {}).get("agent")
+    return str((ag.get("slug") if isinstance(ag, dict) else ag) or "")
+
+
+def handoffs(brain: Path, now: float, tz: tzinfo, day: str, teams: list | None, tasks: list | None,
+             runs: list | None) -> list:
+    """Every handoff of one day, oldest first: {kind, from, to, from_name, to_name, title, where, ts, hm, status}.
+
+    teams = [{"team": row, "members": [...], "steps": [steps of that day], "titles": {task_id: title}}],
+    tasks = task-board cards, runs = workflow runs (newest first). `from`/`to` are assistant slugs, so the page
+    finds their desks, or "owner" for the person who runs the brain. Read only, scrubbed.
+    """
+    names = staff_names(brain)
+    by_name = {v.strip().lower(): k for k, v in names.items()}
+    t0 = _ts_of(day, "00:00", tz)
+    t1 = t0 + 86400
+    out = []
+
+    def add(kind, frm, to, title, where, ts, status, fname="", tname=""):
+        ts = float(ts or 0)
+        if not (t0 <= ts < t1) or not to or frm == to:
+            return
+        out.append({"kind": kind, "from": frm, "to": to,
+                    "from_name": scrub(names.get(frm) or fname or frm, 60) if frm != OWNER else "",
+                    "to_name": scrub(names.get(to) or tname or to, 60) if to != OWNER else "",
+                    "title": scrub(title, 160), "where": scrub(where, 80), "ts": ts,
+                    "hm": datetime.fromtimestamp(ts, tz).strftime("%H:%M"), "status": status})
+
+    for t in teams or []:
+        team = t.get("team") or {}
+        mem = {str(m.get("agent_key")): m for m in t.get("members") or []}
+        slug = {k: _member_slug(m) for k, m in mem.items()}
+        nm = {k: str((m.get("identity") or {}).get("name") or "") for k, m in mem.items()}
+        leader = str(team.get("leader_key") or "")
+        steps = t.get("steps") or []
+        by_id = {s.get("step_id"): s for s in steps}
+        planned = {s.get("task_id") for s in steps if s.get("kind") == "plan"}
+        for s in steps:
+            kind = s.get("kind")
+            key = str(s.get("agent_key") or "")
+            if kind == "work":
+                src = leader if (s.get("task_id") in planned and leader) else ""
+            elif kind == "help":
+                src = str((by_id.get(s.get("parent_step")) or {}).get("agent_key") or "")
+            else:
+                continue
+            frm = slug.get(src, src) if src else OWNER
+            title = (t.get("titles") or {}).get(s.get("task_id")) or s.get("brief") or ""
+            add("team", frm, slug.get(key, key), title, team.get("name") or "", s.get("created_at"),
+                _STEP_STATUS.get(str(s.get("status") or ""), "waiting"), nm.get(src, ""), nm.get(key, ""))
+
+    for task in tasks or []:
+        if not isinstance(task, dict):
+            continue
+        to = _card_agent(task)
+        if not to:
+            continue
+        cb = str(task.get("created_by") or "")
+        frm = cb.rsplit(":", 1)[-1] if cb.startswith("agent:") else OWNER
+        if frm != OWNER and frm not in names:
+            frm = OWNER
+        add("board", frm, to, task.get("title") or "", "", task.get("created_at"),
+            _TASK_STATUS.get(str(task.get("status") or ""), "waiting"))
+
+    for r in runs or []:
+        if not isinstance(r, dict):
+            continue
+        steps = r.get("steps") or []
+        start = float(r.get("started_at") or 0)
+        last = len(steps) - 1
+        prev = OWNER
+        for i, s in enumerate(steps):
+            nm_ = str(s.get("agent") or "")
+            to = by_name.get(nm_.strip().lower(), nm_)
+            if s.get("error"):
+                status = "failed"
+            elif i == last and r.get("status") == "running":
+                status = "running"
+            elif i == last and r.get("status") == "waiting":
+                status = "waiting"
+            else:
+                status = "done"
+            add("workflow", prev, to, r.get("name") or r.get("slug") or "", r.get("name") or "",
+                start + i * 0.001, status, "", nm_)
+            prev = to
+    out.sort(key=lambda x: x["ts"])
+    return out[-300:]

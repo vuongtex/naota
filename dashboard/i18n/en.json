@@ -7302,5 +7302,17 @@
   "office.dur_m": "{m} min {s}s",
   "office.dur_h": "{h} h {m} min",
   "office.mark_ok": "Pass",
-  "office.mark_bad": "Fail"
+  "office.mark_bad": "Fail",
+  "office.hand_title": "Handoffs this day",
+  "office.hand_empty": "Nobody handed work to anyone this day.",
+  "office.owner": "You",
+  "office.h_team": "Team",
+  "office.h_board": "Task board",
+  "office.h_workflow": "Workflow",
+  "office.hs_running": "working",
+  "office.hs_done": "done",
+  "office.hs_failed": "failed",
+  "office.hs_waiting": "waiting",
+  "office.hs_cancelled": "cancelled",
+  "office.k_team": "Team"
 }

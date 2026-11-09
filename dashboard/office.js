@@ -169,7 +169,8 @@
   }
 
   // ---- what runs at this second (GET /office/live, asked every 5 seconds) ----
-  var NOW_KIND = { loop: "office.k_loop", reminder: "office.k_reminder", task: "office.k_task", job: "office.k_job" };
+  var NOW_KIND = { loop: "office.k_loop", reminder: "office.k_reminder", task: "office.k_task", job: "office.k_job",
+    team: "office.k_team" };
   function dur(secs) {
     secs = Math.max(0, Math.floor(secs || 0));
     var h = Math.floor(secs / 3600), m = Math.floor((secs % 3600) / 60), s = secs % 60;
@@ -196,6 +197,27 @@
       + (items.length ? ' <span class="of-count">' + esc(String(items.length)) + "</span>" : "") + "</h3>"
       + (items.length ? '<ul class="of-nlist">' + rows + "</ul>" : '<div class="of-now-none">' + esc(tw("office.now_none")) + "</div>")
       + "</section>";
+  }
+
+  // ---- who handed what to whom that day (team assignments, board cards given to an assistant, workflow steps) ----
+  var HAND_KEY = { team: "office.h_team", board: "office.h_board", workflow: "office.h_workflow" };
+  var HAND_ST = { running: "office.hs_running", done: "office.hs_done", failed: "office.hs_failed",
+    waiting: "office.hs_waiting", cancelled: "office.hs_cancelled" };
+  var HAND_TONE = { running: "run", done: "ok", failed: "bad", waiting: "calm", cancelled: "calm" };
+  function who(name, id) { return id === "owner" ? tw("office.owner") : (name || id); }
+  function handoffsHtml(d) {
+    var h = ((d && d.handoffs) || []).slice().reverse().slice(0, 40);
+    var rows = h.length ? h.map(function (x) {
+      return '<li class="of-h of-' + (HAND_TONE[x.status] || "calm") + '"><span class="of-ft">' + esc(x.hm) + "</span>"
+        + '<span class="of-hw"><b>' + esc(who(x.from_name, x.from)) + '</b> <span class="of-ha">' + ic("chevron-right") + "</span> <b>"
+        + esc(who(x.to_name, x.to)) + "</b></span>"
+        + '<span class="of-fn">' + esc(x.title) + ' <span class="of-fx">' + esc(tw(HAND_KEY[x.kind] || "office.h_board"))
+        + (x.where && x.where !== x.title ? " · " + esc(x.where) : "") + "</span></span>"
+        + '<span class="of-hs">' + esc(tw(HAND_ST[x.status] || "office.hs_waiting")) + "</span></li>";
+    }).join("") : '<li class="of-empty">' + esc(tw("office.hand_empty")) + "</li>";
+    return '<section class="of-box"><h3>' + esc(tw("office.hand_title"))
+      + (h.length ? ' <span class="of-count of-count-n">' + esc(String(((d && d.handoffs) || []).length)) + "</span>" : "")
+      + '</h3><ul class="of-feed of-hand">' + rows + "</ul></section>";
   }
 
   function toolbarHtml(d, live, view3d) {
@@ -225,7 +247,8 @@
     var live = d.day === d.today;
     // in 3D the office comes right under the numbers, before the list of what needs the owner
     return '<div class="of-root">' + toolbarHtml(d, live, view3d) + kpiHtml(d) + nowHtml(now, ago)
-      + (view3d ? '<div class="of-3d-slot"></div>' + issuesHtml(d) : issuesHtml(d) + deptsHtml(d)) + feedHtml(d) + footHtml(d) + "</div>";
+      + (view3d ? '<div class="of-3d-slot"></div>' + issuesHtml(d) : issuesHtml(d) + deptsHtml(d)) + handoffsHtml(d) + feedHtml(d)
+      + footHtml(d) + "</div>";
   }
 
   // What to do about a job, from its state (the 3D desk card).
@@ -301,6 +324,7 @@
         st.v3 = O3.create(st.host3d, {
           describe: function (pick) { return describe(st.data, pick); },
           deptName: deptName,
+          ownerName: function () { return tw("office.owner"); },
           deptStatus: function (dep) { return tw(STATUS_KEY[dep.status] || "office.ds_ok"); },
         });
       }
@@ -312,7 +336,10 @@
     // loop and reminder ids running now, the ones that own a desk in the 3D office
     function runningIds() {
       var ids = {};
-      ((st.live && st.live.items) || []).forEach(function (x) { if (x.kind === "loop" || x.kind === "reminder") ids[x.id] = true; });
+      ((st.live && st.live.items) || []).forEach(function (x) {
+        if (x.kind === "loop" || x.kind === "reminder") ids[x.id] = true;
+        if (x.agent_slug) ids[x.agent_slug] = true;   // an assistant working on a team step or a board card
+      });
       return ids;
     }
     function paintNow() {
@@ -330,8 +357,10 @@
       st.live = live; st.liveAt = Date.now() / 1000;
       paintNow();
       if (st.v3) st.v3.running(runningIds());
-      // a run just ended: fetch the office again so its result, lamp and pass/fail mark show at once
-      if (gone && !st.day) load();
+      var added = live.items.some(function (y) { return !before.some(function (x) { return x.kind === y.kind && x.id === y.id; }); });
+      // a run just ended or new work was handed out: fetch the office again so the result or the handoff shows at once
+      if ((gone || (added && st.liveSeen)) && !st.day) load();
+      st.liveSeen = true;
     }
     box.addEventListener("click", function (ev) {
       if (!ev.target.closest(".ofView") || !st.data) return;
@@ -367,7 +396,7 @@
   }
 
   var api_ = { mount: mount, unmount: unmount, pageHtml: pageHtml, issueHtml: issueHtml, deptHtml: deptHtml,
-    jobRowHtml: jobRowHtml, kpiHtml: kpiHtml, feedHtml: feedHtml, nowHtml: nowHtml, dur: dur, deptName: deptName, describe: describe };
+    jobRowHtml: jobRowHtml, kpiHtml: kpiHtml, feedHtml: feedHtml, nowHtml: nowHtml, dur: dur, handoffsHtml: handoffsHtml, deptName: deptName, describe: describe };
   if (typeof window !== "undefined") window.NaotaOffice = api_;
   if (typeof module !== "undefined" && module.exports) module.exports = api_;
 })();

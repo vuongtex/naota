@@ -149,6 +149,46 @@ with tempfile.TemporaryDirectory() as tmp:
     check("live: task titles are scrubbed", "sk-ABCDEF" not in json.dumps(lv, ensure_ascii=False))
     check("live: nothing running is an empty list", office.live(b, now, TZ, {}, {}, [], [])["items"] == [])
 
+# handoffs: a team leader assigns, a member asks for help, the owner gives a card, a workflow chains two assistants
+with tempfile.TemporaryDirectory() as tmp:
+    b = Path(tmp)
+    write(b / "agents" / "truong.md", "---\nname: Trưởng nhóm\n---\n")
+    write(b / "agents" / "viet.md", "---\nname: Người viết\n---\n")
+    write(b / "agents" / "anh.md", "---\nname: Thiết kế ảnh\n---\n")
+    day = "2026-11-07"
+    teams = [{"team": {"team_id": "tm1", "name": "Nhóm nội dung", "leader_key": "k1"},
+              "members": [{"agent_key": "k1", "identity": {"slug": "truong", "name": "Trưởng nhóm"}},
+                          {"agent_key": "k2", "slug_at_join": "viet"},
+                          {"agent_key": "k3", "identity": {"slug": "anh"}}],
+              "steps": [{"step_id": "s1", "task_id": "j1", "kind": "plan", "agent_key": "k1", "status": "done", "created_at": ts(day + " 09:00")},
+                        {"step_id": "s2", "task_id": "j1", "kind": "work", "agent_key": "k2", "brief": "viết bài", "status": "done", "created_at": ts(day + " 09:01")},
+                        {"step_id": "s3", "task_id": "j1", "kind": "help", "agent_key": "k3", "parent_step": "s2", "status": "running", "created_at": ts(day + " 09:20")},
+                        {"step_id": "s4", "task_id": "j2", "kind": "work", "agent_key": "k2", "status": "failed", "created_at": ts(day + " 10:00")}],
+              "titles": {"j1": "Bài fanpage token=sk-ABCDEF123456"}}]
+    tasks = [{"id": "t1", "title": "Làm ảnh bìa", "idempotency_key": "agent:k3:anh:abc", "created_by": "owner",
+              "status": "running", "created_at": ts(day + " 11:00")},
+             {"id": "t2", "title": "Không giao ai", "status": "todo", "created_at": ts(day + " 11:30")},
+             {"id": "t3", "title": "Hôm khác", "metadata": {"agent": {"slug": "viet"}}, "created_at": ts("2026-11-06 11:00")}]
+    runs = [{"name": "Đăng bài", "slug": "dang-bai", "status": "done", "started_at": ts(day + " 12:00"),
+             "steps": [{"i": 0, "agent": "Người viết"}, {"i": 1, "agent": "Thiết kế ảnh", "error": True}]}]
+    h = office.handoffs(b, ts(day + " 21:00"), TZ, day, teams, tasks, runs)
+    pairs = [(x["kind"], x["from"], x["to"], x["status"]) for x in h]
+    check("handoffs: leader to member, member asks member, owner's direct job, owner's card, workflow chain",
+          pairs == [("team", "truong", "viet", "done"), ("team", "viet", "anh", "running"), ("team", "owner", "viet", "failed"),
+                    ("board", "owner", "anh", "running"), ("workflow", "owner", "viet", "done"), ("workflow", "viet", "anh", "failed")])
+    check("handoffs carry names, time and the team", h[0]["from_name"] == "Trưởng nhóm" and h[0]["to_name"] == "Người viết"
+          and h[0]["hm"] == "09:01" and h[0]["where"] == "Nhóm nội dung")
+    check("handoffs: other days and unassigned cards are left out", all(x["title"] not in ("Hôm khác", "Không giao ai") for x in h))
+    check("handoffs carry no secret", "sk-ABCDEF" not in json.dumps(h, ensure_ascii=False))
+    d = office.build(b, ts(day + " 21:00"), TZ, day, lambda dd: (teams, tasks, runs))
+    check("build() returns the day's handoffs", len(d["handoffs"]) == 6)
+    d = office.build(b, ts(day + " 21:00"), TZ, day, lambda dd: 1 / 0)
+    check("a broken store gives no handoffs, the page still builds", d["handoffs"] == [] and d["depts"])
+    lv = office.live(b, ts(day + " 21:00"), TZ, {}, {}, tasks, [],
+                     [{"team": teams[0]["team"], "members": teams[0]["members"], "step": teams[0]["steps"][2]}])
+    check("live: an assistant on a team step or a card names its desk",
+          sorted(x.get("agent_slug") for x in lv["items"]) == ["anh", "anh"])
+
 check("scrub masks key=value secrets", "abc123" not in office.scrub("password: abc123 ok"))
 check("scrub masks Windows paths", "Users" not in office.scrub(r"lỗi ở C:\Users\x\secret.txt"))
 check("scrub keeps normal words", office.scrub("Đăng bài lên fanpage") == "Đăng bài lên fanpage")

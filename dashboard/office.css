@@ -132,3 +132,17 @@
   .of-nt { grid-column: 1 / -1; white-space: normal; }
 }
 @media (prefers-reduced-motion: reduce) { .of-pulse { animation: none; } }
+/* who handed what to whom */
+.of-h { display: grid; grid-template-columns: 56px minmax(150px, auto) 1fr auto; gap: 10px; align-items: baseline; padding: 7px 0; border-top: 1px solid var(--hairline); }
+.of-h:first-child { border-top: 0; }
+.of-hw { white-space: nowrap; }
+.of-ha svg { width: 14px; height: 14px; vertical-align: -2px; color: var(--text3); }
+.of-hs { font-size: 13px; padding: 1px 8px; border-radius: 999px; background: var(--surface-2); color: var(--text2); white-space: nowrap; }
+.of-h.of-ok .of-hs { background: var(--of-ok-w); color: var(--of-ok); }
+.of-h.of-bad .of-hs { background: var(--of-bad-w); color: var(--of-bad); }
+.of-h.of-run .of-hs { background: rgba(47, 143, 255, .12); color: #006b9e; }
+@media (max-width: 560px) {
+  .of-h { grid-template-columns: 48px 1fr auto; }
+  .of-h .of-fn { grid-column: 2 / -1; }
+  .of-hw { white-space: normal; }
+}.of-root .of-box h3 > .of-count.of-count-n { background: var(--surface-2); color: var(--text2); }
