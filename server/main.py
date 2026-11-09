@@ -31755,6 +31755,11 @@ async def office_get(brain: str = "brain", day: str = ""):
 # the reminders firing, the task-board cards in progress, the shell work Naota watches. Read only.
 @app.get("/office/live")
 async def office_live(brain: str = "brain"):
+    # every read below touches disk, so the whole gathering runs off the event loop
+    return await asyncio.to_thread(_office_live_sync, brain)
+
+
+def _office_live_sync(brain: str) -> dict:
     import office
     root = _brain_root(brain)
     try:
