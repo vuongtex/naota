@@ -1,0 +1,62 @@
+// Office page (dashboard/office.js): draws only what GET /office returned, escapes every owner text, shows "[?]" for a
+// number the server could not count, and every string it uses exists in both languages.
+const path = require("path");
+const fs = require("fs");
+const O = require(path.join(__dirname, "../../dashboard/office.js"));
+
+let fails = 0;
+function check(name, ok) { console.log((ok ? "ok   " : "FAIL ") + name); if (!ok) fails++; }
+
+const data = {
+  day: "2026-11-07", today: "2026-11-07", days: ["2026-11-07", "2026-11-06"], now_at: "21:00:00",
+  files: { reminders: true, work_log: true, loop_state: true, kanban: false },
+  totals: { runs: 12, fails: 3, broken: 2, waiting: null, empty_depts: 1 },
+  jobs: [
+    { id: "dang", kind: "loop", name: "Đăng <b>bài</b>", dept: "marketing", dept_guessed: true, state: "paused",
+      paused_reason: "3 lần liền không đạt", result: "✗", last_at: "20:00", target: null, day: { runs: 9, ok: 6, fail: 3 } },
+    { id: "r1", kind: "reminder", name: "Đăng Threads", dept: "marketing", state: "ok", result: "ok", last_at: "09:00",
+      target: 2, day: { runs: 1, ok: 1, fail: 0 } },
+  ],
+  depts: [
+    { id: "marketing", light: "red", status: "broken", staff: [{ slug: "a", name: "Người viết", role: "" }], jobs: ["dang", "r1"], waiting: [] },
+    { id: "sales", light: "grey", status: "empty", staff: [], jobs: [], waiting: [] },
+    { id: "SEO", light: "grey", status: "idle", staff: [{ slug: "s", name: "SEO", role: "" }], jobs: [], waiting: [] },
+  ],
+  issues: [
+    { kind: "paused", level: 0, job: "dang" },
+    { kind: "twin_running", level: 2, job: "r1", other: "dang" },
+    { kind: "dept_empty", level: 4, dept: "sales" },
+  ],
+  feed: [{ ts: 1, at: "20:00", job: "dang", name: "Đăng", result: "verified_fail", note: "<script>x</script>" }],
+};
+
+const html = O.pageHtml(data);
+check("owner text is escaped", html.includes("Đăng &lt;b&gt;bài&lt;/b&gt;") && !html.includes("<script>x"));
+check("a number the server could not count shows [?]", O.kpiHtml(data).includes("[?]"));
+check("paused issue carries the reason and what to do", html.includes("3 lần liền không đạt") && html.includes("office.do_paused"));
+check("red department light", html.includes("of-l-red"));
+check("an empty department says so", html.includes("office.no_staff"));
+check("a department named by the owner keeps the owner's name", O.deptName("SEO") === "SEO" && O.deptName("sales") === "office.dept_sales");
+check("runs and target on a job row", O.jobRowHtml(data.jobs[1]).includes("office.target_day"));
+check("missing file named in the footer", html.includes("office.missing"));
+check("live badge on today", html.includes("of-live on"));
+check("a past day is a record, not live", !O.pageHtml(Object.assign({}, data, { day: "2026-11-06" })).includes("of-live on"));
+
+// every office.* and page.office.* key used in the file exists in both languages
+const src = fs.readFileSync(path.join(__dirname, "../../dashboard/office.js"), "utf8");
+const vi = JSON.parse(fs.readFileSync(path.join(__dirname, "../../dashboard/i18n/vi.json"), "utf8"));
+const en = JSON.parse(fs.readFileSync(path.join(__dirname, "../../dashboard/i18n/en.json"), "utf8"));
+const used = new Set((src.match(/"office\.[a-z_]+"/g) || []).map(s => s.slice(1, -1)));
+// keys built from codes
+["ok", "failed", "paused", "late", "never", "off", "removed", "cancelled", "done"].forEach(s => used.add("office.st_" + s));
+["loop", "reminder", "once"].forEach(s => used.add("office.kind_" + s));
+["ok", "fail", "verified_ok", "verified_fail", "run", "other"].forEach(s => used.add("office.r_" + s));
+["reminders", "work_log", "loop_state", "kanban"].forEach(s => used.add("office.f_" + s));
+["marketing", "sales", "care", "finance", "ops", "system", "unsorted"].forEach(s => used.add("office.dept_" + s));
+["page.office.label", "page.office.sub"].forEach(k => used.add(k));
+const missing = [...used].filter(k => !(k in vi) || !(k in en));
+check("every key exists in vi and en" + (missing.length ? ": " + missing.join(", ") : ""), !missing.length);
+check("Office sits on the rail after Tasks", /ids: \["home", "chat", "tasks", "office"\]/.test(
+  fs.readFileSync(path.join(__dirname, "../../dashboard/console.js"), "utf8")));
+
+process.exit(fails ? 1 : 0);
