@@ -4,6 +4,15 @@
 
 NAOTA release history. Newest first.
 
+## [1.15.0] - 2026-11-09
+### Added
+- **3D office**: press **3D view** on the Office page. One area per department, one desk per assistant and per automated job, each lamp in the job's real state.
+- **Tap a desk** to see that job: runs passed, last run, why it stopped and what to do.
+- **Running right now**: a strip at the top of the Office page shows what runs at this second (loops, schedules, board tasks, background commands), since when and for how long. It asks the system every 5 seconds and the clock counts each second.
+- In 3D a running desk turns its **lamp blue**, shows a **Running** tag and its worker keeps typing; when the run ends the lamp shows the result and a Pass or Fail mark appears at once.
+- **Replay a day**: pick a day and press **Replay this day**; each run appears in order with a Pass or Fail mark over its desk.
+- Workers move only when the logs show a new run. The 3D part loads only when you ask, and a device without 3D keeps the cards.
+
 ## [1.14.0] - 2026-11-09
 ### Added
 - **Office page** (sidebar, under Tasks): one card per department. Green runs right, blinking red is broken or paused itself, grey means nobody.

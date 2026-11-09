@@ -42,6 +42,23 @@ check("missing file named in the footer", html.includes("office.missing"));
 check("live badge on today", html.includes("of-live on"));
 check("a past day is a record, not live", !O.pageHtml(Object.assign({}, data, { day: "2026-11-06" })).includes("of-live on"));
 
+// running right now: the strip ticks on from the last answer, escapes names, says so when nothing runs
+const live = { now: 1000, now_at: "21:00:00", items: [
+  { kind: "loop", id: "dang", name: "Đăng <i>bài</i>", since: 880, since_at: "20:58", secs: 120 },
+  { kind: "task", id: "t1", name: "Viết email", since: 0, since_at: "", secs: null, agent: "viet-email" },
+] };
+const nowH = O.nowHtml(live, 5);
+check("strip lists each running item with its kind", nowH.includes("office.k_loop") && nowH.includes("office.k_task"));
+check("strip escapes running names", nowH.includes("&lt;i&gt;") && !nowH.includes("<i>"));
+check("strip counts on from the last answer (120s + 5s)", nowH.includes("office.now_since"));
+check("strip without a start time just says running", nowH.includes("office.now_running"));
+check("busy strip pulses, idle one does not", nowH.includes("of-now busy") && O.nowHtml({ now: 1, items: [] }, 0).includes("of-pulse idle"));
+check("nothing running says so", O.nowHtml({ now: 1, items: [] }, 0).includes("office.now_none"));
+check("before the first answer it says it is asking", O.nowHtml(null).includes("office.now_wait"));
+check("durations pick their unit", O.dur(42) === "office.dur_s" && O.dur(125) === "office.dur_m" && O.dur(7300) === "office.dur_h");
+check("the strip sits under the numbers in both views", O.pageHtml(data, false, live, 0).includes("of-now")
+  && O.pageHtml(data, true, live, 0).indexOf("of-now") < O.pageHtml(data, true, live, 0).indexOf("of-3d-slot"));
+
 // every office.* and page.office.* key used in the file exists in both languages
 const src = fs.readFileSync(path.join(__dirname, "../../dashboard/office.js"), "utf8");
 const vi = JSON.parse(fs.readFileSync(path.join(__dirname, "../../dashboard/i18n/vi.json"), "utf8"));
