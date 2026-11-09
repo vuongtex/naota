@@ -20,7 +20,7 @@ Naota handles this in 7 layers:
 
 ## Where to open it in Naota
 
-Every account action lives under **Account** in the **System** group of the left nav rail (subtitle "Login, workspace, API tokens"). The **Settings** page has a condensed block covering the three most common actions (change password, sign out, turn login off) plus a two-factor status line; everything else, such as enabling two-factor or API tokens, is only on the **Account** page.
+Every account action lives under **Account** in the **System** group of the left nav rail. The **Settings** page has a condensed block covering the three most common actions (change password, sign out, turn login off) plus a two-factor status line; enabling two-factor and the sign-in history are on the **Security** tab of the **Account** page. API tokens for the CLI and scripts are on the **Integrations** page (**Work** group), tab **API token**.
 
 The **Account** page has 2 tabs.
 
@@ -28,7 +28,6 @@ The **Account** tab:
 
 - **Workspace**: rename the displayed workspace.
 - **Login account**: set a password, sign out, turn login off.
-- **API tokens (for the CLI)**: create and revoke tokens so [the Naota CLI](24-cli.md) or a script can call Naota. It sits on the same page because a token is also a way of signing in, only for machines rather than browsers.
 
 The **Security** tab:
 
@@ -217,7 +216,7 @@ This layer only catches bots that NAME themselves. A bot posing as Chrome still 
 
 ## API tokens, the door for CLI and scripts
 
-The login cookie only suits a browser. When you want [the Naota CLI](24-cli.md) or a script to call Naota, you need a different credential: an **API token**, created at **Account > API tokens (for the CLI)** (System group, the same page as the login password).
+The login cookie only suits a browser. When you want [the Naota CLI](24-cli.md) or a script to call Naota, you need a different credential: an **API token**, created at **Integrations > API token (for the CLI)** (Work group, the same page as webhooks: both are doors for another program to call Naota).
 
 The most important point: **no token exists by default**. Until you click create yourself, no token exists and there is no door in except the browser. Opening another door to the Internet has to be a deliberate act.
 

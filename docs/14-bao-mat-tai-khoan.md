@@ -20,7 +20,7 @@ Naota xử lý việc này theo 7 lớp:
 
 ## Mở ở đâu trong Naota
 
-Mọi thao tác tài khoản nằm ở mục **Tài khoản** trong nhóm **Hệ thống** trên thanh nav bên trái (phụ đề "Đăng nhập, workspace, token API"). Trang **Cài đặt** có một khối rút gọn làm được ba việc hay dùng nhất (đổi mật khẩu, đăng xuất, tắt đăng nhập) cùng một dòng trạng thái xác thực 2 lớp; những thứ còn lại như bật 2 lớp hay token API chỉ có ở trang **Tài khoản**.
+Mọi thao tác tài khoản nằm ở mục **Tài khoản** trong nhóm **Hệ thống** trên thanh nav bên trái. Trang **Cài đặt** có một khối rút gọn làm được ba việc hay dùng nhất (đổi mật khẩu, đăng xuất, tắt đăng nhập) cùng một dòng trạng thái xác thực 2 lớp; bật 2 lớp và xem lịch sử đăng nhập ở tab **Bảo mật** của trang **Tài khoản**. Token API cho CLI và script nằm ở trang **Tích hợp** (nhóm **Việc**), tab **Token API**.
 
 Trang **Tài khoản** có 2 tab.
 
@@ -28,7 +28,6 @@ Tab **Tài khoản**:
 
 - **Workspace**: đổi tên workspace hiển thị.
 - **Tài khoản đăng nhập**: đặt mật khẩu, đăng xuất, tắt đăng nhập.
-- **Token API (cho CLI)**: tạo và thu hồi token để [Naota CLI](24-cli-terminal.md) hay script gọi được Naota. Nằm cùng trang vì token cũng là một cách đăng nhập, chỉ khác là dành cho máy chứ không cho trình duyệt.
 
 Tab **Bảo mật**:
 
@@ -221,7 +220,7 @@ Lớp này chỉ bắt bot TỰ KHAI tên. Bot giả làm Chrome thì vẫn ch�
 
 ## Token API - cửa cho CLI và script
 
-Cookie đăng nhập chỉ hợp với trình duyệt. Khi bạn muốn [Naota CLI](24-cli-terminal.md) hay một script gọi được Naota, cần một credential khác: **token API**, tạo ở **Tài khoản > Token API (cho CLI)** (nhóm Hệ thống, cùng trang với mật khẩu đăng nhập).
+Cookie đăng nhập chỉ hợp với trình duyệt. Khi bạn muốn [Naota CLI](24-cli-terminal.md) hay một script gọi được Naota, cần một credential khác: **token API**, tạo ở **Tích hợp > Token API (cho CLI)** (nhóm Việc, cùng trang với webhook: cả hai đều là cửa để chương trình khác gọi vào Naota).
 
 Điểm quan trọng nhất: **không có token nào sẵn**. Chưa tự tay bấm tạo thì không token nào tồn tại, và không cửa nào vào ngoài trình duyệt. Mở thêm một cổng ra Internet phải là một hành động có ý thức.
 
