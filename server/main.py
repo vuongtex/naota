@@ -31747,9 +31747,20 @@ async def plan_limits_get(goi: int = 0):
 @app.get("/office")
 async def office_get(brain: str = "brain", day: str = ""):
     import office
-    root = Path(_brain_root(brain))
-    return await asyncio.to_thread(office.build, root, time.time(), localefmt.tz(), day,
-                                   lambda d: _office_gather(brain, d))
+    return await asyncio.to_thread(_office_build, brain, day)
+
+
+def _office_build(brain: str, day: str) -> dict:
+    import office
+    import usage_store
+    d = office.build(Path(_brain_root(brain)), time.time(), localefmt.tz(), day, lambda dd: _office_gather(brain, dd))
+    # what AI calls cost that day, for the whole server (usage.json keeps 30 days); plan engines count 0
+    try:
+        row = next((x for x in usage_store.daily(30) if x.get("day") == d.get("day")), None)
+        d["ai"] = {"cost": round(float(row["cost"]), 4), "turns": int(row["turns"])} if row else None
+    except Exception:
+        d["ai"] = None
+    return d
 
 
 def _office_teams(brain: str) -> list:
@@ -31823,7 +31834,7 @@ def _office_live_sync(brain: str) -> dict:
         procs = tien_trinh_nen.dang_chay(brain_root=root)
     except Exception:
         procs = []
-    team_now = []
+    team_now, talk = [], []
     teams = _office_teams(brain)
     if teams:
         store = _TEAM_API.teams()
@@ -31831,9 +31842,13 @@ def _office_live_sync(brain: str) -> dict:
             try:
                 for s in store.steps_running(t["team"]["team_id"]):
                     team_now.append({"team": t["team"], "members": t["members"], "step": s})
+                for turn in store.active_turns(t["team"]["team_id"]):
+                    talk.append({"team": t["team"], "members": t["members"], "turn": turn})
             except Exception:
                 pass
-    return office.live(Path(root), time.time(), localefmt.tz(), loop_now, rem_now, tasks, procs, team_now)
+    out = office.live(Path(root), time.time(), localefmt.tz(), loop_now, rem_now, tasks, procs, team_now)
+    out.update(office.talk_view(Path(root), talk))
+    return out
 
 # Batched reads (performance stage 2): many dashboard GETs in one round trip, streamed back as each one
 # finishes. read_batch.py. Registered at the end so the route table only grows at the end.

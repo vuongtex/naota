@@ -6,6 +6,14 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.17.0] - 2026-11-09
+### Thêm mới
+- **Phòng họp trong Văn phòng 3D**: khi trưởng nhóm Team đang chia việc hay tổng hợp, cả nhóm đứng dậy đi vào phòng họp ngồi quanh bàn, xong thì tự về bàn mình.
+- **Bong bóng trao đổi** trên đầu trợ lý đang nói trong Team: đang chia việc, đang trả lời nhóm, đang làm việc nhóm, đang giúp.
+- **Dòng tin chạy** dưới cảnh 3D: ai vừa giao gì cho ai, việc nào vừa chạy đạt hay hỏng, mới nhất trước.
+- **Chi phí AI trong ngày** thêm vào hàng số đầu trang, kèm số lượt gọi AI. Tính cho cả máy chủ; engine chạy bằng gói thuê bao tính 0.
+- **Biển mỗi phòng ban** ghi thêm số trợ lý, số lượt chạy và số lượt hỏng trong ngày. Mỗi phòng có **tường kính** ba mặt, mặt trước để mở cho dễ nhìn.
+
 ## [1.16.0] - 2026-11-09
 ### Thêm mới
 - **Văn phòng: thấy trợ lý giao việc cho nhau.** Mục mới **Giao việc trong ngày** ghi ai giao việc gì cho ai, lúc mấy giờ, đang làm, xong hay hỏng. Lấy từ trưởng nhóm Team giao cho thành viên, thành viên nhờ nhau, thẻ trên Bảng việc giao cho trợ lý, và các bước nối nhau của Quy trình.

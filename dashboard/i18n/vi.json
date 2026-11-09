@@ -7314,5 +7314,18 @@
   "office.hs_failed": "hỏng",
   "office.hs_waiting": "đang chờ",
   "office.hs_cancelled": "đã huỷ",
-  "office.k_team": "Team"
+  "office.k_team": "Team",
+  "office.k_ai": "Chi phí AI, {n} lượt gọi",
+  "office.k_ai_none": "Chi phí AI (chưa có số)",
+  "office.k_ai_note": "Cả máy chủ, trong ngày đang xem. Engine dùng gói thuê bao tính 0.",
+  "office.tk_hand": "{at} {from} giao {to}: {title}",
+  "office.tk_run": "{at} {name}: {result}",
+  "office.zone_sub": "{s} trợ lý, {r} lượt",
+  "office.zone_fail": "{f} hỏng",
+  "office.meeting_room": "Phòng họp",
+  "office.talk_plan": "Đang chia việc",
+  "office.talk_sum": "Đang tổng hợp",
+  "office.talk_work": "Đang làm việc nhóm",
+  "office.talk_help": "Đang giúp",
+  "office.talk_reply": "Đang trao đổi"
 }
