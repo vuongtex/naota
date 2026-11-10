@@ -25,7 +25,7 @@ Rules that keep it from hurting the rest of the account (review):
   - A failed accept stops the round, and that person is skipped for a while (`FAIL_BACKOFF`, doubling); after
     `MAX_FAILS` failures they are skipped until Naota restarts. Skipped people do not count toward `MAX_PER_ROUND`,
     so one refused request never starves the newer ones or makes Zalo calls every round forever.
-  - The CLI commands used here exist in every naota-zalo release (v1.0.0 and later; Naota pins v1.9.1, see
+  - The CLI commands used here exist in every naota-zalo release (v1.0.0 and later; Naota pins v1.10.0, see
     `zalo_cli.CLI_PACKAGE`). A CLI that answers "unknown command" anyway pauses intake for `UNSUPPORTED_WAIT`.
 
 Everything goes through the same session as the rest of the account (`zalo_cli.run_cli` with the connection's HOME).

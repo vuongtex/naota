@@ -4,6 +4,11 @@
 
 NAOTA release history. Newest first.
 
+## [1.29.0] - 2026-11-11
+### Improved
+- **Personal Zalo: a message is read the moment it arrives, no more scan every 20 seconds.** Naota used to ask Zalo all day even when nothing came in, and a group message waited up to 20 seconds before a bot saw it. A message is now read when it arrives; on a day with no message nothing is read.
+- With no message Naota runs no timer for Zalo at all. When the Zalo process stops, Naota restarts it at once and catches up. A machine still on the older Zalo version keeps the timer and loses nothing.
+
 ## [1.28.0] - 2026-11-11
 ### Added
 - **A scheduled task now sends the pictures it just made.** A recurring report drawn as an image (ads, sales on a fixed template) used to reach Zalo Bot and Telegram as text only, while the picture stayed in the brain. Images named in the answer and created during that run now come with it, up to 4 per run.
