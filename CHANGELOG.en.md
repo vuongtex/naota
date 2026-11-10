@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.28.0] - 2026-11-11
+### Fixed
+- In progress.
+
 ## [1.27.0] - 2026-11-11
 ### Added
 - **The Claude Agent SDK updates itself.** The "Update Claude Code automatically every day" switch on the Models page now also keeps the Claude Agent SDK package on the newest release of its series. Naota only takes a release at least three days old, checks it before keeping it and puts the old one back if the check fails. The new version is used from the next restart. The Docker build still gets it with each Naota image.
