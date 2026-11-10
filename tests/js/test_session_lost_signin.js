@@ -28,7 +28,7 @@ const app = fs.readFileSync(path.join(ROOT, "dashboard/app.js"), "utf8");
 check("app.js answers it with the throttled sign-in check",
   /addEventListener\("naota:unauthorized", \(\) => \{ _checkLoginAfterRefusal\(\); \}\)/.test(app));
 const html = fs.readFileSync(path.join(ROOT, "dashboard/index.html"), "utf8");
-check("index.html cache-busts fetch-gop.js", /fetch-gop\.js\?v=6"/.test(html));
+check("index.html cache-busts fetch-gop.js", /fetch-gop\.js\?v=7"/.test(html));
 
 if (fails.length) { console.error(fails.length + " check(s) failed"); process.exit(1); }
 console.log("all ok");
