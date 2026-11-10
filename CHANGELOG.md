@@ -6,6 +6,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.26.0] - 2026-11-10
+### Thêm mới
+- (đang làm) Tự nhắn riêng người bình luận fanpage, tin nhắc trong 24 giờ, gửi liên hệ sang hệ thống ngoài.
+
 ## [1.25.6] - 2026-11-10
 ### Sửa lỗi
 - **Ô Chi phí AI ở trang Văn phòng chỉ còn tính tiền thật.** Trước đây ô này cộng cả giá quy đổi của các lượt chạy bằng gói tháng (Claude Code, Grok), nên dùng gói Pro hay Max vẫn hiện vài chục đô dù không bị trừ thêm đồng nào. Giờ ô chỉ cộng tiền trả theo khoá API, lượt chạy bằng gói tháng vẫn được đếm nhưng tính 0 đô.
