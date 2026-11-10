@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.25.5] - 2026-11-10
+### Fixed
+- **The logo no longer breaks when the server's network is shaky.** The browser used to keep the logo for 1 minute only, so a reload during a network drop showed a broken image on the start-up screen and the sidebar. The logo is now kept for a long time, and a new logo is picked up on its own.
+
 ## [1.25.4] - 2026-11-10
 ### Fixed
 - **Opening or reloading the page is fast again, about 1 to 2 seconds.** The "Starting Naota..." screen used to stay a full 12 seconds every time, waiting on the "Loading more..." line at the end of the chat list, which never goes away. The start-up screen now skips that line.

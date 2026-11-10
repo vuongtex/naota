@@ -1422,8 +1422,9 @@ async def root():
     # một bản cập nhật xong người dùng vẫn thấy logo cũ cho tới khi tự bấm Ctrl+Shift+R.
     # Con số `?v=` trong index.html trước đây gõ tay, và đúng như mọi con số gõ tay khác,
     # nó đứng yên ở 5 qua hàng chục bản.
-    html = html.replace("/brand-logo?v=5", "/brand-logo?v=" + ver).replace(
-        'src="/brand-logo"', 'src="/brand-logo?v=' + ver + '"')
+    # The key also carries the logo file's own time, so an uploaded logo gets a new URL and /brand-logo?v=... can be
+    # cached for a long time: a reload on a shaky network no longer shows a broken logo.
+    html = re.sub(r'/brand-logo(?:\?v=[\w.]+)?(?=")', "/brand-logo?v=" + _logo_stamp(ver), html)
     # The mascot's own picture as the tab icon (dashboard.pet.image + favicon): set it in the page itself, so the
     # tab shows it from the first paint and on the login screen too, not only after pet.js has run.
     pet_icon = _pet_icon_file()
@@ -17332,13 +17333,24 @@ async def brand_theme_css():
                         headers={"Cache-Control": "public, max-age=31536000, immutable"})
 
 
+def _logo_stamp(ver):
+    """Cache key for /brand-logo: app version plus the logo file's time, so a new logo means a new URL."""
+    p = _current_logo_file() or _DEFAULT_LOGO
+    try:
+        return "%s.%d" % (ver, int(p.stat().st_mtime))
+    except OSError:
+        return str(ver)
+
+
 @app.get("/brand-logo")
-async def brand_logo():
+async def brand_logo(v: str = ""):
     p = _current_logo_file() or _DEFAULT_LOGO
     if not p.exists():
         return JSONResponse({"error": "no logo"}, status_code=404)
-    # cache ngắn: đổi ảnh xong thấy ngay trong ~1 phút; JS còn bust bằng ?v= khi vừa upload.
-    return FileResponse(str(p), headers={"Cache-Control": "public, max-age=60"})
+    # With ?v= the URL changes whenever the logo does (_logo_stamp, or the upload's own ?v=), so keep it 30 days: a
+    # reload on a shaky network then never shows a broken logo. Bare /brand-logo stays short.
+    age = 2592000 if v else 60
+    return FileResponse(str(p), headers={"Cache-Control": "public, max-age=%d" % age})
 
 
 _ICON_MEDIA = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
