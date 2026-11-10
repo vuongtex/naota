@@ -43,6 +43,17 @@ Each Page picks one of three modes, on the connect form or in the list of connec
 
 Comments need two more permissions, `pages_read_user_content` and `pages_manage_engagement` (Log in with Facebook asks for both). The checklist has a **Receives Page comments** row: yellow means a permission is missing or the Page does not send comments to Naota yet; log in with Facebook again, then click **Repair**. Without the comment permissions Messenger messages keep working.
 
+## Automations: message commenters, follow-ups, contacts out
+
+On the Page card of the Connections page, click **Automations**:
+
+- **Message commenters privately**: when someone comments under a Page post, the Page sends them one Messenger message. Leave **Keywords** empty to message everyone; with a keyword (for example `NAOTA`) only comments containing it. One message per person per post, however many times they comment.
+- **Public reply**: one line per reply, one is picked at random and posted under the comment. When set, the A.I. does not also reply publicly.
+- **Follow-ups**: up to 3, counted from the person's last message to the Page (for example 3 and 20 hours). Messenger only allows 24 hours, and people who never answered the Page get none.
+- **Contact link**: when someone writes an email or phone number in Messenger, NAOTA sends the contact to your system (website, CRM) with the **Secret key** in an `Authorization: Bearer` header. Body: `{"ten", "email", "dien_thoai", "facebook_id", "nguon", "the", "kenh", "page_id", "tin_goc"}`.
+
+Private messages need the Meta app to be Live and allowed to message people outside it (see step 4). Test with an account that has no role on the app.
+
 ## Pasting a token
 
 The step people get wrong is the token: a user token pasted where a Page token belongs (error 100, error 210), a short-lived token that dies within the hour, or a webhook saved without the `messages` field so the bot stays silent. This card does those steps for you.

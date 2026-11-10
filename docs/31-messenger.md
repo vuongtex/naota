@@ -43,6 +43,17 @@ Mỗi Fanpage chọn một trong ba cách, ở form kết nối hoặc trong dan
 
 Bình luận cần thêm quyền `pages_read_user_content` và `pages_manage_engagement` (nút Đăng nhập Facebook tự xin). Bảng kiểm tra có dòng **Nhận bình luận Trang**: vàng là còn thiếu quyền hoặc Trang chưa gửi bình luận sang Naota, bấm Đăng nhập Facebook lại rồi **Sửa tự động**. Thiếu quyền bình luận thì tin nhắn Messenger vẫn chạy bình thường.
 
+## Tự động: nhắn riêng người bình luận, tin nhắc, gửi liên hệ
+
+Ở thẻ Fanpage trong trang Kết nối, bấm **Tự động**:
+
+- **Tự nhắn riêng người bình luận**: có người bình luận dưới bài của trang thì trang nhắn riêng cho họ một tin vào Messenger. Để trống ô **Chữ khoá** là nhắn mọi người; điền chữ khoá (ví dụ `NAOTA`) thì chỉ nhắn bình luận có chữ đó. Mỗi người một tin cho mỗi bài, bình luận nhiều lần cũng chỉ nhận một tin.
+- **Trả lời công khai**: mỗi dòng một câu, chọn ngẫu nhiên một câu đăng dưới bình luận. Có câu ở đây thì AI không trả lời công khai thêm.
+- **Tin nhắc**: tối đa 3 tin, tính từ tin cuối người đó nhắn cho trang (ví dụ 3 giờ và 20 giờ). Messenger chỉ cho nhắn trong 24 giờ, và người chưa từng trả lời trang thì không nhận tin nhắc.
+- **Link nhận liên hệ**: khách để lại email hoặc số điện thoại trong Messenger thì NAOTA gửi liên hệ sang hệ thống của bạn (website, CRM), kèm **Khoá bí mật** trong header `Authorization: Bearer`. Dạng gửi: `{"ten", "email", "dien_thoai", "facebook_id", "nguon", "the", "kenh", "page_id", "tin_goc"}`.
+
+Nhắn riêng cần app Meta đã Live và quyền nhắn tin người ngoài (xem mục 4). Thử bằng một nick không có vai trò gì trong app.
+
 ## Cách dán token
 
 Phần dễ sai nhất khi tự làm là token: dán token người dùng thay vì token Trang (lỗi 100, lỗi 210), token ngắn hạn chết sau một giờ, hoặc webhook lưu mà chưa tick `messages` nên bot im lặng. Thẻ này làm hộ các bước đó.

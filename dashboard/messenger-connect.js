@@ -128,6 +128,7 @@
       + commentSelect(a.comments || "inbox", "data-act-mode") + "</div>"
       + igRowHtml(a.instagram || {})
       + '<div class="lv-actions"><button class="s-btn-ghost" type="button" data-act="check">' + esc(tw("msc.check")) + "</button>"
+      + '<button class="s-btn-ghost" type="button" data-act="auto">' + esc(tw("msc.auto_btn")) + "</button>"
       + '<button class="s-btn-ghost" type="button" data-act="repair">' + esc(tw("msc.repair")) + "</button>"
       + '<button class="s-btn-ghost" type="button" data-act="renew">' + esc(tw("msc.renew")) + "</button>"
       + '<button class="s-btn-ghost msc-del" type="button" data-act="remove">' + esc(tw("msc.remove")) + "</button></div>"
@@ -597,8 +598,68 @@
     if (((setup && setup.accounts) || []).length || ((thSetup && thSetup.accounts) || []).length) openPages();
   }
 
+  // The Page's automations (server/messenger_auto.py): auto private reply on comments, follow-ups, contacts out.
+  function autoFormHtml(c, secretSet) {
+    var fu = (c.followups || []).concat([{}, {}, {}]).slice(0, 3);
+    function area(k, v, rows) {
+      return '<textarea class="js-input" data-au="' + k + '" rows="' + rows + '">' + esc(v || "") + "</textarea>";
+    }
+    function row(labelKey, howKey, inner) {
+      return '<div class="si-field msc-field"><label>' + esc(tw(labelKey)) + infoBtn() + "</label>"
+        + infoBody(esc(tw(howKey))) + inner + "</div>";
+    }
+    return '<div class="msc-auto">'
+      + '<div class="si-field msc-field"><label><input type="checkbox" data-au="on"' + (c.on ? " checked" : "") + "> "
+      + esc(tw("msc.auto_on")) + "</label></div>"
+      + row("msc.auto_kw", "msc.auto_kw_how", '<input class="js-input" data-au="keywords" type="text" value="'
+        + esc((c.keywords || []).join(", ")) + '">')
+      + row("msc.auto_text", "msc.auto_text_how", area("text", c.text, 6))
+      + row("msc.auto_pub", "msc.auto_pub_how", area("public_replies", (c.public_replies || []).join("\n"), 4))
+      + row("msc.auto_fu", "msc.auto_fu_how", fu.map(function (f, i) {
+        return '<div class="msc-grid"><input class="js-input" data-au-h="' + i + '" type="number" min="0.1" max="23.5" step="0.5" value="'
+          + esc(f.after_h == null ? "" : f.after_h) + '" placeholder="' + esc(tw("msc.auto_fu_h")) + '">'
+          + '<textarea class="js-input" data-au-t="' + i + '" rows="2">' + esc(f.text || "") + "</textarea></div>";
+      }).join(""))
+      + row("msc.auto_url", "msc.auto_url_how", '<input class="js-input" data-au="contact_url" type="url" placeholder="https://" value="'
+        + esc(c.contact_url || "") + '">')
+      + row("msc.auto_tags", "msc.auto_tags_how", '<input class="js-input" data-au="contact_tags" type="text" value="'
+        + esc((c.contact_tags || []).join(", ")) + '">')
+      + row("msc.auto_secret", "msc.auto_secret_how", '<input class="js-input" data-au="secret" type="password" autocomplete="off" placeholder="'
+        + esc(secretSet ? tw("msc.auto_secret_kept") : "") + '">')
+      + '<div class="lv-actions"><button class="s-btn" type="button" data-au-save="1">' + esc(tw("msc.auto_save")) + "</button></div>"
+      + '<div class="msc-auto-msg lv-meta"></div></div>';
+  }
+
+  async function openAuto(card, id) {
+    var slot = card.querySelector(".msc-slot");
+    if (slot.querySelector(".msc-auto")) { slot.innerHTML = ""; return; }
+    slot.innerHTML = '<div class="lv-meta">' + esc(tw("msc.working")) + "</div>";
+    var r = await api("/messenger/auto?account_id=" + encodeURIComponent(id));
+    if (!r.ok) { slot.innerHTML = '<div class="lv-note">' + esc(r.error || tw("msc.err_net")) + "</div>"; return; }
+    slot.innerHTML = autoFormHtml(r.auto || {}, r.secret_set);
+    var f = slot.querySelector(".msc-auto");
+    f.querySelector("[data-au-save]").onclick = async function () {
+      var v = function (k) { var el = f.querySelector('[data-au="' + k + '"]'); return el ? el.value : ""; };
+      var fus = [];
+      for (var i = 0; i < 3; i++) {
+        var h = f.querySelector('[data-au-h="' + i + '"]').value, t = f.querySelector('[data-au-t="' + i + '"]').value;
+        if (String(h).trim() && String(t).trim()) fus.push({ after_h: parseFloat(h), text: t });
+      }
+      var body = { account_id: id, auto: {
+        on: f.querySelector('[data-au="on"]').checked, keywords: v("keywords"), text: v("text"),
+        public_replies: v("public_replies").split("\n"), followups: fus, contact_url: v("contact_url"),
+        contact_tags: v("contact_tags") } };
+      if (v("secret")) body.secret = v("secret");
+      var msg = f.querySelector(".msc-auto-msg");
+      var s = await api("/messenger/auto", body);
+      msg.textContent = s.ok ? tw("msc.auto_saved") : (s.error || tw("msc.err_net"));
+      if (s.ok) f.querySelector('[data-au="secret"]').value = "";
+    };
+  }
+
   async function act(card, id, what) {
     if (what === "remove") { removePage(card, id); return; }
+    if (what === "auto") { openAuto(card, id); return; }
     if (what === "th_renew") { openThreadsForm(); return; }
     if (what === "th_check") {
       var sl = card.querySelector(".msc-slot");

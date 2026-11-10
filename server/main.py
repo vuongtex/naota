@@ -5400,6 +5400,13 @@ async def _widen_io_pool():
 
 
 @app.on_event("startup")
+async def _messenger_auto_on_start():
+    """Follow-ups of the Messenger automations (messenger_auto): one cheap loop, idle when nothing is set."""
+    import messenger_auto
+    asyncio.create_task(messenger_auto.loop())
+
+
+@app.on_event("startup")
 async def _warm_shared_ssl():
     """Build the one SSL context every httpx client shares (ssl_shared.py) on a worker thread, so not even the first
     client loads the certificate bundle on the event loop."""
@@ -27280,6 +27287,51 @@ async def messenger_comments_mode(request: Request):
     if not ok:
         return JSONResponse({"ok": False, "error": loi}, status_code=400)
     return {"ok": True, "account": _ms_account_view(channel_accounts.get_account(aid) or a)}
+
+
+@app.get("/messenger/auto")
+async def messenger_auto_get(account_id: str = ""):
+    """Settings of a Page's automations: auto private reply on comments, follow-ups, contacts out. The secret is
+    never returned, only whether one is set."""
+    import messenger_auto
+    a = channel_accounts.get_account(str(account_id or "").strip())
+    if not a or a.get("channel") != "messenger":
+        return JSONResponse({"ok": False, "error": localefmt.chu("Không có tài khoản Messenger này",
+                                                                 "No such Messenger account")}, status_code=404)
+    return {"ok": True, "auto": messenger_auto.chuan_hoa((a.get("meta") or {}).get("auto")),
+            "secret_set": bool(a.get("auto_secret_set"))}
+
+
+@app.post("/messenger/auto")
+async def messenger_auto_set(request: Request):
+    """Save those settings. Body: {account_id, auto: {...}, secret?}. `secret` absent = unchanged, "" = removed."""
+    import messenger_auto
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    aid = str((body or {}).get("account_id") or "").strip()
+    a = channel_accounts.get_account(aid)
+    if not a or a.get("channel") != "messenger":
+        return JSONResponse({"ok": False, "error": localefmt.chu("Không có tài khoản Messenger này",
+                                                                 "No such Messenger account")}, status_code=404)
+    c = messenger_auto.chuan_hoa(body.get("auto"))
+    if c["on"] and not c["text"]:
+        return JSONResponse({"ok": False, "error": localefmt.chu("Bật tự nhắn riêng thì phải có nội dung tin nhắn",
+                                                                 "Turning on the auto private reply needs a message")},
+                            status_code=400)
+    raw_url = str((body.get("auto") or {}).get("contact_url") or "").strip()
+    if raw_url and not c["contact_url"]:
+        return JSONResponse({"ok": False, "error": localefmt.chu("Link nhận liên hệ phải bắt đầu bằng https://",
+                                                                 "The contact link must start with https://")},
+                            status_code=400)
+    ok, loi = channel_accounts.update_account(aid, {"meta": {**(a.get("meta") or {}), "auto": c}})
+    if not ok:
+        return JSONResponse({"ok": False, "error": loi}, status_code=400)
+    if "secret" in body:
+        channel_accounts.dat_bi_mat_auto(aid, str(body.get("secret") or ""))
+    a = channel_accounts.get_account(aid) or a
+    return {"ok": True, "auto": c, "secret_set": bool(a.get("auto_secret_set"))}
 
 
 @app.get("/messenger/privacy")
