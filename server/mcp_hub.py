@@ -177,6 +177,8 @@ OWNER_ONLY_TOOLS = frozenset({"naota_reply_policy", "naota_reply_policy_tune", "
                               "naota_notify",
                               # renames Naota Core in the owner's brain. Not a customer's call.
                               "naota_core_name",
+                              # 2026-11-10: steers which model background jobs run on. Not a customer's call.
+                              "naota_tune",
                               # writes code that runs in the server (installed OFF, still owner's call).
                               "naota_plugin",
                               # tìm và đọc web. Bot nói chuyện với khách lạ không được biến
@@ -2361,7 +2363,7 @@ CODEX_REQUIRED_KEY = "mcp_servers.naota.required"
 CODEX_APPS_KEY = "features.apps"
 
 
-# A required hub gets a longer wait than the profile's 20 seconds (#1306). With `required = true` a hub that answers
+# A required hub gets a longer wait than the profile's 20 seconds. With `required = true` a hub that answers
 # `tools/list` late no longer costs the tools, it costs the WHOLE run: Codex exits before it calls the model. Field
 # report 2026-11-10: 8 scheduled runs lost in ten days, mostly when several schedules opened a Codex session in the
 # same minute. Chat keeps the profile's 20 seconds; codex_steer.START_TIMEOUT_S (120) leaves room for this.
