@@ -340,6 +340,30 @@ def daily(n: int = 14) -> list:
     return out
 
 
+# Claude Code CLI writes under these provider names; it bills real money only when signed in with an API key.
+CLAUDE_CLI_PROVIDERS = frozenset({"cli", "anthropic-cli", "claude"})
+
+
+def billed_day(day: str, claude_on_api_key: bool = False) -> dict:
+    """Money actually billed on `day`, for screens that show spend (Office page).
+
+    usage.json keeps a plan engine's own price figure (Claude Code's total_cost_usd, Grok's) as
+    `cost` too, which is what the turn WOULD cost on the API, not a charge. Here only per-token API
+    providers count, plus Claude Code when it runs on an API key; every other turn is a plan turn
+    at $0, still counted in `turns`. Returns {cost, turns, plan_turns}."""
+    bucket = _load().get("days", {}).get(day, {})
+    cost, turns, plan_turns = 0.0, 0, 0
+    for key, e in bucket.items():
+        provider = key.partition("|")[0].lower()
+        n = int(e.get("turns", 0) or 0)
+        turns += n
+        if provider in usage_parsers.PER_TOKEN_PROVIDERS or (claude_on_api_key and provider in CLAUDE_CLI_PROVIDERS):
+            cost += float(e.get("cost", 0.0) or 0.0)
+        else:
+            plan_turns += n
+    return {"cost": round(cost, 4), "turns": turns, "plan_turns": plan_turns}
+
+
 def summary() -> dict:
     d = _load()
     day = _today()
