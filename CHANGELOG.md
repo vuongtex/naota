@@ -6,6 +6,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.25.5] - 2026-11-10
+### Sửa lỗi
+- **Logo không còn vỡ khi mạng máy chủ chập chờn.** Trình duyệt trước chỉ giữ logo 1 phút, nên tải lại trang đúng lúc mạng rớt là màn khởi động và thanh bên hiện ảnh hỏng. Giờ logo được giữ lâu, đổi logo thì tự lấy ảnh mới.
+
 ## [1.25.4] - 2026-11-10
 ### Sửa lỗi
 - **Mở hay tải lại trang nhanh trở lại, chừng 1 đến 2 giây.** Màn "Đang khởi động Naota..." từng đứng đủ 12 giây mỗi lần vì chờ dòng "Đang tải thêm..." ở cuối danh sách hội thoại, dòng này không bao giờ mất. Giờ màn khởi động bỏ qua dòng đó.
