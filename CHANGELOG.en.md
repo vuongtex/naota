@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.27.0] - 2026-11-11
+### Security
+- In progress.
+
 ## [1.25.6] - 2026-11-10
 ### Fixed
 - **The AI cost tile on the Office page now shows only money actually spent.** It used to add the API-equivalent price of turns run on a monthly plan (Claude Code, Grok), so a Pro or Max plan showed tens of dollars that were never charged. It now adds only what API keys are billed; plan turns are still counted, at $0.

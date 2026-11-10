@@ -4,7 +4,11 @@
 
 Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay trong app tại mục **Cập nhật** (bấm ô tài khoản dưới đáy thanh bên).
 
-Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
+Định dạng: mỗi phiên bản là một khối `## [1.27.0] - 2026-11-11
+### Bảo mật
+- Đang làm.
+
+## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
 ## [1.25.6] - 2026-11-10
 ### Sửa lỗi
