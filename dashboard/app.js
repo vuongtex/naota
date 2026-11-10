@@ -3258,12 +3258,12 @@ function _veStreamNgay(t) {
     if (t.bubble.isConnected) scrollBottom();
     return;
   }
-  let st = b._jvStream;
+  let st = b._ntStream;
   // Start over when the bubble was redrawn by someone else (the marker is gone) or the text is not the settled text
   // plus more (a new turn reusing the bubble, a rewrite).
   if (!st || st.mark.parentNode !== b || text.length < st.len || text.slice(0, st.len) !== st.src) {
     b.textContent = "";
-    st = b._jvStream = { len: 0, src: "", mark: document.createComment("jv-stream-tail") };
+    st = b._ntStream = { len: 0, src: "", mark: document.createComment("nt-stream-tail") };
     b.appendChild(st.mark);
   }
   const cut = cutOf(text, st.len);

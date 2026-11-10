@@ -21,7 +21,7 @@ function node(kind, text) {
     get nextSibling() { const p = this.parentNode; if (!p) return null; return p.children[p.children.indexOf(this) + 1] || null; } };
 }
 function element() {
-  const el = { children: [], _jvStream: undefined,
+  const el = { children: [], _ntStream: undefined,
     appendChild(n) { for (const c of flat(n)) { c.parentNode = el; el.children.push(c); } return n; },
     insertBefore(n, ref) { const i = el.children.indexOf(ref); const add = flat(n); for (const c of add) c.parentNode = el; el.children.splice(i, 0, ...add); return n; },
     removeChild(n) { el.children.splice(el.children.indexOf(n), 1); n.parentNode = null; return n; },
