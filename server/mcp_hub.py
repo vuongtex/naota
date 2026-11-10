@@ -1413,7 +1413,8 @@ def _lazy_tools_and_route(visible_tools, visible_route, pool, full_route, top_k,
                                      :(_MO_TA_DAY_DU if i < _SO_KQ_DAY_DU else _MO_TA_GON)],
                                  "schema": t.get("schema") or {"type": "object", "properties": {}}}
                                 for i, t in enumerate(hits)]
-            payload["goi_the_nao"] = f"Gọi tool bằng {_LAZY_RUN}(name=<name>, args={{...}})."
+            payload["goi_the_nao"] = (f"Gọi tool bằng {_LAZY_RUN}(name=<name>, args={{...}}). "
+                                     "Nếu cổng làm mất khoá trong args, dùng args_json là chuỗi JSON object thay args.")
         if amb:
             # Connector tài khoản Claude: tool native đã có sẵn trong danh sách tool của engine.
             payload["tai_khoan_claude"] = [
@@ -1427,12 +1428,21 @@ def _lazy_tools_and_route(visible_tools, visible_route, pool, full_route, top_k,
     async def _run(args):
         name = str((args or {}).get("name") or "").strip()
         targs = (args or {}).get("args")
+        encoded_args = (args or {}).get("args_json")
+        if encoded_args is not None:
+            if not isinstance(encoded_args, str):
+                return "ERROR: args_json must be a JSON object encoded as a string."
+            if targs not in (None, {}):
+                return "ERROR: use either args or args_json, not both."
+            targs = encoded_args
         if isinstance(targs, str):          # vài model gói args thành chuỗi JSON
             try:
                 targs = json.loads(targs)
             except (ValueError, TypeError):
-                targs = {}
+                return "ERROR: invalid JSON arguments; pass an object or args_json containing a JSON object."
         if not isinstance(targs, dict):
+            if targs is not None:
+                return "ERROR: tool arguments must be a JSON object."
             targs = {}
         if not name:
             return f"ERROR: thiếu 'name'. Dùng {_LAZY_SEARCH} để tìm tên tool trước."
@@ -1461,10 +1471,12 @@ def _lazy_tools_and_route(visible_tools, visible_route, pool, full_route, top_k,
     tools.append({"fn": _LAZY_RUN, "server": "naota", "name": _LAZY_RUN,
                   "description": (f"GỌI một tool MCP đã tìm được qua {_LAZY_SEARCH}. name = tên tool (đúng "
                                   "y hệt kết quả tìm), args = tham số (object). Quyền/audit/giới hạn tần "
-                                  "suất áp y như gọi trực tiếp."),
+                                  "suất áp y như gọi trực tiếp. Nếu backend làm mất khoá trong args, "
+                                  "dùng args_json là chuỗi JSON đầy đủ, ví dụ {\"op\":\"pending\"}."),
                   "schema": {"type": "object", "properties": {
                       "name": {"type": "string", "description": f"Tên tool lấy từ {_LAZY_SEARCH}"},
                       "args": {"type": "object", "description": "Tham số tool (object)"},
+                      "args_json": {"type": "string", "description": "Tham số tool dưới dạng chuỗi JSON object; dùng thay args để giữ nguyên các khoá động, ví dụ {\"op\":\"pending\"}."},
                       "result_view": {"type": "object", "description": "Optional explicit JSON view after execution. Keeps errors and source IDs. Does not cache or replay tools.",
                           "properties": {"pointer": {"type": "string", "description": "JSON pointer, e.g. /data/tasks"},
                               "fields": {"type": "array", "items": {"type": "string"}},
@@ -2349,10 +2361,20 @@ CODEX_REQUIRED_KEY = "mcp_servers.naota.required"
 CODEX_APPS_KEY = "features.apps"
 
 
+# A required hub gets a longer wait than the profile's 20 seconds (#1306). With `required = true` a hub that answers
+# `tools/list` late no longer costs the tools, it costs the WHOLE run: Codex exits before it calls the model. Field
+# report 2026-11-10: 8 scheduled runs lost in ten days, mostly when several schedules opened a Codex session in the
+# same minute. Chat keeps the profile's 20 seconds; codex_steer.START_TIMEOUT_S (120) leaves room for this.
+CODEX_REQUIRED_TIMEOUT_KEY = "mcp_servers.naota.startup_timeout_sec"
+CODEX_REQUIRED_TIMEOUT_S = 45
+
+
 def dat_codex_hub_bat_buoc(extra_config):
     """Gắn `required = true` cho entry hub vào `-c` của MỘT CodexCLI, THAY bản cũ nếu có."""
-    extra_config[:] = [x for x in extra_config if not str(x).startswith(CODEX_REQUIRED_KEY + "=")]
+    extra_config[:] = [x for x in extra_config
+                       if not str(x).startswith((CODEX_REQUIRED_KEY + "=", CODEX_REQUIRED_TIMEOUT_KEY + "="))]
     extra_config.append(f"{CODEX_REQUIRED_KEY}=true")
+    extra_config.append(f"{CODEX_REQUIRED_TIMEOUT_KEY}={CODEX_REQUIRED_TIMEOUT_S}")
     return extra_config
 
 

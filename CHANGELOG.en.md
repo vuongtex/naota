@@ -4,6 +4,37 @@
 
 NAOTA release history. Newest first.
 
+## [1.28.0] - 2026-11-11
+### Added
+- **A scheduled task now sends the pictures it just made.** A recurring report drawn as an image (ads, sales on a fixed template) used to reach Zalo Bot and Telegram as text only, while the picture stayed in the brain. Images named in the answer and created during that run now come with it, up to 4 per run.
+- Zalo Bot only takes images, so PDFs and spreadsheets are unchanged. A picture that fails to send does not fail the reminder: the text still arrives.
+### Fixed
+- **A recreated assistant can confirm its Auto again.** The card said "Auto: Needs confirmation", but the right column had neither "Same assistant" nor "This is a new assistant", so Auto could never be turned back on. Both buttons now show right under the assistant's settings.
+- **The Models page no longer slows the app down over time.** Every visit left a set of drag listeners behind that was never removed. One shared set remains.
+- **Chatbots on a ChatGPT plan now move to the next account when one runs out.** A dedicated bot always called with account 1 and ignored the account order on the Models page, so it failed with a 429 while another account still had usage.
+- A bot only switches accounts before it has said anything or called any tool, so customers never get a duplicate message.
+- **Claude answers again on Windows machines that installed it with npm.** After an update every Claude chat turn failed with "Refusing to execute batch script ...claude.CMD". Naota now finds the real `claude.exe` next to that file (or the native install, or the one bundled with the SDK), so nothing needs reinstalling. Codex was not affected.
+- **Codex runs at the chosen reasoning level right after Naota restarts.** Until someone opened the Models page, bots and background jobs on Codex fell back to Codex's own default (usually high) even when low or medium was set, which was slower and used more of the plan.
+- **A scheduled Codex job is no longer dropped because the tool hub came up late.** A hub that took over 20 seconds used to cost the whole reminder or recurring run until its next slot. Naota now waits up to 45 seconds and tries once more after 30 seconds. The failure happens before the model is called, so the retry costs no turn and repeats no action.
+- Restore Edit configuration for custom MCP connections signed in with OAuth. URL edits retain authentication and prevent forwarding OAuth credentials to another origin.
+- **Claude Fable 5.2 is in the model picker.** The Claude model list used to come only from the installed Claude Code, so a machine whose Claude Code had not updated yet missed new models even after updating Naota. The list now also includes the models this Naota release knows, newest first.
+- **Claude Haiku 5.5 joins the fallback list and the cost estimates are corrected** for Fable 5.2, Opus 5.5, Sonnet 5.5 and Haiku 5.5 on the Usage page.
+- Lazy Hub tools accept JSON-encoded arguments so compatible gateways can preserve dynamic fields. Invalid arguments are rejected before dispatch, with existing permission checks preserved.
+- **A group bot drops the wrong "missed" labels it learned earlier.** This version stopped new wrong labels, but the old ones stayed in the store and kept pushing the bot to talk. The first time the store opens after the update, Naota removes "missed" labels put on reactions, gives the affected groups their threshold back, and stops treating labels it inferred from an owner's message as something the owner taught.
+- What the owner really taught (a thumb, telling the bot to stop, a lesson in chat) is kept.
+- **A group bot no longer teaches itself to answer reactions.** An owner's heart on a customer's message, or two reactions in a row from one person, used to count as the bot having missed the earlier message, which made it talk more in exactly the groups where staying quiet was right.
+- "up" inside an ordinary sentence and the Vietnamese for "ask again" inside a long instruction are no longer read as a customer asking again.
+- A label the bot inferred from an owner's message no longer weighs as much as something the owner taught it directly.
+- **Teams no longer stay stuck on an account that ran out.** With several accounts on a Claude Code, ChatGPT or Grok Build card, a team member's turn now runs on the account that still has quota, like chat and background work. Before, teams always ran on account 1, so once it hit its weekly limit the whole team answered "You've hit your weekly limit" while the other account still had quota.
+- **A team turn that runs out of quota runs again on the next account.** When the account refuses before any tool call, Naota rests it and runs the turn again at once, and the reply says which account answered. A step that already called a tool is not run again, so nothing is sent or posted twice.
+- **The out-of-quota sentence is no longer posted as a member's reply.** Claude Code sometimes prints it as a normal answer; teams now recognise it and treat it as an out-of-quota error.
+- **Workflows rotate accounts too.** A workflow step on Claude Code or ChatGPT starts on the account that still has quota; when the account runs out before the step did anything, the step runs again on the next account and the run carries on. Before, the whole run stopped with "the plan is out of quota" while the other account still had quota.
+- **The card on the Models page names the account in use.** Its first line shows the name, e-mail and plan of the account that is running. Before, it always showed account 1, so a card running on a Max account still read "Pro".
+- **A workflow step now runs at its assistant's reasoning level.** The level set on an assistant only applied to its chat and team turns; a workflow step, including a Kanban job routed to a workflow, always ran at the model's default. A step whose assistant set no level runs as before.
+### Improved
+- **Long answers stream without stutter.** While text is arriving, Naota only redraws the block being written and leaves the finished ones alone. Measured with a 20,000 character answer on a slow phone: render time from 5.4 seconds down to 1 second, and no more freezes.
+- **The home screen rests lighter.** The starfield behind the sphere draws less often when nobody is speaking and Naota is not thinking, and looks the same. A phone left open runs cooler and uses less battery.
+
 ## [1.27.0] - 2026-11-11
 ### Added
 - **The Claude Agent SDK updates itself.** The "Update Claude Code automatically every day" switch on the Models page now also keeps the Claude Agent SDK package on the newest release of its series. Naota only takes a release at least three days old, checks it before keeping it and puts the old one back if the check fails. The new version is used from the next restart. The Docker build still gets it with each Naota image.
