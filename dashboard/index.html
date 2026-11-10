@@ -1011,7 +1011,7 @@
   <!-- Hộp đen lỗi giao diện (loi-may-khach.js): đứng sớm để bắt được lỗi của mọi file phía dưới. -->
   <script src="/static/loi-may-khach.js?v=1"></script>
   <!-- Gộp các lượt đọc trùng nhau lúc mở app (fetch-gop.js). Đứng trước mọi file gọi máy chủ. -->
-  <script src="/static/fetch-gop.js?v=6"></script>
+  <script src="/static/fetch-gop.js?v=7"></script>
   <!-- Recently opened chats kept in this browser for an instant first paint (chat-cache.js). Before app.js. -->
   <script src="/static/chat-cache.js?v=2"></script>
   <!-- Code của từng trang nạp khi cần (nap-cham.js): các file LỚN chỉ một trang dùng không còn chặn lúc mở app.
@@ -1092,7 +1092,7 @@
   <script src="/static/voice.js?v=31"></script>
   <script src="/static/graph.js?v=18"></script>
   <script src="/static/pan-zoom.js?v=1"></script>
-  <script src="/static/chat-render.js?v=26"></script>
+  <script src="/static/chat-render.js?v=27"></script>
   <script src="/static/code-hl.js?v=1"></script>
   <script src="/static/dataview.js?v=2"></script>
   <!-- window.NaotaCopy: chép một chuỗi vào bảng nhớ tạm, có đường lui cho http trần. Đứng
@@ -1126,7 +1126,7 @@
   <!-- One POST /upload with progress and stall watch, shared by the main chat and the Team chat (app.js, teams.js). -->
   <script src="/static/chat-upload.js?v=1"></script>
   <!-- Stick to the latest message, the jump button and its "New messages" pill, shared by app.js and teams.js. -->
-  <script src="/static/chat-scroll.js?v=1"></script>
+  <script src="/static/chat-scroll.js?v=2"></script>
   <script src="/static/chat-quote.js?v=2"></script>
   <!-- Long paste: preview the whole text, then paste inline or attach .txt. Before app.js and teams.js. -->
   <script src="/static/chat-paste.js?v=1"></script>
@@ -1157,7 +1157,7 @@
   <script src="/static/screen-awake.js?v=1"></script>
   <script src="/static/incoming-call.js?v=1"></script>
   <script src="/static/call-bar.js?v=1"></script>
-  <script src="/static/app.js?v=170"></script>
+  <script src="/static/app.js?v=171"></script>
   <!-- Sau app.js: dải việc nền đọc window.NaotaSessions (app.js dựng) để biết phiên + brain. -->
   <script src="/static/background-strip.js?v=3"></script>
   <!-- Thân bảng chọn model dùng chung: phải đứng TRƯỚC model-picker.js (thanh chat) và
@@ -1165,7 +1165,7 @@
   <script src="/static/model-list.js?v=3"></script>
   <script src="/static/effort-slider.js?v=3"></script>
   <!-- Models page usage order: drag, swap, popover placement. console.js calls window.NaotaModelsOrder. -->
-  <script src="/static/models-order.js?v=1"></script>
+  <script src="/static/models-order.js?v=2"></script>
   <script src="/static/provider-logos.js?v=2"></script>
   <script src="/static/plan-limit.js?v=2"></script>
   <script src="/static/model-picker.js?v=21"></script>
@@ -1193,7 +1193,7 @@
   <script src="/static/pulse-seen.js?v=1"></script>
   <!-- Tag filter bar and tag picker shared by Cộng sự and Team: load BEFORE workspace.js and teams.js. -->
   <script src="/static/tag-picker.js?v=1"></script>
-  <script src="/static/workspace.js?v=42"></script>
+  <script src="/static/workspace.js?v=43"></script>
   <!-- Hộp chọn thành viên kiểu Zalo: nạp TRƯỚC teams.js, teams.js gọi window.NaotaTeamPicker. -->
   <script src="/static/team-picker.js?v=1"></script>
   <!-- Bộ phán xử nói / chờ / im của từng trợ lý: lịch sử quyết định và nút sửa. Nạp TRƯỚC teams.js
@@ -1223,7 +1223,7 @@
   <script src="/static/login-vault.js?v=2"></script>
   <script src="/static/messenger-connect.js?v=4"></script>
   <script src="/static/voice-catalog.js?v=1"></script>
-  <script src="/static/console.js?v=226"></script>
+  <script src="/static/console.js?v=227"></script>
   <script src="/static/mobile-chat.js?v=23"></script>
   <script src="/static/brain-view.js?v=1"></script>
   <script src="/static/push.js?v=3"></script>
@@ -1231,7 +1231,7 @@
   <!-- Mời tặng sao GitHub: thẻ hiện ở khoảnh khắc vui, xem server/star_nudge.py. -->
   <link rel="stylesheet" href="/static/star-nudge.css?v=6">
   <script src="/static/star-nudge.js?v=4"></script>
-  <script src="/static/notifications.js?v=12"></script>
+  <script src="/static/notifications.js?v=13"></script>
   <!-- Linh vật ở mép màn hình. Nạp SAU app.js vì nó chỉ được app.js gọi vào
        (setOrbState -> NaotaPet.setState), và sau console.js để trang Cài đặt vẽ được thẻ chọn. -->
   <!-- Mascot menu the owner arranges (Settings > Mascot): load BEFORE pet.js, which builds its menu from it. -->

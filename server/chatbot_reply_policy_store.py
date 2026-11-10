@@ -228,7 +228,7 @@ def hesitant_chats(since_ts: float, limit: int = 200) -> List[tuple]:
     return [(str(r["bot_id"]), str(r["chat_id"])) for r in rows]
 
 
-# One-time clean-up of labels written before the labeler fix of 0.530.7 (#1286). That fix stops NEW wrong labels;
+# One-time clean-up of labels written before the labeler fix of 1.28.0. That fix stops NEW wrong labels;
 # the old ones stayed in the store and kept feeding the error rate, self-review and the per-chat thresholds.
 # Two kinds can be told apart from what the store holds, and only those are touched:
 #   1. A case with source `owner` that was only INFERRED from an owner's message (`label:missed` / `label:correct`

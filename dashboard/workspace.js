@@ -2032,7 +2032,7 @@
   // hiện tại không; "Mở cuộc trò chuyện mới" đi đúng đường mở phiên của trang (moPhien), không tự chuyển phiên cũ.
   // The Auto block of one assistant: goals and pulse, while its Auto switch (left row) is on. Off means nothing to
   // show, so the column stays the plain settings form. A `missing` or `retired` assistant shows it too: the row's
-  // "Auto: needs confirming" button opens this column, and the confirm buttons live in this block (0.521.0 hid them).
+  // "Auto: needs confirming" button opens this column, and the confirm buttons live in this block.
   function veAuto(item) {
     var box = S.el && S.el.querySelector("#wsAuto");
     if (!box || !item) return;
