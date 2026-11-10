@@ -32380,10 +32380,12 @@ def _office_build(brain: str, day: str) -> dict:
     import office
     import usage_store
     d = office.build(Path(_brain_root(brain)), time.time(), localefmt.tz(), day, lambda dd: _office_gather(brain, dd))
-    # what AI calls cost that day, for the whole server (usage.json keeps 30 days); plan engines count 0
+    # money AI calls really billed that day, for the whole server (usage.json keeps 30 days).
+    # A plan engine's API-equivalent price is left out: showing it read as a real charge.
     try:
-        row = next((x for x in usage_store.daily(30) if x.get("day") == d.get("day")), None)
-        d["ai"] = {"cost": round(float(row["cost"]), 4), "turns": int(row["turns"])} if row else None
+        import claude_auth
+        row = usage_store.billed_day(d.get("day") or "", claude_auth.che_do() == claude_auth.API_KEY)
+        d["ai"] = row
     except Exception:
         d["ai"] = None
     d["alert"] = _office_alert()

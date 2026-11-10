@@ -69,12 +69,15 @@
       + aiCell(d)
       + "</div>";
   }
-  // what AI calls cost that day on this server; an engine on a monthly plan counts 0, so the note says so
+  // money AI calls really billed that day on this server (API keys only); a plan turn is $0,
+  // so a day run only on a monthly plan says that instead of a bare "$0"
   function aiCell(d) {
     var a = d && d.ai;
     var v = a ? "$" + (a.cost < 10 ? a.cost.toFixed(2) : Math.round(a.cost)) : "[?]";
+    var onlyPlan = a && !a.cost && a.plan_turns && a.plan_turns === a.turns;
+    var label = !a ? tw("office.k_ai_none") : tw(onlyPlan ? "office.k_ai_plan" : "office.k_ai", { n: a.turns });
     return '<div class="of-kpi" title="' + esc(tw("office.k_ai_note")) + '"><b>' + esc(v) + "</b><span>"
-      + esc(a ? tw("office.k_ai", { n: a.turns }) : tw("office.k_ai_none")) + "</span></div>";
+      + esc(label) + "</span></div>";
   }
 
   // The line of news running along the bottom of the 3D office: handoffs and runs, newest first.

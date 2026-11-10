@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.25.6] - 2026-11-10
+### Fixed
+- **The AI cost tile on the Office page now shows only money actually spent.** It used to add the API-equivalent price of turns run on a monthly plan (Claude Code, Grok), so a Pro or Max plan showed tens of dollars that were never charged. It now adds only what API keys are billed; plan turns are still counted, at $0.
+
 ## [1.25.5] - 2026-11-10
 ### Fixed
 - **The logo no longer breaks when the server's network is shaky.** The browser used to keep the logo for 1 minute only, so a reload during a network drop showed a broken image on the start-up screen and the sidebar. The logo is now kept for a long time, and a new logo is picked up on its own.
