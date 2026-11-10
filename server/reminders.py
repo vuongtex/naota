@@ -74,6 +74,7 @@ def _nhan_kw(fn, ten: str) -> bool:
     return any(p.name == ten or p.kind is p.VAR_KEYWORD for p in ps)
 from claude_cli import claude_engine, cancel_all, _empty_mcp_file
 import aux_engine   # engine viec nen theo model phu nguoi dung chon
+import job_scorecard
 
 # Múi giờ để tính giờ nhắc hẹn. Đọc từ cấu hình, KHÔNG còn ghim Việt Nam.
 #
@@ -133,7 +134,7 @@ MAX_KEEP = 500                 # trần số bản ghi giữ lại mỗi brain
 SCRIPT_TIMEOUT_S = 120         # trần thời gian chạy 1 job script
 SCRIPT_OUT_CAP = 3500          # trần ký tự stdout đẩy về Telegram
 # "Remember the last run" (idea from OpenMausBot routines): a task-mode reminder can start from
-# Pictures a `task` run made, sent to the asking chat on channels that need the file itself (#1285).
+# Pictures a `task` run made, sent to the asking chat on channels that need the file itself.
 RUN_IMAGES_MAX = 4
 RUN_IMAGE_MAX_BYTES = 10 * 1024 * 1024
 RUN_IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".webp", ".gif")
@@ -858,8 +859,21 @@ class RemindersFeature:
                     rid_tok = _RUN_RID.set(str(rem.get("id") or ""))
                     try:
                         # memories this reminder writes are not stamped with a chat open at the same time.
-                        with memory_control.background_writer(self.deps.brain_root(brain), muc_quyen_cua(rem)):
+                        # The scorecard (job_scorecard.py): this reminder finds, from its own runs, the lightest
+                        # model that gets it done. "Ran and returned nothing" counts against the model; an engine or
+                        # connection error does not; a run the owner stopped says nothing either way.
+                        with memory_control.background_writer(self.deps.brain_root(brain), muc_quyen_cua(rem)), \
+                                job_scorecard.run(f"reminder:{rem.get('id') or ''}", "reminder",
+                                                  " ".join(str(text or "").split())[:80]) as _score:
                             body, err = await self._run_task(brain, text, muc_quyen_cua(rem), **extra)
+                            if rem.get("id") in self._stopped:
+                                pass
+                            elif (body or "").strip():
+                                _score.ok()
+                            elif err:
+                                _score.fail(job_scorecard.CAUSE_OTHER, str(err)[:120])
+                            else:
+                                _score.fail(job_scorecard.CAUSE_MODEL, "chạy xong mà không trả gì")
                     finally:
                         _RUN_RID.reset(rid_tok)
                 finally:
@@ -1128,7 +1142,7 @@ class RemindersFeature:
 
     async def _send_run_images(self, brain: str, rem: dict, body: str, t0: float) -> int:
         """Send the pictures a `task` run made to the chat that asked, where the channel needs the file itself
-        (#1285: a scheduled ads report drawn as an image reached Zalo as text only, the picture stayed in the brain).
+        (a scheduled ads report drawn as an image reached Zalo as text only, the picture stayed in the brain).
 
         Only images the answer itself names and that were written during THIS run, so an old picture mentioned in
         passing is not sent again; at most RUN_IMAGES_MAX of them, each under RUN_IMAGE_MAX_BYTES. The web chat shows
