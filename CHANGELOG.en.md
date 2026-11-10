@@ -4,6 +4,21 @@
 
 NAOTA release history. Newest first.
 
+## [1.27.0] - 2026-11-11
+### Added
+- **The Claude Agent SDK updates itself.** The "Update Claude Code automatically every day" switch on the Models page now also keeps the Claude Agent SDK package on the newest release of its series. Naota only takes a release at least three days old, checks it before keeping it and puts the old one back if the check fails. The new version is used from the next restart. The Docker build still gets it with each Naota image.
+### Fixed
+- **Connecting Google Ads no longer demands a developer token.** The box is optional now and the guide follows the Google Cloud path: enable the Google Ads API, apply for Explorer access inside the project, then create the OAuth client. New users are no longer stuck asking for a token Google no longer requires.
+- **Chat images no longer turn blank after 30 days.** A sign-in used to expire exactly 30 days after login however often it was used; chat kept working while images and lists silently failed. A session in use now renews itself.
+- **A sign-in that expires mid-use brings up the sign-in screen** instead of leaving the page quietly broken.
+### Improved
+- **Chat is lighter on the disk, and one broken connection no longer slows every turn.** Each chat turn forces far fewer disk syncs (most visible on a VPS). When a data source hangs twice in a row, Naota answers at once with the tools it has and retries in the background.
+### Security
+- **Google Ads label tools no longer run at Read only.** Google's newer MCP adds tools that create, edit and delete labels and upload a video to YouTube; the two label tools were wrongly classified as read. They now need Full access, creating assets needs Draft writes, and the connection card says what each level can change.
+- **Tighter chat rendering, tool hub and background runs.** Text in a message can no longer slip code into the dashboard. The tool hub only answers the machine Naota runs on. A run at the Draft level only writes ordinary files inside the brain.
+- **A customer chatbot below Full access can no longer queue work for the AI to run later.** It can still create a reminder that only says its text. Raise the bot to Full access if it should queue work itself.
+- **A brain imported from a file always arrives at rest.** Loops, plugins and reminders are off however the file spells them, and engine settings that run commands are not imported. The PDF library moves to a patched release.
+
 ## [1.25.6] - 2026-11-10
 ### Fixed
 - **The AI cost tile on the Office page now shows only money actually spent.** It used to add the API-equivalent price of turns run on a monthly plan (Claude Code, Grok), so a Pro or Max plan showed tens of dollars that were never charged. It now adds only what API keys are billed; plan turns are still counted, at $0.
