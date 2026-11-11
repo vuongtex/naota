@@ -4,6 +4,18 @@
 
 NAOTA release history. Newest first.
 
+## [1.32.0] - 2026-11-11
+### Added
+- **A "Same assistants, confirm all" button per pack** on the Collaborators page. When Naota still has to ask about several assistants of one pack, one click answers for all of them.
+- **Click a file Naota made outside the brain to open it.** For example, a deck in ~/Documents. The chat used to show the file name as plain text. Now the full path is a link that opens the file in its default app on the computer, like a double click in Finder.
+- The link appears only when you use Naota on the computer that runs it. On a VPS, through a domain or in Docker, the path stays plain text you can copy, as before. Links only open files inside the home folder. Programs and scripts never run; Naota only shows the folder that holds them.
+### Fixed
+- **Reinstalling a Store pack no longer asks to confirm Auto for each assistant.** Uninstall a pack and install it again and Naota takes its assistants back as the same ones: Auto switch, goals and conversations stay. A file you wrote yourself under an old assistant's name is still asked about, as before.
+- **An assistant with Auto off and no open goal no longer shows "Needs confirmation"** when its file goes missing and comes back.
+### Improved
+- **Welcome screen: the password is typed twice.** When the two boxes differ Naota says so at once and takes you to the box to fix, before any account is created. One mistyped character no longer locks you out of a fresh install.
+- **An eye button shows the password.** One tap shows both boxes so they are easy to compare, another tap hides them again.
+
 ## [1.31.0] - 2026-11-11
 ### Added
 - **The inbox says when a bot reply did not reach the customer on personal Zalo.** A reply used to show in the inbox as sent as soon as the bot had written it, even when Zalo refused it or the send timed out. A reply that went out now shows nothing extra. One that was not sent, one whose outcome is unclear, or one dropped because the customer wrote again gets a small line under it, with the reason. A reply stuck on sending for more than 5 minutes turns into outcome unclear.
