@@ -988,7 +988,7 @@ body.has-rail .hud { margin-left: var(--rail-w); width: calc(100% - var(--rail-w
   .hud-top #themeToggle, .hud-top #soundToggle, .hud-top #studioOpenBtn,
   .hud-top #settingsBtn, .hud-top #ttsToggle, .hud-top #resetBtn { display: none; }
   .hud-center-title { display: none; }                /* mobile: ẩn tên workspace + ngày */
-  /* 2026-11-09 (owner): the model chip left the header for the composer, next to the Effort chip as on a computer. The
+  /* The model chip left the header for the composer, next to the Effort chip as on a computer. The
      header centre is empty now, so the + button pushes itself to the right edge. */
   .hud-top .new-chat-btn { margin-left: auto; }
   .hud-top .notification-trigger {

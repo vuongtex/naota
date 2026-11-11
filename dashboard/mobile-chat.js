@@ -11,9 +11,8 @@
     var railEl = document.querySelector(".rail");
 
     // ---- 1) Phone header: the bell and the + button move up into it; a computer gets them back ----
-    // The model chip (#mbOpen) and its picker (#mbPop) are NOT moved: owner, 2026-11-09, "chuyển khung lựa chọn model về
-    // cạnh lựa chọn mức suy luận ở bản điện thoại, làm giống bản máy tính". From 0.182.0 to then a phone carried the chip
-    // in the header; now the composer is compact enough to hold it next to the Effort chip, as on a computer.
+    // The model chip (#mbOpen) and its picker (#mbPop) are NOT moved: on a phone it sits next to the Effort chip, as on a
+    // computer. A phone once carried the chip in the header; the composer is now compact enough to hold it.
     var headerRoot = document.querySelector(".hud-top");
     var newChatBtn = document.getElementById("newChatBtn");
     var origNewChatParent = newChatBtn ? newChatBtn.parentElement : null;

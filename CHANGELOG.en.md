@@ -4,6 +4,14 @@
 
 NAOTA release history. Newest first.
 
+## [1.33.0] - 2026-11-11
+### Improved
+- **A tidier composer on a phone.** The plan usage ring, the model name and the effort level are now one pill (for example "Opus 5.5 Medium"), and the model name is no longer cut down to "Op...".
+- **Tapping the pill opens one sheet from the bottom** with all three: plan usage (one line per window), the effort slider with Fast mode, and the model list with its search box. Picking a model closes the sheet; so do X, the dimmed area and pulling it down.
+- A computer keeps its three buttons and three small popovers as before.
+- **Phone: the model picker moved into the input card, right next to the effort picker**, just like on a computer. Tapping it opens the model list right above the card, never wider than the screen.
+- **A cleaner top bar:** only the menu button, the notification bell and the + for a new conversation remain.
+
 ## [1.32.0] - 2026-11-11
 ### Added
 - **A "Same assistants, confirm all" button per pack** on the Collaborators page. When Naota still has to ask about several assistants of one pack, one click answers for all of them.
