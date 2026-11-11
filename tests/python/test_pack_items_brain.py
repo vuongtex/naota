@@ -35,13 +35,13 @@ pack_vault.HIEU_UNG_DIR = tmp / "packs-state"
 pack_vault.HIEU_UNG_DIR.mkdir(parents=True)
 try:
     brain_a = tmp / "Brain Trịnh Lan Anh"
-    brain_b = tmp / "Brain Looptours"
+    brain_b = tmp / "Brain Phu"
     (brain_a / "agents").mkdir(parents=True)
     brain_b.mkdir()
-    agent = brain_a / "agents" / "naota-vu.md"
-    agent.write_text("---\nname: Naota Vũ\n---\n", encoding="utf-8")
+    agent = brain_a / "agents" / "tro-ly-mau.md"
+    agent.write_text("---\nname: Trợ lý Mẫu\n---\n", encoding="utf-8")
     pack_vault._ghi_so("naota.demo", {"brain": str(brain_a), "items": {
-        "agents/naota-vu": {"loai": "agents", "slug": "naota-vu", "duong": str(agent), "hash": pack_vault._hash(agent)}}})
+        "agents/tro-ly-mau": {"loai": "agents", "slug": "tro-ly-mau", "duong": str(agent), "hash": pack_vault._hash(agent)}}})
 
     w = pack_vault.brain_of("naota.demo", str(brain_a))
     check("in the brain that holds the items: named, not 'other'",
