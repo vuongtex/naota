@@ -4,6 +4,20 @@
 
 NAOTA release history. Newest first.
 
+## [1.31.0] - 2026-11-11
+### Added
+- **The inbox says when a bot reply did not reach the customer on personal Zalo.** A reply used to show in the inbox as sent as soon as the bot had written it, even when Zalo refused it or the send timed out. A reply that went out now shows nothing extra. One that was not sent, one whose outcome is unclear, or one dropped because the customer wrote again gets a small line under it, with the reason. A reply stuck on sending for more than 5 minutes turns into outcome unclear.
+- **Large tool results no longer lose their middle.** Naota stores the full copy, hands the model a compact view with a reference, and the model reads back exactly what it needs. Reports stop missing orders and cost fewer tokens on every brain.
+- **Computed by code, not by eye.** The `naota_query` tool pages through a source by itself, then sums, counts and ranks with read-only SQL. A large or a small model gets the same number.
+- **A scout on the background model.** A read across several sources can go to the background model (`naota_scout`); only its findings return to the chat. A scout reads, it never sends or creates.
+- **Recurring jobs remember how to get their numbers.** After the same run on two different days, Naota fetches the data itself next time. When the dates are not certain, the job runs as before.
+### Fixed
+- **A connector that cannot start is no longer reported as "sign-in expired".** Naota recognised a sign-in error by looking for 401 in the error text, so when the install path happened to contain 401, a "file not found" error was shown as a prompt to Reconnect. 401 (and 502, 503, 504) now count only when they stand alone as a status code.
+- **Uninstalling a Store pack now says which brain its items are in.** A pack's assistants and skills go into the brain that was open at install time. Uninstalling from another brain removed them there, and the confirmation did not say which brain that was.
+- The pack's card also says when its items are in a brain other than the one open, instead of a bare "Installed".
+### Improved
+- **Tool search answers are smaller**, and Suggestions on the Usage page says how much of the tool results stayed out of the conversation.
+
 ## [1.30.0] - 2026-11-11
 ### Added
 - **Each brain pins the tools it uses most.** When a brain has many sources connected, a tool must be searched for before it is called, one extra round each time. Naota now counts which tools each brain calls most and pins a few of them (up to 4 by default; Naota Core widens that up to 8 when needed): a pinned tool is called directly. Background work such as loops gains the most, because it had to search again on every run. Nothing to set up, and a notice in the bell tells you when tools are pinned.
