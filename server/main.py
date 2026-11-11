@@ -140,6 +140,7 @@ ssl_shared.install()
 import share_store    # link CHIA SẺ CÔNG KHAI của một file trong brain (/s/<token>)
 import share_stats    # view counter of those public links
 import share_render   # dựng trang xem cho link chia sẻ (markdown -> html, khung trang)
+import local_open     # open a file outside the brain with the owner's own app (chat links)
 import usage_store   # đếm token/chi phí Naota tự đo (đa nhà cung cấp)
 import usage_index   # dashboard token: index log thô Claude+Codex + query summary/insights
 import usage_parsers as up_parsers   # bảng giá + khớp model, dùng chung với indexer
@@ -159,6 +160,7 @@ import agent_runtime           # Phase 11: agent = workflow có quyền replan t
 import resonance               # Naota Resonance MVP: một lượt engine chỉ chữ + receipt do host quan sát
 import resonance_store         # Naota Resonance MVP: kho mục tiêu SQLite có revision (M2)
 import resonance_api           # Naota Resonance MVP: API thẻ mục tiêu và phản hồi (M4)
+import agent_presence          # Auto registry in step with the assistant files (pack reinstall, 2026-11-11)
 import limit_learner          # học hạn mức từ chính lỗi nhà cung cấp trả về
 import limit_resume           # tự chạy lại lượt chat khi gói thuê bao mở lại hạn mức
 import quota_scheduler        # sổ cái TPM dùng chung (Việc 6)
@@ -3182,6 +3184,22 @@ def _resonance_agents_meta_core(root):
     except Exception as e:  # noqa: BLE001
         print(f"[resonance meta core] {type(e).__name__}: {e}", file=sys.stderr)
     return out + _resonance_agents_meta(root)
+
+
+async def _pack_agents_changed(root: str) -> None:
+    """A Store pack just placed or removed assistant files in brain `root` (2026-11-11): bring the Auto registry in
+    step right away (agent_presence.sync) and tell the open tabs when a state changed. No registry yet: nothing to do,
+    and none is created just for this."""
+    if _RESONANCE_STORE is None and not (Path(cfgmod.STATE_DIR) / "resonance.sqlite3").is_file():
+        return
+    bkey = _brain_key(root)
+
+    def _run():
+        slugs = [m["slug"] for m in _resonance_agents_meta_core(bkey)]
+        return agent_presence.sync(_resonance_store(), bkey, slugs)
+    res = await asyncio.to_thread(_run)
+    if res["missing"] or res["restored"]:
+        await _CHAT_RUNTIME.publish({"type": "resonance_agents"})
 
 
 _RESONANCE_API_DEPS = resonance_api.ResonanceApiDeps(
@@ -6450,6 +6468,7 @@ packs_routes.register(app, packs_routes.PacksDeps(
     # main.py, mà lời gọi register phải nằm đúng chỗ này để giữ thứ tự route. Lambda hoãn
     # việc tra tên tới lúc thật sự gọi, khi đó hàm đã tồn tại.
     brain_root=lambda b: _brain_root(b),
+    agents_changed=lambda root: _pack_agents_changed(root),
 ))
 
 # Công cụ TUỲ CHỌN (trình duyệt cho Naota tự kiểm thử giao diện). Đăng ký NGAY SAU trang Gói vì
@@ -10708,6 +10727,58 @@ async def files_raw(brain: str = Query("brain"), path: str = Query(...), dl: int
     tab, mọi file khác có URL tĩnh để mở/tải. Khác /files/download (luôn ép tải về): mặc định
     inline; truyền dl=1 để ép tải. Cùng rào chống traversal (_safe_serve_path)."""
     return raw_file_response(brain, path, dl=bool(dl))
+
+
+_LOCAL_OPEN_MSG = {
+    "not_absolute": ("Đây không phải đường dẫn đầy đủ tới một file trên máy.", "This is not a full path to a file on this computer."),
+    "outside": ("Chỉ mở được file trong thư mục người dùng của máy này.", "Only files inside this computer's home folder can be opened."),
+    "missing": ("Không tìm thấy file. Có thể nó đã bị đổi tên, chuyển chỗ hoặc xoá.", "File not found. It may have been renamed, moved or deleted."),
+}
+
+
+def _local_open_here(request: Request) -> bool:
+    """The browser sits on the machine that runs Naota: no tunnel, no proxy, not inside Docker."""
+    return _direct_local_request(request) and not os.path.exists("/.dockerenv")
+
+
+@app.get("/files/open-local")
+async def files_open_local_available(request: Request):
+    """Whether a click on a file outside the brain can open it for THIS browser. The chat asks once per page and
+    draws such links only on a yes: on a VPS, through a tunnel or in Docker the path stays the plain text it was,
+    instead of a link that can only answer "not on this computer"."""
+    return {"available": _local_open_here(request) and local_open.can_launch()}
+
+
+@app.post("/files/open-local")
+async def files_open_local(request: Request, path: str = Form(...), brain: str = Form("brain")):
+    """Open a file OUTSIDE the brain (a full path Naota wrote in chat) with the owner's own app.
+
+    Asks the OS to open it, like a double click in Finder; nothing is served over HTTP, so it is
+    only offered to a browser on this very machine: through a tunnel or proxy, or inside Docker, the
+    file would open on a screen nobody is looking at. Rules on what a click may open or only reveal
+    live in local_open.py."""
+    if not _local_open_here(request):
+        return JSONResponse({"error": localefmt.chu(
+            "Link này chỉ mở được khi bạn dùng Naota ngay trên máy đang chạy nó.",
+            "This link only opens when you use Naota on the computer that runs it.")}, status_code=403)
+    roots = [Path.home()]
+    try:
+        roots.append(Path(_brain_root(brain)))
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        target = local_open.resolve_target(path, roots)
+    except local_open.LocalOpenError as e:
+        vi, en = _LOCAL_OPEN_MSG.get(e.code, _LOCAL_OPEN_MSG["missing"])
+        return JSONResponse({"error": localefmt.chu(vi, en), "code": e.code},
+                            status_code=404 if e.code == "missing" else 400)
+    action = local_open.plan(target)
+    try:
+        local_open.launch(action, target)
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse({"error": localefmt.chu("Không mở được file: ", "Could not open the file: ") + str(e)},
+                            status_code=500)
+    return {"ok": True, "action": action, "path": str(target)}
 
 
 # ---- CHIA SẺ CÔNG KHAI một file (nút Chia sẻ trong trình sửa) ----
