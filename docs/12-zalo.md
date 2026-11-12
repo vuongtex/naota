@@ -96,6 +96,25 @@ chỉ thấy được nếu phần gửi lại mang nó về.
 - Tin tới lúc mất kết nối mà phần gửi lại mang về được đưa vào luồng tin mới, đánh dấu
   `recovered: true`, nên Hộp thư cũng có.
 
+### Tin tới là Naota đọc ngay, không quét theo giờ (naota-zalo 1.10.0)
+
+Trước đây cứ 20 giây Naota hỏi `naota-zalo` một lần xem có tin mới không, kể cả những ngày không có tin
+nào, và tin nhóm vẫn chờ tới 20 giây bot mới thấy. Từ naota-zalo 1.10.0, `naota-zalo` báo cho Naota ngay
+khi có tin (hoặc khi kết nối Zalo rớt, nối lại), và Naota chỉ đọc lúc đó.
+
+- Tín hiệu chỉ đi trong máy (`127.0.0.1`), kèm một mã riêng của lần chạy Naota hiện tại, và không mang
+  nội dung tin. Tin vẫn được đọc qua tool `zalo_get_messages` như cũ.
+- Naota chỉ coi một tài khoản là "tự báo" sau khi nhận được tín hiệu đầu tiên từ đúng tiến trình
+  `naota-zalo` đang chạy. Chưa có tín hiệu (bản naota-zalo cũ, tiến trình vừa dựng lại) thì Naota đọc
+  theo nhịp 20 giây như trước.
+- Khi mọi tài khoản đều tự báo và không có tin nào đang giữ, vòng đọc ngủ hẳn, không chạy theo nhịp
+  nào. Nó chỉ thức khi có việc: `naota-zalo` báo có tin, tiến trình `naota-zalo` thoát (Naota đọc ngay
+  một lượt, lượt đó dựng lại tiến trình), một bot nhận hay rời vị trí, một tài khoản được bật, hoặc một
+  kết nối được lưu ở trang Kết nối.
+- Trong lúc có tin đang giữ (chờ khách nhắn xong, chờ chủ trả lời tay), vòng đọc chạy nhịp ngắn để
+  nhả đúng giờ rồi ngủ lại. Việc đó không gọi `naota-zalo`.
+- Tắt cho cả máy: đặt biến môi trường `NAOTA_ZALO_PUSH=0` rồi khởi động lại Naota.
+
 ## Duyệt người xin vào nhóm
 
 Với nhóm bật "duyệt thành viên":
