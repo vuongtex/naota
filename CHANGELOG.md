@@ -6,6 +6,12 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.34.0] - 2026-11-12
+### Thêm mới
+- **Fanpage tự nhắn riêng người bình luận.** Có người bình luận dưới bài là trang tự nhắn riêng một tin vào Messenger của họ, có thể kèm một câu trả lời công khai. Nhắn mọi người hoặc chỉ bình luận có chữ khoá, mỗi người một tin cho mỗi bài. Cài ở nút Tự động trên thẻ Fanpage, trang Kết nối.
+- **Tin nhắc trong 24 giờ.** Người đã trả lời trang mà im lặng thì nhận tối đa 3 tin nhắc sau số giờ bạn đặt, họ nhắn lại thì đếm lại từ đầu.
+- **Gửi liên hệ sang hệ thống của bạn.** Khách để lại email hoặc số điện thoại trong Messenger thì NAOTA gửi liên hệ tới link bạn đặt (website, CRM), kèm khoá bí mật, mỗi liên hệ một lần.
+
 ## [1.33.0] - 2026-11-11
 ### Cải thiện
 - **Khung chat trên điện thoại gọn hơn.** Vòng hạn mức, tên model và mức suy nghĩ gộp thành một viên duy nhất (ví dụ "Opus 5.5 Medium"), tên model không còn bị cắt thành "Op...".

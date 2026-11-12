@@ -496,6 +496,19 @@ class MessengerBot(HangLuot):
         return {"ok": True, "recipient_id": str(d.get("recipient_id") or ""),
                 "message_id": str(d.get("message_id") or "")}
 
+    async def public_reply(self, comment_id, text, instagram: bool = False) -> bool:
+        """One public reply under comment `comment_id` (used by the auto private reply). True when it went out."""
+        text = md_to_plain(str(text or "").strip())
+        cid = str(comment_id or "").strip()
+        if not (text and cid and self.token):
+            return False
+        async with httpx.AsyncClient(timeout=httpx.Timeout(30.0)) as client:
+            d = await self._post_json(client, f"{cid}/replies" if instagram else f"{cid}/comments",
+                                      {"message": text[:MAX_COMMENT]})
+        if not d.get("ok"):
+            print(f"[messenger public reply] {d.get('error')}", file=sys.stderr)
+        return bool(d.get("ok"))
+
     async def _action(self, client, chat, action):
         """Sender action: mark_seen, typing_on or typing_off. Failures are not worth a log line.
         A comment thread has no typing indicator."""
@@ -638,6 +651,11 @@ class MessengerBot(HangLuot):
         text = await self._event_text(client, ev, chat)
         if not text:
             return
+        try:
+            import messenger_auto
+            await messenger_auto.on_message(self, chat, text, name)
+        except Exception as e:
+            print(f"[messenger auto] {type(e).__name__}: {e}", file=sys.stderr)
         await self._action(client, chat, "mark_seen")
         await self._dispatch(client, chat, text, meta)
 
@@ -670,6 +688,12 @@ class MessengerBot(HangLuot):
     async def _on_comment(self, com):
         if self._stop or self._seen_before("c" + com["comment_id"]):
             return
+        auto = {}
+        try:
+            import messenger_auto
+            auto = await messenger_auto.on_comment(self, com)
+        except Exception as e:
+            print(f"[messenger auto] {type(e).__name__}: {e}", file=sys.stderr)
         mode = comment_mode(getattr(self, "account_id", ""))
         if mode == "off":
             return
@@ -706,8 +730,9 @@ class MessengerBot(HangLuot):
         }
         if ig:
             meta["instagram"] = True
-        if mode == "inbox":
-            # Shown in the inbox only: the answer function records the comment and stays silent.
+        if mode == "inbox" or (auto or {}).get("public"):
+            # Shown in the inbox only: the answer function records the comment and stays silent. Also when the auto
+            # private reply already answered publicly, so the person does not get two public replies.
             meta["log_only"] = True
             await self.answer_fn(text, meta, None)
             return

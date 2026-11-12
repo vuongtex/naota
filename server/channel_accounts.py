@@ -88,8 +88,9 @@ def _clean_brain(v: Any) -> str:
 
 
 def _public(a: dict) -> dict:
-    out = {k: v for k, v in a.items() if k not in ("token", "token_enc")}
+    out = {k: v for k, v in a.items() if k not in ("token", "token_enc", "auto_secret_enc")}
     out["token_set"] = bool(a.get("token_enc"))
+    out["auto_secret_set"] = bool(a.get("auto_secret_enc"))
     out["kind"] = "bot"
     s = channels.spec(a.get("channel") or "")
     out["channel_label"] = s.nhan if s else str(a.get("channel") or "")
@@ -192,6 +193,32 @@ def get_token(account_id: str) -> str:
         if a["id"] == account_id:
             return account_id
     return ""
+
+
+def bi_mat_auto(account_id: str) -> str:
+    """The secret the Messenger automations sign outgoing contacts with (messenger_auto). Internal use only."""
+    with _lock:
+        for a in _load()["accounts"]:
+            if a.get("id") == account_id:
+                return secrets_store.decrypt(a.get("auto_secret_enc", "")) or ""
+    return ""
+
+
+def dat_bi_mat_auto(account_id: str, value: str) -> bool:
+    """Store (or, with an empty value, remove) that secret, encrypted. False when the account does not exist."""
+    v = str(value or "").strip()[:500]
+    with _lock:
+        d = _load()
+        for a in d["accounts"]:
+            if a.get("id") == account_id:
+                if v:
+                    a["auto_secret_enc"] = secrets_store.encrypt(v)
+                else:
+                    a.pop("auto_secret_enc", None)
+                a["updated_at"] = _now()
+                _save(d)
+                return True
+    return False
 
 
 def owner_of(username: str, channel: str, exclude_id: str = "") -> Optional[dict]:

@@ -4,6 +4,12 @@
 
 NAOTA release history. Newest first.
 
+## [1.34.0] - 2026-11-12
+### Added
+- **The Page messages commenters privately.** When someone comments under a post, the Page sends them one Messenger message, optionally with a public reply. Everyone or only comments with a keyword, one message per person per post. Set it with the Automations button on the Page card, Connections page.
+- **Follow-ups within 24 hours.** People who answered the Page and then went quiet get up to 3 follow-ups after the hours you set; a new message starts the count again.
+- **Contacts sent to your system.** When someone writes an email or phone number in Messenger, NAOTA sends the contact to the link you set (website, CRM), signed with a secret key, once per contact.
+
 ## [1.33.0] - 2026-11-11
 ### Improved
 - **A tidier composer on a phone.** The plan usage ring, the model name and the effort level are now one pill (for example "Opus 5.5 Medium"), and the model name is no longer cut down to "Op...".
