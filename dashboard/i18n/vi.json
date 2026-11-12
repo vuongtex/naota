@@ -6269,6 +6269,7 @@
   "msc.auto_fu_h": "Sau mấy giờ",
   "msc.auto_url": "Link nhận liên hệ",
   "msc.auto_url_how": "Khách để lại email hoặc số điện thoại trong Messenger thì NAOTA gửi liên hệ (JSON) tới link này, mỗi liên hệ một lần. Để trống thì không gửi.",
+  "msc.auto_url_ph": "Ví dụ: https://shop.vn/api/lien-he",
   "msc.auto_tags": "Thẻ gắn cho liên hệ",
   "msc.auto_tags_how": "Cách nhau dấu phẩy. Gửi kèm liên hệ để hệ thống bên kia gắn thẻ.",
   "msc.auto_secret": "Khoá bí mật",

@@ -620,7 +620,7 @@
           + esc(f.after_h == null ? "" : f.after_h) + '" placeholder="' + esc(tw("msc.auto_fu_h")) + '">'
           + '<textarea class="js-input" data-au-t="' + i + '" rows="2">' + esc(f.text || "") + "</textarea></div>";
       }).join(""))
-      + row("msc.auto_url", "msc.auto_url_how", '<input class="js-input" data-au="contact_url" type="url" placeholder="https://" value="'
+      + row("msc.auto_url", "msc.auto_url_how", '<input class="js-input" data-au="contact_url" type="url" placeholder="' + esc(tw("msc.auto_url_ph")) + '" value="'
         + esc(c.contact_url || "") + '">')
       + row("msc.auto_tags", "msc.auto_tags_how", '<input class="js-input" data-au="contact_tags" type="text" value="'
         + esc((c.contact_tags || []).join(", ")) + '">')

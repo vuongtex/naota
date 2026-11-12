@@ -6269,6 +6269,7 @@
   "msc.auto_fu_h": "After hours",
   "msc.auto_url": "Contact link",
   "msc.auto_url_how": "When someone writes an email or phone number in Messenger, NAOTA sends the contact (JSON) to this link, once per contact. Empty means off.",
+  "msc.auto_url_ph": "E.g. https://shop.com/api/contacts",
   "msc.auto_tags": "Contact tags",
   "msc.auto_tags_how": "Comma separated. Sent with the contact so the other system can tag it.",
   "msc.auto_secret": "Secret key",
