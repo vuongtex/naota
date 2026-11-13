@@ -40,8 +40,8 @@
   <!-- Biến --ic-* cho icon dùng trong content: của CSS. Phải đứng TRƯỚC style.css
        vì style.css tham chiếu các biến này. -->
   <link rel="stylesheet" href="/static/vendor/lucide-icons.css?v=1">
-  <link rel="stylesheet" href="/static/style.css?v=181">
-  <link rel="stylesheet" href="/static/console.css?v=165">
+  <link rel="stylesheet" href="/static/style.css?v=182">
+  <link rel="stylesheet" href="/static/console.css?v=166">
   <!-- Áp tông đã lưu TRƯỚC khi vẽ để không nháy tối rồi mới đổi sang sáng.
        Giá trị cũ "dim" (tông tối-nhạt, gỡ) quy về tối; theme.js sẽ ghi đè lại.
        Chưa chọn gì thì SÁNG (NAOTA 1.0.0). Chế độ "auto" (chỉ khi người dùng tự chọn) tính theo khung giờ "HH:MM-HH:MM", cùng quy tắc với
@@ -1052,7 +1052,7 @@
  ],
  "teams": [
   "/static/team-github.js?v=1",
-  "/static/teams.js?v=30"
+  "/static/teams.js?v=31"
  ],
  "packs": [
   "/static/packs.js?v=8"
@@ -1154,7 +1154,7 @@
   <script src="/static/chat-goal.js?v=1"></script>
   <script src="/static/chat-lenh.js?v=3"></script>
   <script src="/static/chat-acts.js?v=7"></script>
-  <script src="/static/chat-suggest.js?v=2"></script>
+  <script src="/static/chat-suggest.js?v=3"></script>
   <!-- One POST /upload with progress and stall watch, shared by the main chat and the Team chat (app.js, teams.js). -->
   <script src="/static/chat-upload.js?v=1"></script>
   <!-- Stick to the latest message, the jump button and its "New messages" pill, shared by app.js and teams.js. -->
@@ -1189,7 +1189,7 @@
   <script src="/static/screen-awake.js?v=1"></script>
   <script src="/static/incoming-call.js?v=1"></script>
   <script src="/static/call-bar.js?v=1"></script>
-  <script src="/static/app.js?v=172"></script>
+  <script src="/static/app.js?v=173"></script>
   <!-- Sau app.js: dải việc nền đọc window.NaotaSessions (app.js dựng) để biết phiên + brain. -->
   <script src="/static/background-strip.js?v=3"></script>
   <!-- Thân bảng chọn model dùng chung: phải đứng TRƯỚC model-picker.js (thanh chat) và
@@ -1213,7 +1213,7 @@
   <script src="/static/brain-picker.js?v=8"></script>
   <!-- One Reorder box (drag or arrows) for projects, pinned chats and tags. Before sessions-ui.js. -->
   <script src="/static/reorder-dialog.js?v=3"></script>
-  <script src="/static/sessions-ui.js?v=33"></script>
+  <script src="/static/sessions-ui.js?v=34"></script>
   <link rel="stylesheet" href="/static/improvement-candidates.css?v=3">
   <script src="/static/improvement-experiments.js?v=1"></script>
   <script src="/static/improvement-candidates.js?v=3"></script>
@@ -1227,7 +1227,7 @@
   <script src="/static/tag-picker.js?v=1"></script>
   <script src="/static/workspace.js?v=44"></script>
   <!-- Hộp chọn thành viên kiểu Zalo: nạp TRƯỚC teams.js, teams.js gọi window.NaotaTeamPicker. -->
-  <script src="/static/team-picker.js?v=1"></script>
+  <script src="/static/team-picker.js?v=2"></script>
   <!-- Bộ phán xử nói / chờ / im của từng trợ lý: lịch sử quyết định và nút sửa. Nạp TRƯỚC teams.js
        (ngăn Nhóm gọi window.NaotaAgentJudge.hydrate); góp phần "judge" vào khung nhịp qua window.NaotaPulseParts. -->
   <!-- Nút mic nhập chữ của khung soạn Nhóm: nạp TRƯỚC teams.js. -->

@@ -4,6 +4,67 @@
 
 NAOTA release history. Newest first.
 
+## [1.37.0] - 2026-11-13
+### Added
+- **New Claude models show up in the model picker on their own.** Naota also reads the model catalog Claude Code downloads from Anthropic, so a model released after the installed CLI was built appears right away instead of waiting for a Naota release to add its name.
+- **A whole folder can be a document.** The search box under Add file for a project, a partner, a chat and a team (the create box and the Info tab) now lists folders whose name matches, with their own folder icon. Press Add to attach the whole folder instead of picking files one by one.
+- **Naota knows what the folder holds.** An unpinned folder gives Naota its path, and it opens the files inside when it needs them. A pinned folder has its file list loaded into every turn. A folder added to a team is pinned at once.
+- **Safer rows for folders.** A folder row has no delete-from-brain button, only remove from the list. Tapping the folder's name opens it on the Files page.
+- **Projects learn their own context.** While working in a project, Naota notes what is durable and specific to it (facts, settled decisions, terms) and uses it in every later chat of the project. Read, edit and delete them in the new "Learned" tab. The Instructions box stays yours: Naota changes it only when you say so.
+- **Dropping a document into the chat is enough.** A file or link for long-term use is attached to the project by Naota with one line saying what it holds, so it opens the right document without pinning the whole file.
+- **Partners and teams get document descriptions too.** In a private chat, a partner attaches and describes its own documents; a team's documents carry a line every member reads.
+### Fixed
+- **Attaching a private repo to a chat no longer fails once its main branch has new files.** A private repo used to attach only the first time; as soon as the main branch gained or changed a file, a new chat stopped with `could not fetch ... from promisor remote`.
+- **Changing a chat's base branch works on private repos too.** The same fault broke Change branch and the fresh branch Naota starts after a merge; both are fixed.
+- **A conflicting PR on a private repo is merged back by Naota again.** The conflict fix round used to stop at downloading the main branch, because the AI's shell has no access to GitHub. Naota now downloads the main branch first, and the AI only merges and resolves the conflict.
+- **If GitHub is unreachable at that moment, Naota waits and tries again.** A fix round is no longer spent on a merge that cannot work; the repo card says why it is waiting.
+- **The automated tests pass again.** Two GitHub updates landed at the same moment and made one test fail for the wrong reason; that test is rewritten. Nothing changes in how Naota runs.
+- **The conflict fix round works on a machine where git has no name and email.** On a fresh server or in Docker, the AI's merge command stopped at once with `empty ident name`. Each repo attached to a chat now has an identity of its own, the GitHub account you connected.
+- **Commits the AI makes itself in that repo now carry the same author as Naota's commits.** A name and email you set for the repo yourself are kept.
+- **No more slowing down over a long session.** Every visit to the Chat page left the whole previous page in memory, so the more you switched pages the heavier it got. The old page is now released.
+- **The Graph screen no longer stutters.** The graph remembers where its dots came to rest, so the next opening shows at once instead of working it all out again (a brain of 2,600 notes: the longest freeze went from over 1 second to about 0.2). A dot you pointed at also no longer stays lit and keeps the graph drawing after the pointer has left.
+- **The Windows installer is no longer replaced for no reason.** `Naota-Setup.exe` is not code-signed yet, so browsers and antivirus engines know it by its file hash alone. Any change to an install script (even the Linux one) used to replace the file, and each new file made Edge say "isn't commonly downloaded" from scratch. The file now changes only when the installer itself does.
+- **The quick start explains what to do when the download is blocked.** It adds the **Keep anyway** step for when Edge or Chrome will not save the file, and a one-line install without the .exe for PCs where an antivirus or Smart App Control blocks it.
+- **Heavy Team use no longer drops the connection to the server.** The more turns a team had run, the longer Naota took to add up its usage every time the team was opened: a team of a few thousand turns took a minute, the page gave up after 30 seconds and asked again, and the whole server stalled. It is now about 100 times faster and never runs twice at once.
+- **A model call no longer makes the server pause.** The usage ledger kept one line for every Team model call for 30 days and was rewritten in full after each call, so the file grew to tens of megabytes and ordinary chat slowed down too. Naota cleans the file when it starts; your usage figures stay the same.
+- **The Tasks page no longer hitches every so often while you look at it.** Every 30 seconds (5 while a task was running) it redrew the whole list even when nothing was new, freezing the screen for a beat and dropping the row under the pointer. Now nothing is redrawn when nothing changed.
+- **Naota no longer freezes when the server's disk answers slowly.** On a VPS, every few seconds of slow disk froze all pages, bots and connections together, and the server could be reported as down. It was worst right after an update. The work that runs all the time (the sign-in check, the MCP hub, bots, shared links) no longer waits for the disk.
+- **After a Docker update, MCP sources no longer download and install themselves again.** What they installed is kept on the data volume, so the server is not flooded while it starts. The update to this version still reinstalls them one last time.
+- **At start-up, Naota opens MCP sources a few at a time** instead of all at once, so a small server is not overloaded.
+- **A group no longer shows one person's profile.** The note box of a Zalo group used to show the profile of whoever wrote first in it, as if the whole group were one customer. A group now has its own note, and editing it touches nobody's profile.
+- **Facebook, Instagram and Threads comments get no profile.** A commenter is not messaging the shop, so the AI no longer writes a profile from comment threads, and a public reply no longer carries a profile learned in a private chat.
+- **The OpenAI Compatible and Claude Compatible cards no longer say "Could not load the model list" by mistake.** Naota reads the model list of more kinds of gateways, and a Base URL typed without `/v1` finds the right address on its own. A machine upgraded from an older version gets its models back too.
+- **A model name you typed always stays in the picker**, even when the gateway has its own list or stops listing for a while.
+- **When there really is no list, the picker says why** (wrong address, refused key, a gateway that lists nothing) with a link to the Models page to fix it. After the fix the list shows on the next open, with no wait of several minutes.
+- **A key you just connected no longer disappears** when Naota happened to be loading another card's model list at that moment.
+- **Stopping a dictation answers at once.** The bar switches to "rewriting" the moment stop is pressed, and the recording goes to be heard right away instead of waiting for the browser to close the mic.
+- **The rewrite step is much faster.** The word fix that runs first could take several seconds and now takes a few hundredths of one. The quick model no longer spends its whole turn thinking and returns nothing, and on a subscription the main model thinks at its lowest level for this job.
+- **Long dictations no longer lose words.** Text over about 2,000 characters used to come back cut after the rewrite; every word is kept now.
+- **Fewer everyday words turned into names.** Common Vietnamese word pairs that merely sound like "Naota" or "Canva" are no longer replaced by those names.
+- **A suggestion you took no longer vanishes when you delete part of it.** Pressing Tab to take the whole sentence (or taking it word by word to the end) and then deleting a few letters used to lose the suggestion. Now the rest shows in grey again as far as you delete. Empty the box and the whole suggestion is back. It only goes away when you send.
+- **The > after a suggestion shows on a computer too.** It used to show on phones only. On a computer, click the **>** right after the last word to take the sentence.
+- **Naota no longer vanishes (404) after an update.** On a VPS with a slow disk, Watchtower ran out of time while deleting the old container and gave up without creating the new one, so Naota was gone from Docker until a Redeploy.
+- New `naota-guard` container: when Naota has been gone or stopped halfway for 2 minutes, it creates it again (on the new version) or starts it again. A Naota you stop yourself is left alone.
+- An update from the button now gets 30 minutes instead of 10. Redeploy once to get the new compose file.
+### Improved
+- **Naota opens much faster.** The "Starting Naota…" screen used to stay for a full 4 seconds on any machine with more than one page of chats, although the data was there after about 1 second. Now the app shows as soon as the data arrives. The brain graph is also no longer built in the background when you open straight into Chat or Partners.
+- **Left alone, Naota costs almost nothing.** The mascot's ring, the starfield and the graph no longer make the browser work 60 times a second when nothing changes, so scrolling and typing are smoother and the device runs cooler.
+- **The Tasks page opens much more smoothly.** It used to draw the whole list twice on every opening and build both the wide and the phone layout. Now it draws once, and only the layout on screen. With 170 tasks on a slow machine: the freeze went from 0.45 seconds to about 0.1, and is all but gone on a phone.
+- **The Partners page opens faster.** The list of assistants used to be drawn five times on each opening, now once, so hovering and scrolling no longer stutter right after the page appears.
+- **Typing in the task search no longer lags.** The list follows a short moment after you stop typing instead of being redrawn after every letter.
+- **The suggestion no longer vanishes at the first key you type.** Type along the suggestion and the rest stays in grey right after your text, even without accents or halfway through a word. Press **Tab** to take the rest, or **Right Arrow** to take one word. On a phone the Tab button is gone from the button row: a small **>** stands right after the last word of the suggestion, and a tap on it takes the suggestion.
+- **Type something else and Naota finishes the sentence.** Pause for a moment and Naota writes the rest of what you are typing, following your new direction, like the predictive text on an iPhone. With an API key on the machine (Groq, OpenAI...) it is almost instant. On a subscription plan alone it takes a few seconds and runs at most 5 times per turn, so it does not eat the allowance.
+- **A long suggestion shows in full.** The chat box grows to show the whole sentence, so a phone no longer cuts it mid line. Works in the main chat and on the Teams page.
+- **Approve many waiting groups for a bot in one press.** In the bot's Status panel every waiting group or person is a tick box, with **Select all** and one shared **Allow** / **Ignore** bar. Nine waiting groups used to mean opening the panel and pressing nine times.
+- **The panel no longer closes after each press.** After a batch it stays open with the rows still waiting. The button carries the number of ticked rows, for example "Allow (9)".
+- **Easier to read on a phone.** Larger group names, the whole row is tappable, and the buttons stay within reach however long the list is.
+- **No more "Tab" chip in the button row under the chat box.** The **>** does that job, so the row keeps only its own buttons (attach, model, effort, mic, send). The Tab key still takes the suggestion.
+- **Files, folders and links share one "Documents" tab.** Icons tell them apart and Add document can paste a link too, so the drawer is one tab shorter.
+### Security
+- **Hooks and git config inside a repo can no longer read the GitHub token.** A hook sitting in the clone (installed husky-style by `npm install`, or written by the model) used to run while Naota fetched or pushed, and could see the token. Naota's git calls that carry the token now ignore every hook of the repo.
+- **The token only goes to the repo on GitHub.** If the clone's git config was changed to steer the connection elsewhere (a different `origin`, `insteadOf`, a proxy), Naota stops and names the setting to remove instead of sending the token.
+- **Worth knowing:** a repo's `pre-push` hook no longer runs when Naota pushes (Naota's own checks and CI run as before). Repos using Git LFS: new LFS files made in a chat are not uploaded by the push yet.
+
 ## [1.36.0] - 2026-11-13
 ### Added
 - **An agent set to ChatGPT now really runs on ChatGPT in restricted background workflows.** Those steps always ran on Claude Code, whatever you picked. The step can call only its own tool list, at the job's permission level, with no shell, web or sub-agents.
