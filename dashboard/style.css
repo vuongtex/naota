@@ -4525,6 +4525,11 @@ div.cb-quyen > svg { flex: none; margin-top: 2px; }
 .adaptive-draft-controls{display:flex;flex-wrap:wrap;gap:8px;padding:10px;align-items:center}.adaptive-draft-controls[hidden]{display:none}.adaptive-draft-controls [data-status]{flex:1 1 100%;font-size:13px}.adaptive-draft-controls button{min-height:44px}
 
 /* ---- Bộ phán xử hội thoại nhóm ---- */
+/* Judge idle for this bot (not in Auto-judge mode): one line plus the Edit button, 16px text and a 44px tap target. */
+.cb-rp-idle { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap;
+  margin-bottom: 10px; padding: 8px 12px; font-size: 16px; line-height: 1.5; color: var(--warn-ink);
+  background: var(--warn-wash); border: 1px solid var(--warn-line); border-radius: 9px; }
+.cb-rp-idle .rp-edit { min-height: 44px; }
 .cb-rp-note { margin-top: 10px; }
 .cb-rp-owners { margin: 10px 0 4px; }
 .cb-rp-ownlist { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 4px 0; }
