@@ -1723,6 +1723,8 @@ def nhan_dien_goi(conn_id: str, ev: dict, ten_khac=()) -> tuple:
       - `replyTo` trỏ về tin của nick (theo id hoặc theo tên người gửi).
     KHÔNG dùng tên Agent/bot: "@Lan" trong nhóm thường là một thành viên tên Lan.
     Không nhận ra thì cùng lắm chế độ Tự đánh giá vẫn bắt được câu hỏi thuộc tài liệu.
+    """
+    minh = danh_tinh(conn_id)
     # A restart clears _ID_MINH. Recover a recently verified self identity
     # without trusting arbitrary @Name text or treating other people's tags as ours.
     if not minh.get("uid") and not minh.get("_da_thay"):
@@ -1731,8 +1733,6 @@ def nhan_dien_goi(conn_id: str, ev: dict, ten_khac=()) -> tuple:
             minh = _ID_MINH.setdefault(str(conn_id), {})
             minh["uid"] = cached
             minh["_da_thay"] = {cached}
-    """
-    minh = danh_tinh(conn_id)
     uid = str(minh.get("uid") or "").strip()
     ten = {_chuan_ten(x) for x in (list(ten_khac or ()) + [minh.get("ten")]) if x}
     ten.discard("")
