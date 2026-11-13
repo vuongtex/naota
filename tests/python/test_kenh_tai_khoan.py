@@ -60,15 +60,15 @@ def check(name, cond):
 # thêm Slack và WhatsApp (cả hai kind=bot, tài khoản là token).
 check("sổ có mười kênh: Zalo Bot, Zalo cá nhân, Zalo OA, Messenger, Threads, Telegram, Slack, WhatsApp, Lark, "
       "API nội bộ",
-      set(channels.ids()) == {"zalo", "zalo_personal", "zalo_oa", "messenger", "threads", "telegram", "slack", "whatsapp", "lark",
+      set(channels.ids()) == {"zalo", "zalo_personal", "zalo_oa", "messenger", "threads", "telegram", "slack", "whatsapp", "wechat", "lark",
                               "api"})
 # Zalo cá nhân có Transport (bot tự trả lời) nhưng không có token, nên `bot_ids` có ba
 # kênh còn `bot_token_ids` (kênh tạo tài khoản bằng token) vẫn hai.
 check("kênh gắn được bot = kênh có Transport",
-      set(channels.bot_ids()) == {"zalo", "zalo_personal", "zalo_oa", "messenger", "threads", "telegram", "slack", "whatsapp", "lark",
+      set(channels.bot_ids()) == {"zalo", "zalo_personal", "zalo_oa", "messenger", "threads", "telegram", "slack", "whatsapp", "wechat", "lark",
                                   "api"})
 check("kênh tạo tài khoản bằng token: mọi kênh trừ Zalo cá nhân",
-      set(channels.bot_token_ids()) == {"zalo", "zalo_oa", "messenger", "threads", "telegram", "slack", "whatsapp", "lark", "api"})
+      set(channels.bot_token_ids()) == {"zalo", "zalo_oa", "messenger", "threads", "telegram", "slack", "whatsapp", "wechat", "lark", "api"})
 check("kho bot, kho hội thoại đọc CÙNG sổ",
       set(chatbot_store.KENH) == set(channels.bot_ids()) and set(conversations.KENH) == set(channels.ids()))
 check("mặc định kênh bot vẫn là Telegram (bản ghi cũ không có channel là bot Telegram)",

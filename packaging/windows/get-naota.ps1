@@ -30,4 +30,8 @@
   }
   Write-Host "  Da tai xong, dang mo trinh cai dat NAOTA... (opening the setup wizard)" -ForegroundColor Green
   Start-Process -FilePath $out
+  # The rest happens inside the NAOTA Setup window, progress included. Say so, or people keep
+  # watching this console and think the install is stuck.
+  Write-Host "  Moi thu tiep theo hien trong cua so NAOTA Setup. Co the dong cua so nay." -ForegroundColor Cyan
+  Write-Host "  (Everything else shows in the NAOTA Setup window. You can close this one.)" -ForegroundColor Cyan
 }

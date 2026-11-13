@@ -9,6 +9,7 @@ import brain_seed_i18n   # file hạt giống của brain mới theo ngôn ngữ
 import brain_label   # tên hiển thị của brain, tách khỏi thư mục
 import brain_export   # xuất/nhập cả bộ não thành một file .zip
 import brain_order   # thứ tự brain trong bảng chọn: chủ tự sắp, còn lại theo tên hiển thị
+import vault_tree_prefs   # pinned folders and folders open by default in the Vault tree (2026-11-11)
 import default_brain   # which brain is the default: the owner's choice, `Brain Default` until one is made
 import localefmt   # múi giờ theo cấu hình, thay UTC+7 nhúng cứng
 import html as html_mod   # escape lời báo lỗi OAuth trên trang callback (biến cục bộ `html` che tên module)
@@ -178,6 +179,7 @@ import messenger_setup  # Messenger connect wizard and health check
 import messenger_oauth  # Log in with Facebook for the Messenger card
 import zalo_oa_bot      # Zalo OA transport + webhook router
 import zalo_oa_oauth    # Grant access with Zalo: OAuth v4 + PKCE for the Zalo OA form
+import wechat_bot       # WeChat Official Account transport + webhook router
 import channel_context   # metadata kênh + gom file trả về kênh chat (port gateway hermes-agent)
 import lang as lang_mod   # chốt ngôn ngữ trả lời cho một lượt
 import lang_registry      # sổ đăng ký: mọi thứ về một ngôn ngữ nằm đúng một chỗ
@@ -207,6 +209,7 @@ import channel_accounts  # tài khoản kênh dạng token, bot chỉ trỏ tớ
 import brain_ident       # one brain, many spellings ("brain", absolute path)
 import channels          # sổ đăng ký kênh của Hộp thư hội thoại
 import conversations     # Hộp thư hội thoại khách: kho khách -> hội thoại -> tin (Chatbot V2)
+import customer_profile  # what a bot remembers about one customer, written by the background model (2026-11-12)
 import zalo_personal_channel   # Hộp thư hội thoại: đọc tin Zalo cá nhân từ MCP theo cursor
 import zalo_push               # naota-zalo wakes the read loop when a message arrives (no timer)
 import deploy_info              # Naota đang đứng ở đâu (docker/native) - xem _deploy_mode
@@ -342,6 +345,9 @@ _AUTH_PUBLIC_EXACT = ("/", "/favicon.ico", "/health", "/auth/status", "/auth/log
                       # /zalo-oa/oauth/callback: Zalo sends the browser back here after the OA admin allows the
                       # app (OAuth v4); the unguessable `state` from an authenticated /zalo-oa/oauth/start is the check.
                       "/zalo-oa/oauth/callback",
+                      # /wechat/webhook: WeChat calls it with no cookie. GET is the URL check, POST a follower's
+                      # message; both are checked in the route against the signature made with Naota's own token.
+                      "/wechat/webhook",
                       # /chatbot-api/v1/turn: a server of the owner asks one Chatbot. No cookie; the route
                       # checks the source address and the key of an internal API channel account itself
                       # (channels/api.py). That key opens this path only, and an API token does not open it.
@@ -10179,6 +10185,30 @@ def files_list(brain: str = Query("brain"), path: str = Query(None), subdirs: in
             "items": items}
 
 
+@app.get("/files/tree-prefs")
+async def files_tree_prefs(brain: str = Query("brain")):
+    """The folders this brain's Vault tree pins to the top (`pinned`) and unfolds on load (`open`), as paths relative
+    to the brain root (vault_tree_prefs.py). Folders that are gone are left out."""
+    def _read():
+        return vault_tree_prefs.read(cfgmod.read_settings(), _brain_root(brain))
+    return {"ok": True, **(await asyncio.to_thread(_read))}
+
+
+@app.post("/files/tree-prefs")
+async def files_tree_prefs_save(brain: str = Form("brain"), pinned: str = Form("[]"),
+                                open_dirs: str = Form("[]", alias="open")):
+    """Save both lists of the Vault tree for this brain. Each is a JSON list of brain-relative folder paths; the
+    whole pair is replaced, so the client sends what it shows."""
+    try:
+        raw = {"pinned": json.loads(pinned or "[]"), "open": json.loads(open_dirs or "[]")}
+    except json.JSONDecodeError:
+        return JSONResponse({"ok": False, "error": localefmt.chu("Danh sách thư mục không hợp lệ", "Invalid folder list")},
+                            status_code=400)
+    root = _brain_root(brain)
+    await asyncio.to_thread(cfgmod.update_settings, vault_tree_prefs.patch(root, raw))
+    return {"ok": True, **vault_tree_prefs.clean(raw)}
+
+
 _AN_THU_MUC = (".", "node_modules", "__pycache__")
 
 
@@ -10484,6 +10514,7 @@ async def files_delete(brain: str = Form("brain"), path: str = Form(...)):
             p.unlink()
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
+    await asyncio.to_thread(_tree_prefs_follow, brain, p, None)
     return {"ok": True}
 
 
@@ -10498,7 +10529,19 @@ async def files_rename(brain: str = Form("brain"), path: str = Form(...), newnam
     if not p.exists():
         return JSONResponse({"error": localefmt.chu("Không tìm thấy", "Not found")}, status_code=404)
     p.rename(dst)
+    await asyncio.to_thread(_tree_prefs_follow, brain, p, dst)
     return {"ok": True}
+
+
+def _tree_prefs_follow(brain: str, old: Path, new) -> None:
+    """A folder pinned or open by default in the Vault tree keeps that after a rename and loses it on delete
+    (vault_tree_prefs.moved). Never fails the file operation that just succeeded."""
+    try:
+        change = vault_tree_prefs.moved(cfgmod.read_settings(), _brain_root(brain), old, new)
+        if change:
+            cfgmod.update_settings(change)
+    except Exception as e:
+        print(f"[vault_tree_prefs] could not follow {old} -> {new}: {e}", file=sys.stderr)
 
 
 # Tên LOGIC của thư mục -> (regex nhận diện, tên tạo mới nếu chưa có). Có bảng này để client
@@ -14943,6 +14986,27 @@ async def _watch_summarize(prompt: str) -> str:
     return final
 
 
+async def _customer_profile_ask(prompt: str) -> str:
+    """One turn of the BACKGROUND model for a customer profile (`customer_profile.py`): text only, empty folder, no
+    MCP. The prompt holds a stranger's chat messages, so the engine is the judge's sandbox: whatever a message says,
+    the model has nothing to act with."""
+    if os.environ.get("NAOTA_NO_REAL_JUDGE_ENGINE") == "1":
+        raise RuntimeError("NAOTA_NO_REAL_JUDGE_ENGINE")
+    cli = _reply_policy_sandbox_engine(customer_profile.SYSTEM_PROMPT, "customer-profile",
+                                       cwd_name="customer_profile_cwd")
+    base = cli
+    cli = aux_engine.strip_tools(_aux_swap(cli, mode="suggest", tag="customer-profile"), base)
+    if not cli.is_available():
+        raise RuntimeError("background engine not ready")
+    final = ""
+    async for ev in cli.query(prompt):
+        if ev.get("type") == "final":
+            final = ev.get("content", "") or ""
+        elif ev.get("type") == "error":
+            raise RuntimeError(str(ev.get("content") or "engine error")[:200])
+    return final
+
+
 watch_feature = web_watch.register(app, web_watch.WebWatchDeps(
     state_dir=lambda: cfgmod.STATE_DIR,
     brain_root=lambda b: str(Path(_brain_root(b)).resolve()),
@@ -16443,6 +16507,11 @@ async def _start_scheduler():
         chatbot_reply_policy.wire(ask=_reply_policy_ask)
         chatbot_reply_policy_review.wire(ask=_reply_policy_review_ask, notify=_reply_policy_notify,
                                          write_feedback=_reply_policy_write_feedback, get_bot=chatbot_store.get_bot)
+        # 2026-11-12: after a private chat goes quiet, the background model writes down what the bot should remember
+        # about that customer (the note of the Info panel), and the bot reads it on later turns.
+        customer_profile.wire(ask=_customer_profile_ask, get_bot=chatbot_store.get_bot,
+                              is_notice=chatbot_runtime.engine_notice)
+        customer_profile.start()
         kq = chatbot_runtime.sync_all()
         if kq.get("errors"):
             print(f"[chatbot] bật lỗi: {kq['errors']}", file=__import__('sys').stderr)
@@ -24896,9 +24965,10 @@ def _tg_conv_sid(store, sess, brain, engine_label, model, channel="telegram"):
     return sess["sid"]
 
 
-# Số TIN (không phải lượt) mồi lại tối đa khi dựng lịch sử từ transcript. Bằng
-# BOT_LICH_SU_MAX bên dưới cho dễ nhớ: ~10 lượt hỏi-đáp, đủ để "cái đó", "như lần trước" còn
-# nghĩa, mà không thổi phồng lượt đầu sau mỗi lần restart.
+# Số TIN (không phải lượt) mồi lại tối đa khi dựng lịch sử từ transcript: ~10 lượt hỏi-đáp, đủ
+# để "cái đó", "như lần trước" còn nghĩa, mà không thổi phồng lượt đầu sau mỗi lần restart. Phần
+# cũ hơn đi theo bản tóm tắt nén của phiên. (Bot chuyên trách không có bản tóm tắt nên có trần
+# riêng, rộng hơn: BOT_HISTORY_MAX_MESSAGES bên dưới.)
 _TG_MOI_LAI_MAX = 20
 
 
@@ -25216,6 +25286,11 @@ def _manual_session_undo(key: str, keep: int) -> None:
     lich = s.get("bot")
     if isinstance(lich, list) and len(lich) > keep:
         del lich[keep:]
+    if not keep:
+        # Nothing was in RAM before the draft, so the draft turn itself read the history back from the inbox
+        # (`chatbot_runtime.private_history`). Back to "not loaded": the next real turn reads it again, instead of
+        # starting from the empty list this cut would leave.
+        s["bot"] = None
     _tg_ngat_mach(s)
 
 
@@ -25240,10 +25315,17 @@ def _tg_ket(clean_out, files, canh_bao="", loi=(), khach=False):
     return {"text": txt, "files": files or []}
 
 
-# Số lượt hội thoại (user+assistant) giữ lại cho một người nói chuyện với bot. Cắt cứng thay
-# vì nén như đường chat của chủ: nén là thêm một lượt gọi model nữa, mà bot trả lời người lạ
-# thì cần nhanh và rẻ hơn là cần nhớ dai.
-BOT_LICH_SU_MAX = 20
+# How many MESSAGES (customer and bot counted separately) a bot keeps of its chat with one person. A hard cut, not
+# a summary as on the owner's chat: a summary is one more model call, and a bot answering strangers has to stay
+# fast and cheap.
+#
+# 20 until 2026-11-12. The owner then found the bot answering customers on too little and settled on 30, the same
+# number a group gets (`chatbot_runtime.NGU_CANH_TIN`). Not more on purpose: older messages are mostly small talk,
+# and what is worth keeping from them belongs in a per-customer profile, not in a longer transcript.
+# BOT_HISTORY_MAX_CHARS is the ceiling for the chat that is not short (pasted documents, 8,000-character messages),
+# where even 30 messages could outgrow a model's context and every turn would fail.
+BOT_HISTORY_MAX_MESSAGES = 30
+BOT_HISTORY_MAX_CHARS = 60_000
 
 # Danh sách tool cho phép của bot khi phải chạy qua CLI: một chuỗi KHÔNG khớp tool nào.
 #
@@ -25261,15 +25343,22 @@ BOT_KHONG_TOOL = ["__naota_bot_khong_tool__"]
 # ghim đường đo, đọc stream, tính usage, cắt lịch sử) phải giống hệt nhau, nên chúng nằm ở đây
 # chứ không chép hai bản. Chép hai bản là cách chắc chắn để một hôm nào đó `usage_store.record`
 # có ở đường này mà thiếu ở đường kia - hoá đơn thiếu, và không ai nhìn ra được từ bên ngoài.
-def _bot_lich_su(sess):
+def _bot_history(sess):
     if sess.get("bot") is None:
         sess["bot"] = []
     return sess["bot"]
 
 
-def _bot_cat_lich_su(lich_su):
-    if len(lich_su) > BOT_LICH_SU_MAX:
-        del lich_su[:len(lich_su) - BOT_LICH_SU_MAX]
+def _trim_bot_history(history):
+    """Cut `history` in place to both ceilings, oldest first. The newest message always stays, and the list never
+    opens with an assistant message (some providers refuse a conversation that does)."""
+    if len(history) > BOT_HISTORY_MAX_MESSAGES:
+        del history[:len(history) - BOT_HISTORY_MAX_MESSAGES]
+    total = sum(len(str(m.get("content") or "")) for m in history)
+    while len(history) > 1 and total > BOT_HISTORY_MAX_CHARS:
+        total -= len(str(history.pop(0).get("content") or ""))
+    while len(history) > 1 and history[0].get("role") == "assistant":
+        history.pop(0)
 
 
 def _bot_ghim_duong(runtime_trace, prov, api_model, messages, tools=()):
@@ -25321,7 +25410,7 @@ async def _bot_doc_stream(stream, *, progress, runtime_trace, prov, api_model):
 def _bot_ket(out, lich_su):
     """Đóng gói câu trả lời của một lượt bot đã chạy được."""
     lich_su.append({"role": "assistant", "content": out})
-    _bot_cat_lich_su(lich_su)   # cắt SAU khi thêm, không thì trần bị vượt đúng một lượt mỗi vòng
+    _trim_bot_history(lich_su)   # cắt SAU khi thêm, không thì trần bị vượt đúng một lượt mỗi vòng
     return {"text": channel_context.strip_control_blocks(out), "files": []}
 
 
@@ -25474,9 +25563,9 @@ async def _bot_tra_loi(text, *, sess, sysprompt, prov, api_key, api_model, reaso
     `_bot_tra_loi_co_tool`. Hai đường tách hẳn nhau CÓ CHỦ Ý: đường này phải soi được bằng mắt
     là không có tool nào, và một test canh đúng thân hàm này (test_chatbot_cach_ly.py mục B2).
     """
-    lich_su = _bot_lich_su(sess)
+    lich_su = _bot_history(sess)
     lich_su.append({"role": "user", "content": _bot_lich_su_chu(text, images)})
-    _bot_cat_lich_su(lich_su)
+    _trim_bot_history(lich_su)
 
     # System dựng LẠI mỗi lượt: tài liệu tra được đổi theo từng câu hỏi. Giữ system cũ là bot
     # trả lời câu này bằng tài liệu của câu trước.
@@ -25645,9 +25734,9 @@ async def _bot_tra_loi_co_tool(text, *, sess, sysprompt, prov, api_key, api_mode
     rò tài liệu: hỏi một câu vu vơ đúng lúc có file khác vừa sinh ra là nhận được nó. Bot muốn
     đưa file cho khách thì nói đường dẫn trong câu trả lời.
     """
-    lich_su = _bot_lich_su(sess)
+    lich_su = _bot_history(sess)
     lich_su.append({"role": "user", "content": _bot_lich_su_chu(text, images)})
-    _bot_cat_lich_su(lich_su)
+    _trim_bot_history(lich_su)
     messages = [{"role": "system", "content": sysprompt}] + lich_su
     gui, co_anh = _bot_gan_anh(messages, prov, text, images)
     canh_bao_anh = ""
@@ -25839,6 +25928,11 @@ async def _tg_answer_engine(text, meta, progress, *, chat_id, sess, brain, mcfg,
         # gốc, MCP hub, kết nối của tài khoản Claude/ChatGPT, kỹ năng), chỉ khác hai chỗ: prompt mang
         # VAI của Agent, và brain là brain của bot. Đường tắt, nguồn chọn lọc và gateway huỷ lịch của
         # chủ bị bỏ qua vì chúng thay prompt bằng giọng Naota.
+        if _muc != "full" and sess.get("bot") is None:
+            # First turn of this chat since the server started: the history lived in RAM only, so read a private
+            # chat back from the inbox instead of meeting a returning customer as a stranger. Full-access bots
+            # take the owner's engine branches below, which rebuild their own history from the session store.
+            sess["bot"] = chatbot_runtime.private_history(bot, meta, BOT_HISTORY_MAX_MESSAGES)
         if _muc == "full":
             _bot_full = True
             _sys_bot_full = _sys_bot
@@ -27353,6 +27447,12 @@ def _zalo_precheck(text, meta):
     return {"reply": _zalo_ghi_cho(meta)}
 
 
+def _zalo_download_ok(chat) -> bool:
+    """Only an allowed chat has its photos, voice messages and files downloaded by the owner's Zalo bot."""
+    ids = tg_parse_ids(cfgmod.read_settings().get("zalo_bot", {}).get("chat_id"))
+    return str(chat or "").strip() in ids
+
+
 def _admin_bot_tokens() -> dict:
     """{chatbot channel: token} of the owner's admin bots that are switched on (Telegram, Zalo Bot). A dedicated bot on
     the Chatbot page never polls one of these (`chatbot_runtime.start_bot`): two pollers on one token split the
@@ -27379,7 +27479,8 @@ def restart_zalo_bot():
         # về mã ghép nối. Truyền cả hai là người lạ ăn hai câu từ chối cho một tin.
         _ZALO_BOT = zalo_bot.ZaloBot(z["token"], "", _zalo_answer, _zalo_command,
                                      download_dir=_zalo_inbox_dir,
-                                     precheck_fn=_zalo_precheck, stt_fn=_stt_nghe)
+                                     precheck_fn=_zalo_precheck, stt_fn=_stt_nghe,
+                                     download_ok_fn=_zalo_download_ok)
         _ZALO_BOT.start()
         try:
             chatbot_runtime.release_admin_token("zalo")   # a dedicated bot still polling this token lets go of it
@@ -27653,13 +27754,22 @@ def _ms_account_secrets() -> list:
 @app.get("/channels/webhook-info")
 async def channels_webhook_info(request: Request, channel: str = ""):
     """Address and verify token to paste into the platform for a channel that receives messages
-    by webhook (Messenger, Zalo OA). Shown on the Add account form; the verify token is not a secret."""
+    by webhook (Messenger, Zalo OA, WeChat). Shown on the Add account form to the signed-in owner."""
     kenh = str(channel or "").strip().lower()
     if kenh == "zalo_oa":
         url = _zo_webhook_url(request)
         return {"ok": True, "webhook_url": url, "verify_token": "", "https": url.startswith("https://"),
                 "site_verify": True, "site_codes": _zo_site_codes(),
                 "oauth_redirect": url[: -len("/zalo-oa/webhook")] + zalo_oa_oauth.CALLBACK_PATH}
+    if kenh == "wechat":
+        url = _wc_webhook_url(request)
+        # WeChat takes http on port 80 as well as https, so plain http is a warning in words, not a refusal.
+        return {"ok": True, "webhook_url": url, "verify_token": _wc_webhook_token(), "https": True,
+                "warning": "" if url.startswith("https://") else localefmt.chu(
+                    "WeChat chỉ gọi được địa chỉ công khai ở cổng 443 (https) hoặc 80. Mở Naota bằng tên miền "
+                    "HTTPS rồi mở lại form này để lấy đúng địa chỉ.",
+                    "WeChat can only call a public address on port 443 (https) or 80. Open Naota through its "
+                    "HTTPS domain, then reopen this form to get the right address.")}
     if kenh != "messenger":
         return JSONResponse({"ok": False, "error": localefmt.chu("Kênh này không dùng webhook",
                                                                  "This channel does not use a webhook")},
@@ -28443,6 +28553,50 @@ async def zalo_oa_verifier_file(code: str):
     if code not in _zo_site_codes():
         return PlainTextResponse("not found", status_code=404)
     return HTMLResponse(zalo_oa_bot.verifier_html(code))
+
+
+# ============================================================
+# WeChat Official Account: customer bots on a WeChat Official Account. WeChat calls one URL for every
+# account; `wechat_bot.handle_webhook` routes by account. No owner control channel here.
+# ============================================================
+def _wc_webhook_url(request: Request) -> str:
+    base = web_security.external_base(
+        request.url.scheme, request.url.netloc,
+        request.headers.get("x-forwarded-proto", ""), request.headers.get("x-forwarded-host", ""))
+    return base + "/wechat/webhook"
+
+
+def _wc_webhook_token() -> str:
+    """The `Token` the owner pastes into WeChat's server configuration. Generated once for the machine, because
+    WeChat checks the URL before any account exists here. Every webhook signature is made with it, so it is kept
+    encrypted (config._SECRET_PATHS). Letters and digits only, 32 long: what WeChat's Token field accepts."""
+    w = cfgmod.read_settings().get("wechat", {}) or {}
+    tok = str(w.get("webhook_token") or "").strip()
+    if not tok:
+        tok = secrets.token_hex(16)
+        cfgmod.update_settings({"wechat": {"webhook_token": tok}})
+    return tok
+
+
+@app.get("/wechat/webhook")
+async def wechat_webhook_verify(request: Request):
+    """WeChat's URL check when the server configuration is saved: echo `echostr` only when the signature matches."""
+    q = request.query_params
+    if wechat_bot.fresh_timestamp(q.get("timestamp")) and wechat_bot.check_signature(
+            _wc_webhook_token(), q.get("signature", ""), q.get("timestamp", ""), q.get("nonce", "")):
+        return PlainTextResponse(str(q.get("echostr") or ""))
+    return PlainTextResponse("forbidden", status_code=403)
+
+
+@app.post("/wechat/webhook")
+async def wechat_webhook(request: Request):
+    """Inbound WeChat messages. Public URL, so nothing is trusted before the signature check. WeChat wants an
+    answer within 5 seconds and retries otherwise: the route answers "success" at once and the turn runs as a task."""
+    raw = await _read_capped_body(request, wechat_bot.MAX_BODY)
+    if raw is None:
+        return PlainTextResponse("too large", status_code=413)
+    status, body = await wechat_bot.handle_webhook(raw, dict(request.query_params), _wc_webhook_token())
+    return PlainTextResponse(body, status_code=status)
 
 
 def restart_telegram():

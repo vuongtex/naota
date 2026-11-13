@@ -4,6 +4,41 @@
 
 NAOTA release history. Newest first.
 
+## [1.35.0] - 2026-11-13
+### Added
+- **Chat boxes continue a numbered list.** Under a line like `1. ...`, a new line starts with `2. `, as in Claude. A new line is Enter on a phone and Shift+Enter on a computer (Enter on a computer still sends). Works in the main chat, Teams, Conversations and the chatbot trial box.
+- A new line on an item that is still empty removes the number and ends the list. A line added in the middle moves the numbers below it up.
+- **Pin a folder to the top of the Vault tree.** Press the three-dot button of a folder and choose "Pin to top". A folder deep inside the brain can be pinned too, so you no longer unfold every level to reach it.
+- **Folders that are open by default.** The same menu has "Open by default": that folder is already unfolded every time Naota opens, for example the wiki folder.
+- **Saved per brain, on the server.** The phone and the computer show the same tree, and it works on a VPS. Renaming a folder in Naota keeps its pin.
+- **The official Zalo bot receives files.** When Zalo passes a file to the bot, Naota downloads it and reads PDF, Word, Excel and plain-text files, so a question sent with it is answered from the file.
+- **No more silence.** Zalo has no file message type for bots yet, so when Zalo includes no content the bot says plainly that it did not arrive and asks for a screenshot or pasted text. Before, the bot stayed silent.
+- **Chatbots now answer on WeChat.** Chatbot, Add channel has a new **WeChat** entry: a dedicated bot answers the followers of your WeChat Official Account, every chat lands in the shared Inbox and you can take over as on the other channels.
+- **Short setup.** The form shows the webhook address and the Token to paste into WeChat; on the Naota side you paste only the AppID and AppSecret. Check tells you right away which IP to add to the whitelist.
+- **Good to know:** WeChat lets only a verified account (or the sandbox test account) reply through the API, only within 48 hours of the follower's last message, with text and images. Step-by-step guide in doc 36.
+- **Customer profile.** After a private chat has been quiet for about 15 minutes, the background model writes down what is worth remembering about the customer: name, how to address them, contact details, what they are interested in, what was agreed, what is still open. The bot then reads this profile along with the last 30 messages, so it does not ask again, even when the customer comes back months later.
+- **The note about the customer becomes the Customer profile section** of the Info panel on the Conversations page, up to 4,000 characters. You can still edit, add to or empty it, and what you write is kept at the next update.
+### Fixed
+- **Naota Store shows "Bundle" packs.** A pack made of several kinds, such as Customer management (CRM), sat under no tab, so it could not be found or installed from the Store page. There is now a "Bundle" tab at the end of the tab row.
+- **The Windows installer no longer freezes.** An error used to wait for Enter in a black window hidden behind the wizard, and one helper installer (winget, npm, Grok, Antigravity) that never ended hung everything. Each step now has a time limit, then Setup moves on.
+- **Git, Python and Node download much faster** on PCs without winget.
+- **Dictating in English no longer comes back translated into Vietnamese.** After you press stop, Naota asks a model to tidy the sentence, and the model sometimes returned a Vietnamese translation instead of the English you spoke (mostly on longer sentences, such as a second recording). A sentence now stays in the language it was spoken in. If the model still translates, Naota drops the translation and keeps the words as heard. This covers the mic in the main chat, Teams, Conversations and the note editor.
+- **Bots no longer forget a customer after every update.** A bot kept the history of a private chat in temporary memory only, so a restart of Naota made it meet a returning customer as a stranger. It now reads the chat back from the inbox, including what you answered by hand.
+- **MCP servers with OAuth metadata on another host sign in (impact.com).** The card used to say the server declares no standard MCP OAuth. Naota now reads that metadata when it is on public https, returned by the MCP URL that was entered, and names that URL.
+- **Opt out of the standalone 07:30 My Tasks agenda per brain.** Set `agenda_enabled: false` in the brain's `Naota/my-tasks.json`. Timed tasks, appointment reminders and habit nudges remain active; all other brains retain the previous default.
+- **Zalo group @mentions keep targeting the bot after a Naota restart.** Retain an account ID verified from its own outgoing group messages, restore it after restart, and fail closed on conflicting identities.
+- **ChatGPT image generation can use another signed-in account after quota exhaustion.** On a confirmed quota error, Naota retries on the next enabled account in Models order. Other errors do not trigger a retry, and disabled accounts remain unused.
+### Improved
+- **Each row of the Vault tree now has a single three-dot button.** Create file, create folder, pin, download, rename and delete all sit in the menu it opens, so the buttons no longer hide the file name, above all on a phone.
+- **No separate black window when installing on Windows.** The progress shows inside the Setup window: a "Step 2 of 5" line, a bar that keeps moving and a box listing what is being done.
+- **Errors show inside Setup.** A failed step says what is missing and where the log is, and the last page no longer claims the install finished when it did not.
+- **Bots look back over the last 30 messages of a private chat instead of 20.** On every bot channel (Zalo Bot, personal Zalo, Telegram, Messenger...). In a chat with very long messages the bot drops the oldest ones. Groups still see the 30 messages before the one being asked.
+- **Only private chats the bot has answered in get a profile.** Groups do not, nor do chats with friends and family on a personal Zalo account. Naota writes at most 5 profiles every 5 minutes, so it does not burn through your plan in one go.
+### Security
+- **The owner's bot fetches nothing from strangers.** Photos, voice messages and files are downloaded only for a chat that has been allowed.
+- **Forged WeChat messages stop at the door.** Naota checks the signature of every message, refuses a request more than 15 minutes old, and an account in Safe mode accepts encrypted messages only.
+- **Read-only connections stop asking for `mcp:write` style scopes.** On a discovered sign-in where the server offers a read scope (for example `mcp:read`), a connection set to read-only leaves out scopes whose name ends in `write`. The hub's tool-name check stays the main guard. Raising the level later needs a new sign-in.
+
 ## [1.33.0] - 2026-11-11
 ### Improved
 - **A tidier composer on a phone.** The plan usage ring, the model name and the effort level are now one pill (for example "Opus 5.5 Medium"), and the model name is no longer cut down to "Op...".
