@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.38.0] - 2026-11-14
+### Added
+- **Zalo messages can quote the message they answer.** When you ask Naota to reply to one specific message, the message goes out with the quoted original above it, like tapping "Reply" in Zalo. Only text messages can be quoted. The Zalo connection moves to naota-zalo 1.11.0 on its next start.
+
 ## [1.37.0] - 2026-11-13
 ### Added
 - **New Claude models show up in the model picker on their own.** Naota also reads the model catalog Claude Code downloads from Anthropic, so a model released after the installed CLI was built appears right away instead of waiting for a Naota release to add its name.

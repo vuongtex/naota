@@ -6,6 +6,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.38.0] - 2026-11-14
+### Thêm mới
+- **Gửi tin Zalo dạng trả lời có trích dẫn.** Khi bạn bảo Naota trả lời đúng một tin cụ thể, tin gửi đi hiện kèm khung trích tin gốc, giống bấm "Trả lời" trong Zalo. Chỉ trích được tin chữ. Kết nối Zalo tự chuyển sang naota-zalo 1.11.0 ở lần chạy tới.
+
 ## [1.37.0] - 2026-11-13
 ### Thêm mới
 - **Model Claude mới tự hiện trong trình chọn model.** Naota đọc thêm danh mục model mà Claude Code tải về từ Anthropic, nên model vừa ra (bản CLI đang cài chưa ghi sẵn tên) cũng hiện ngay, không phải chờ bản Naota mới ghi thêm tên.
