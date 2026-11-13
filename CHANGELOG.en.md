@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.35.0] - 2026-11-13
+### Improved
+- In progress.
+
 ## [1.33.0] - 2026-11-11
 ### Improved
 - **A tidier composer on a phone.** The plan usage ring, the model name and the effort level are now one pill (for example "Opus 5.5 Medium"), and the model name is no longer cut down to "Op...".
