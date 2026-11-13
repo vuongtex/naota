@@ -169,6 +169,8 @@ Watchtower **ships by default** in both the VPS compose and the Hostinger compos
 
 **The stack reports "Partially running" after updating the compose file**: almost always the `<name>-watchtower` container failing to reach the host's Docker socket (Hostinger has hit exactly this). The Naota app is unaffected - it is a separate container and keeps running; you simply lose the "Update now" button and fall back to Redeploy. The real reason is in the log: `docker logs naota-watchtower`.
 
+**After an update the domain answers 404 and the Naota container is gone from Docker**: Watchtower stops Naota, removes the old container, and only then creates the new one. On a VPS with a slow disk the removal can run past Watchtower's time limit (the `naota-watchtower` log shows `Failed to remove container ... context deadline exceeded`): Watchtower gives up without creating the new one, while Docker still finishes removing the old one. Since the release that added the `naota-guard` container this heals itself: when Naota has been gone or stopped halfway for 2 minutes, `naota-guard` creates it again (on the new version) or starts it again; see what it did with `docker logs naota-guard`. A machine without `naota-guard` needs one **Redeploy** (VPS: fetch the new compose file as above, then `docker compose up -d --pull always`), which brings Naota back together with `naota-guard` for next time. Data lives in volumes, so nothing is lost.
+
 **A compose command reporting `not found`** comes in three shapes with three entirely different causes:
 
 | Error | Cause | What to do |
