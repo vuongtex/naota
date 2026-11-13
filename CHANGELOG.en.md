@@ -4,6 +4,51 @@
 
 NAOTA release history. Newest first.
 
+## [1.36.0] - 2026-11-13
+### Added
+- **An agent set to ChatGPT now really runs on ChatGPT in restricted background workflows.** Those steps always ran on Claude Code, whatever you picked. The step can call only its own tool list, at the job's permission level, with no shell, web or sub-agents.
+- Without Codex installed the step still runs on Claude Code as before, with no error.
+- **Create a team with its documents from the start.** The Create team box has a new "Add documents for the team (files, links)" block: find a file already in the brain by name, upload one from the device, or paste a link. Team members can read them from the first message.
+- **No need to upload a file the brain already has.** The Info tab of each team has a box that searches the brain, and Add is one press. The file stays where it is, no copy is made.
+- **One team can run several jobs at once.** A team used to run one job at a time, so one assistant's job waited for another assistant's job to end. Now up to 3 jobs run side by side when they belong to different assistants.
+- **Jobs of the same assistant still run one after the other**, in the order of the queue. So do the jobs the coordinator plans.
+- **To make a job wait for an earlier result, say so in the request.** A job with words such as "after ... is done", "one after another" or "in sequence" waits for every job before it, and no later job starts ahead of it.
+- **A new team runs a job to its end.** Teams created from this version on have no cap on the replies and steps of one job, so a job no longer stops halfway to wait for "Give more turns". In exchange a hard job can use more tokens. The team's daily reply cap stays, and a job still stops by itself at two identical results.
+- Teams created before keep their limits. To change them, open Advanced, Team limits, and tick "Unlimited" or type a number.
+### Fixed
+- **ChatGPT image generation no longer says "no account" while every account rests after a chat limit.** Naota still tries the first switched-on account, as it did before account rotation. Switched-off accounts stay unused.
+- **Opening a team with hours of chat no longer slows the whole app.** Until now, opening a team on a wide screen also opened its Info tab, and the server read every message of the team again to look for files and links. The longer the team, the slower, and meanwhile loading messages, switching teams and sending all had to wait. The server now keeps the result and reads only new messages. Measured on a team with 3,000 messages: from 1.5 seconds per open to 0.003 seconds.
+- The Documents list of a long conversation is faster too, since it reads the same way.
+- **A new Claude Code chat no longer rewrites the whole prompt cache at token-saving levels.** A clock that changed every minute, and the memories picked for each question, sat inside the cached part of the prompt, so every new chat rewrote about 25 thousand tokens. They now travel with the first message of the chat, and the prompt stays the same between chats.
+- **Rules written on the Profile page now reach the model at token-saving levels too.** At the saving levels (the default one included) the profile was dropped together with the memory index, so a form of address or a layout preference set once for every brain only worked with saving switched off.
+- **The Messenger check now detects a webhook that cannot be reached.** Every line used to say fine while the HTTPS address was dead, so the bot stayed silent with no visible reason.
+- **When the quick tunnel gets a new address, automatic repair points the webhook at the running one**, keeps the receiver path, and saves it only after Meta verifies it.
+- **The usage ring stops being red as soon as the plan works again.** Before, after you reset the plan on the provider's site the ring stayed red at 100% and Naota's own work stayed paused until the old reset time.
+- **A reset time that includes the year is read.** A notice like "try again at Nov 13th, 2026 3:32 PM" used to count as "no reset time given"; the real time now shows.
+- **Background work refused for quota turns the usage ring red too.** Only chat turns recorded it before, so background work could use up the plan while the ring stayed green.
+- **The "SDK engine: ProcessError... Check stderr output for details" error now gives the reason.** When Claude Code exits before answering, the chat shows what it printed instead of a line nobody can act on.
+- **Three common cases come with the fix:** Naota running as root, a broken data source (MCP) configuration, and an outdated Claude Code on the machine.
+- **Background fallback runs the model you picked on the card.** That choice was ignored before: when the background model ran out and the work moved to Claude Code, it ran the CLI's own default model, usually the one that uses the plan up fastest. A card with no model picked runs as before.
+- **When ChatGPT (or Claude, Grok) loses its sign-in, Naota moves to another connected model by itself.** Before, only running out of quota moved a turn on; a lost sign-in failed every turn until you signed in again.
+- **Customer bots and assistants with their own model are covered too.** A bot or an assistant set to ChatGPT answers on the main model while ChatGPT is signed out, so customers no longer hit failed turns.
+- **You are told clearly.** The chat shows "Using ... because ChatGPT lost its sign-in", the model picker tags the card "Signed out", and the bell gets one reminder to sign in again on the Models page. After signing in, the old model is used again at once.
+- **Rules on the Profile page now apply to shortcut answers too.** One gap was left: a greeting or a thank-you (at every level) and a simple question at the Max saving level were still answered without it, so Naota could get your form of address wrong on the very first hello.
+- Answers written from data Naota has just read (on API-key brains) follow the profile as well.
+- An empty profile changes nothing. The longest profile (4,000 characters) adds about 1,400 tokens to a shortcut turn.
+- **The Reply judge item is always in the "..." menu of a bot card.** It used to appear only for a bot in Auto-judge mode, so many people could not find it.
+- **For a bot not in Auto-judge mode the panel says the judge is idle**, with an Edit button to turn it on, instead of an empty list.
+### Improved
+- **The "Starting Naota…" screen hands over to the app sooner.** Once the first page has its data the screen goes almost at once.
+- **A machine that loads data slowly is no longer covered for up to 12 seconds.** When the first page is open but a list is still loading, the app shows after 4 seconds and the unfinished part keeps its own "Loading" line, as on every other page.
+- **Finding a file by name hits more often.** Several words such as "bang gia" now find `bang-gia-dich-vu.md`: the name only has to hold all the words, whatever the dashes or the order. This applies to every search of files by name, including the Documents drawer of a chat.
+- **The job strip on top of the chat shows every running job**, not only one.
+- To go back to one job at a time, set the environment variable `NAOTA_TEAM_JOBS=1`.
+- **The Team settings tab is simpler.** What is in view is only what you decide for a team: its members, its goal, how far the coordinator decides alone, whether outside actions need approval, its name and status.
+- **Acceptance and the usage figures moved into Advanced**, next to the limit numbers and the detailed rights. Nothing was removed: open Advanced and it is all there as before.
+- **The team's goal now sits right under the member list.**
+### Security
+- **Facebook and Meta Ads tools no longer hand access tokens to the model.** Facebook's "next page" links and error messages carry the access token; Naota now strips it before the result reaches the model. Posts, comments and paging cursors are unchanged.
+
 ## [1.35.0] - 2026-11-13
 ### Added
 - **Chat boxes continue a numbered list.** Under a line like `1. ...`, a new line starts with `2. `, as in Claude. A new line is Enter on a phone and Shift+Enter on a computer (Enter on a computer still sends). Works in the main chat, Teams, Conversations and the chatbot trial box.
