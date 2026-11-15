@@ -6,6 +6,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.45.0] - 2026-11-16
+### Cải thiện
+- Đang làm: lấy các bản mới của bản nguồn.
+
 ## [1.44.0] - 2026-11-15
 ### Sửa lỗi
 - **Loop tự đặt nhiệm vụ giờ làm trọn nhiệm vụ trong một vòng, không còn dừng sau bước đầu.** Trước đây lời dặn "thực hiện 1 bước cụ thể" khiến loop nhiều bước (ví dụ đăng bài lên đủ các kênh) chỉ làm bước đầu rồi báo xong. Nay mỗi vòng làm đủ các bước nhiệm vụ ghi, bước nào lỗi thì ghi chú rồi làm tiếp bước sau.
