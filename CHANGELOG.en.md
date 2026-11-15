@@ -4,6 +4,15 @@
 
 NAOTA release history. Newest first.
 
+## [1.46.0] - 2026-11-16
+### Added
+- **Custom API connection.** Any service with a REST API and an API key but no MCP (POS, CRM, shipping, e-invoices...) now connects on the Connections page: paste the base URL and the key, and every engine can call that API.
+- **The key never reaches the model.** It is encrypted, the server adds it to each call and only sends it to the host you entered; a key echoed in a result is masked.
+- **Read-only by default.** At Read-only Naota only calls GET; to create, edit or delete on that service, raise the connection to Full access.
+- **Webhooks can be edited after they are made.** The Configuration part of each webhook has an Edit button: change its name, its workflow or written job, the note and the permission level right in that window. The link and its key stay the same, so whatever sends events there needs no change.
+### Improved
+- **Add new GitHub repos right from a project, an assistant or the create-team box.** The repo picker in those three places now has the "+ Add repositories on GitHub" row, as in the chat. Grant more repos on GitHub, come back, and the list shows them without a reload.
+
 ## [1.45.0] - 2026-11-16
 ### Fixed
 - **Chatting with Naota over Zalo no longer defaults to Vietnamese replies.** Naota answers in whatever language you write.
