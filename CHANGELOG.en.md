@@ -4,9 +4,11 @@
 
 NAOTA release history. Newest first.
 
-## [1.45.0] - 2026-11-15
+## [1.44.0] - 2026-11-15
 ### Fixed
 - **A loop with its own task now finishes the whole task in one round instead of stopping after the first step.** The old instruction "carry out 1 concrete step" made multi-step loops (for example posting to every channel) do only the first step and report done. Each round now runs every step the task lists; a step that fails is noted and the next one still runs.
+### Improved
+- **The Hostinger links in the install guides (README, DEPLOY, QUICKSTART and translations) carry the VUONGTEX referral code.** Docs only.
 
 ## [1.43.0] - 2026-11-15
 ### Fixed
