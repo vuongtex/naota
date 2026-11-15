@@ -13,7 +13,7 @@ NAOTA là một AI agent cá nhân + Second Brain. "Bộ não" của nó là **C
 
 ## Cách 1 - Hostinger Docker Manager (1-click, nhanh nhất) ⚡
 
-> 🛒 **Chưa có VPS?** [Đăng ký VPS Hostinger tại đây](https://www.hostinger.com). VPS có sẵn Docker Manager nên cài Naota đúng một cú bấm. Thuê xong quay lại làm các bước dưới.
+> 🛒 **Chưa có VPS?** [Đăng ký VPS Hostinger tại đây](https://www.hostinger.com?REFERRALCODE=VUONGTEX). VPS có sẵn Docker Manager nên cài Naota đúng một cú bấm. Thuê xong quay lại làm các bước dưới.
 
 VPS Hostinger → **Docker Manager → Compose → URL** → dán link rồi **Deploy**:
 ```
@@ -45,7 +45,7 @@ màn **tạo tài khoản admin**.
 
 ## Cách 2 - Docker trên VPS bất kỳ (pull image, không cần clone source)
 
-> 🛒 **Cần thuê VPS?** [VPS Hostinger](https://www.hostinger.com) chạy được cả cách này.
+> 🛒 **Cần thuê VPS?** [VPS Hostinger](https://www.hostinger.com?REFERRALCODE=VUONGTEX) chạy được cả cách này.
 
 Cần Docker. Chưa có? `curl -fsSL https://get.docker.com | sh`
 ```bash
