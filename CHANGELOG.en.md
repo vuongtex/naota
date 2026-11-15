@@ -5,8 +5,14 @@
 NAOTA release history. Newest first.
 
 ## [1.45.0] - 2026-11-16
+### Fixed
+- **Chatting with Naota over Zalo no longer defaults to Vietnamese replies.** Naota answers in whatever language you write.
+- **Reminders set over Telegram mention the time zone you chose in Settings**, instead of "Vietnam time" for everyone.
+- **The Effort level now works on Gemini 4.** On a Gemini API key, Gemini 4 Hydrogen, Argon and Carbon ignored the Effort you picked and always ran at their own default. Your level is now sent, and later Gemini generations are recognised on their own.
+- **The Usage page prices the new Gemini models correctly.** Gemini 4 used the old Gemini price and showed several times cheaper than it is, while Gemini 3.5 Flash-Lite was priced as Pro. Each model now has its own price.
 ### Improved
-- In progress: porting new upstream releases.
+- **The core rules Naota sends to the model are now written in English, one copy for every language.** This covers the rules of each chat channel, token-saving mode, the Naota Core role, and the agent and skill paths. About a quarter of the instructions used to be Vietnamese and pulled replies into Vietnamese; Naota now keeps to the language you write in. Chatting in Vietnamese works as before, with Vietnamese replies.
+- **The instructions take fewer tokens**, so every chat turn is a little lighter.
 
 ## [1.44.0] - 2026-11-15
 ### Fixed

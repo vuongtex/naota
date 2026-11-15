@@ -63,7 +63,7 @@ check("bật: system prompt có dòng gợi ý naota_goal", "naota_goal op=creat
 # pushes a different name off the end and the length swings with whatever plugin happens to sort last
 # (adding naota-login took it to 655). That line is not the hint this check bounds, so it is left out.
 def _no_plugin_line(p):
-    return "\n".join(l for l in p.splitlines() if not l.startswith("Plugins đang chạy:"))
+    return "\n".join(l for l in p.splitlines() if not l.startswith("Plugins running:"))
 check("bật: dòng gợi ý ngắn (dưới 650 ký tự)",
       0 < len(_no_plugin_line(p_on)) - len(_no_plugin_line(p_off)) < 650)
 check("ngoài lượt của agent: prompt không có dòng gợi ý lập mục tiêu",

@@ -70,8 +70,12 @@ không được là tiếng Việt trần:
   chạy mà không nằm trong danh sách ngoại lệ dữ liệu.
 - **Server:** chữ trả về cho màn hình (lỗi, thông báo, nhãn) viết `localefmt.chu("tiếng Việt",
   "English")`. Không có request (Telegram, việc nền) thì nó theo `ui_lang` của máy.
-- **KHÔNG dịch:** prompt và mô tả tool gửi cho model, regex nhận câu người dùng gõ hay nói, log,
-  nội dung ghi vào brain của người dùng. Lý do ở them-mot-ngon-ngu.
+- **Prompt gửi cho model viết tiếng Anh, MỘT bản cho mọi ngôn ngữ** (từ 15/11/2026). Không đi qua i18n, không
+  dịch ra từng thứ tiếng: model trả lời theo ngôn ngữ người dùng nhờ khối `# === NGÔN NGỮ ===`. Luật mới, mô tả tool
+  mới viết tiếng Anh; phần cũ còn tiếng Việt thì dịch khi PR đụng tới. Giữ nguyên tiêu đề `# === ... ===` (mốc đo
+  token) và tên mà chương trình tự viết hay tự đọc (`[Phiên chat: ...]`, `[NGỮ CẢNH GIAO DIỆN: ...]`...).
+  `tests/python/test_core_prompt_english.py` canh các khối lõi.
+- **KHÔNG dịch:** regex nhận câu người dùng gõ hay nói, log, nội dung ghi vào brain của người dùng.
 
 ## Chữ giải thích gập vào nút (i)
 
@@ -166,7 +170,7 @@ Repo mở cho người đóng góp quốc tế, nên phần NGƯỜI NGOÀI Đ�
   i18n (`vi.json` có dấu, `en.json`). Bảng từ điển định danh tiếng Việt cũ cho người nước ngoài ở
   GLOSSARY, kiến trúc ở `ARCHITECTURE.md`.
 - **Giữ tiếng Việt:** `CHANGELOG.md` (bản gốc), file quy ước này, spec trong
-  `docs/dev/`, và prompt gửi cho model (lý do ở them-mot-ngon-ngu).
+  `docs/dev/`. Prompt gửi cho model thì viết tiếng Anh từ 15/11/2026 (xem mục "Chữ hiện lên màn hình").
 - PR từ người ngoài không cần đụng `VERSION`/CHANGELOG: người merge tăng số và viết nhật ký.
 
 ## Bản dịch README và hướng dẫn cài nhanh

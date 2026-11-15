@@ -300,7 +300,7 @@ check("and the same undo still takes a model change of the scorecard by its plai
 
 _core = (ROOT / "system" / "agents" / "naota-core.md").read_text(encoding="utf-8")
 check("Naota Core's role says it keeps background work and learning, through naota_tune",
-      "Việc nền và tự học" in _core and "`naota_tune`" in _core)
+      "Background work and self-learning" in _core and "`naota_tune`" in _core)
 _plug = (ROOT / "system" / "plugins" / "naota-tune" / "plugin.py").read_text(encoding="utf-8")
 check("the tool describes teaching and knobs", "op=teach" in _plug and "op=set" in _plug)
 main._notify_owner = real_notify
