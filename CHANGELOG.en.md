@@ -4,6 +4,21 @@
 
 NAOTA release history. Newest first.
 
+## [1.40.0] - 2026-11-15
+### Added
+- **Links that open a dashboard page directly.** A link like `#p=tasks` (or another page name) opens that page, even in a Naota tab that is already open.
+- **Cancel background jobs right in chat.** Ask Naota to cancel a job and it leaves the queue, a running job stops at once, and the reason goes into the job's log. When sending a job back to be redone, an extra note on how to fix it now reaches the redo.
+- **Connecting a Facebook Page has a "Read post insights" tick.** This optional tick asks for reach and saves of posts. The Messenger checklist shows whether the Page has that permission.
+### Fixed
+- **Background commands Naota starts in an API-key chat report when they finish.** They used to stay "running" until the server restarted.
+- **A chat pinned to a model keeps that model.** While the pinned model is out of quota or signed out, turns run on the main model for the moment, then go back to the pinned model once it works again.
+- **File links with line numbers (like `agents/x.md#L66-L75`) open the file.** Answers no longer get a false "file not found in the brain" warning.
+- **Messenger conversations show the customer's name instead of a bare ID.** When Meta refuses the profile, Naota takes the name from the Page conversation, and tries again after 10 minutes if it could not get it.
+- **Hanging up while Naota is still working on something asked for in the call no longer drops it.** Naota finishes and posts the result to the call's chat, with a notification.
+- **The Automatic call path no longer switches to ChatGPT Live just because the machine has a Codex sign-in.** ChatGPT Live is picked only when ChatGPT is the main model or connected on the Models page.
+### Improved
+- **System lines Naota adds under answers no longer hardcode a Vietnamese first-person pronoun.** Background job tracking, empty-promise and memory notes and missing-file links are written without a pronoun, so they match the chosen form of address.
+
 ## [1.39.0] - 2026-11-15
 ### Added
 - **A "Keep me signed in on this device" box on the sign-in screen.** Ticked, as before, the device stays signed in for 30 days. Untick it on someone else's device: closing the browser signs you out, and Naota also signs you out after 4 hours unused or 24 hours at most.

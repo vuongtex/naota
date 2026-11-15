@@ -67,7 +67,7 @@ for level in ("auto", "suggest"):
         check(f"bot at {level}: naota_schedule {op} is refused", why.startswith("ERROR"), why)
     _a, why = as_bot(lambda: cap("naota_schedule", {"op": "list"}, level))
     check(f"bot at {level}: naota_schedule list still works", not why, why)
-    for op in ("add", "answer", "accept", "fix"):
+    for op in ("add", "answer", "accept", "fix", "cancel"):
         _a, why = as_bot(lambda: cap("naota_task", {"op": op, "title": "t", "id": "k1"}, level))
         check(f"bot at {level}: naota_task {op} is refused", why.startswith("ERROR"), why)
     _a, why = as_bot(lambda: cap("naota_task", {"op": "list"}, level))
