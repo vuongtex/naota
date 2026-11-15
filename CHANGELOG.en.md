@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.44.0] - 2026-11-15
+### Improved
+- The Hostinger VPS links in the install guides carry the VUONGTEX referral code.
+
 ## [1.43.0] - 2026-11-15
 ### Fixed
 - **Naota no longer answers in Vietnamese while you chat in English.** The language rule is now written in English, says a language you stated wins, and that the Vietnamese around it is no hint.
