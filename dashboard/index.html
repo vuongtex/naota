@@ -40,8 +40,8 @@
   <!-- Biến --ic-* cho icon dùng trong content: của CSS. Phải đứng TRƯỚC style.css
        vì style.css tham chiếu các biến này. -->
   <link rel="stylesheet" href="/static/vendor/lucide-icons.css?v=1">
-  <link rel="stylesheet" href="/static/style.css?v=182">
-  <link rel="stylesheet" href="/static/console.css?v=166">
+  <link rel="stylesheet" href="/static/style.css?v=183">
+  <link rel="stylesheet" href="/static/console.css?v=167">
   <!-- Áp tông đã lưu TRƯỚC khi vẽ để không nháy tối rồi mới đổi sang sáng.
        Giá trị cũ "dim" (tông tối-nhạt, gỡ) quy về tối; theme.js sẽ ghi đè lại.
        Chưa chọn gì thì SÁNG (NAOTA 1.0.0). Chế độ "auto" (chỉ khi người dùng tự chọn) tính theo khung giờ "HH:MM-HH:MM", cùng quy tắc với
@@ -619,7 +619,7 @@
 
     <!-- ===== Composer: ONE rounded card in the style of Claude =====
          Top: attached images and files. Middle: text box. Bottom: "+", model chip, effort chip,
-         Fast mode bolt, pinned folder chip, then mic and send. Popovers open above the card.
+         Fast mode bolt, pinned folder chip, then mic and send. Popovers open just above that bottom row (2026-11-14).
          Phone (2026-11-11): ring, model and effort are drawn as one pill and open one sheet from the bottom. -->
     <div class="hud-voice" id="hudVoice">
       <button id="voiceFocusResume" class="voice-focus-resume" hidden></button>
@@ -936,6 +936,13 @@
           <div class="auth-hint" data-i18n="auth.code_hint">Mở app Authenticator và nhập mã đang hiện. Mất điện thoại thì
             nhập một mã khôi phục đã lưu lúc bật.</div>
         </div>
+        <!-- "Keep me signed in": unticked on a borrowed device, the session ends when the browser closes. -->
+        <div class="auth-remember-row">
+          <label class="auth-remember"><input type="checkbox" id="authRemember" checked>
+            <span data-i18n="auth.remember">Ghi nhớ đăng nhập trên máy này</span></label>
+          <button type="button" class="info-i" aria-expanded="false" data-i18n-aria="info.more" data-i18n-title="info.more"><i data-ic="info"></i></button>
+          <div class="info-body" hidden data-i18n="auth.remember_info">Bỏ tích khi đăng nhập trên máy của người khác: đóng trình duyệt là phiên kết thúc. Để yên 4 giờ không dùng, hoặc quá 24 giờ, Naota cũng tự đăng xuất. Nếu trình duyệt hỏi lưu mật khẩu, chọn Không bao giờ.</div>
+        </div>
         <button class="fm-use" id="authSubmit" data-i18n="auth.submit">Đăng nhập</button>
         <div class="auth-err" id="authErr"></div>
         <div class="auth-help"><span id="authForgot" data-i18n="auth.forgot">Quên mật khẩu?</span></div>
@@ -1052,7 +1059,7 @@
  ],
  "teams": [
   "/static/team-github.js?v=1",
-  "/static/teams.js?v=31"
+  "/static/teams.js?v=32"
  ],
  "packs": [
   "/static/packs.js?v=8"
@@ -1159,7 +1166,9 @@
   <script src="/static/chat-upload.js?v=1"></script>
   <!-- Stick to the latest message, the jump button and its "New messages" pill, shared by app.js and teams.js. -->
   <script src="/static/chat-scroll.js?v=2"></script>
-  <script src="/static/chat-quote.js?v=2"></script>
+  <script src="/static/chat-quote.js?v=3"></script>
+  <!-- Tap a quote to scroll back to the words it quotes (main chat and Team chat): before app.js and teams.js. -->
+  <script src="/static/quote-jump.js?v=1"></script>
   <!-- Long paste: preview the whole text, then paste inline or attach .txt. Before app.js and teams.js. -->
   <script src="/static/chat-paste.js?v=1"></script>
   <!-- Sáu reaction dùng chung: nạp TRƯỚC chat-reactions.js, app.js, teams.js và mobile-chat.js. -->
@@ -1189,7 +1198,7 @@
   <script src="/static/screen-awake.js?v=1"></script>
   <script src="/static/incoming-call.js?v=1"></script>
   <script src="/static/call-bar.js?v=1"></script>
-  <script src="/static/app.js?v=173"></script>
+  <script src="/static/app.js?v=174"></script>
   <!-- Sau app.js: dải việc nền đọc window.NaotaSessions (app.js dựng) để biết phiên + brain. -->
   <script src="/static/background-strip.js?v=3"></script>
   <!-- Thân bảng chọn model dùng chung: phải đứng TRƯỚC model-picker.js (thanh chat) và
@@ -1200,7 +1209,7 @@
   <script src="/static/models-order.js?v=2"></script>
   <script src="/static/provider-logos.js?v=2"></script>
   <script src="/static/plan-limit.js?v=3"></script>
-  <script src="/static/model-picker.js?v=22"></script>
+  <script src="/static/model-picker.js?v=23"></script>
   <script src="/static/composer-plus.js?v=3"></script>
   <script src="/static/composer-folder.js?v=4"></script>
   <script src="/static/github-connect.js?v=8"></script>
@@ -1255,7 +1264,7 @@
   <script src="/static/login-vault.js?v=2"></script>
   <script src="/static/messenger-connect.js?v=4"></script>
   <script src="/static/voice-catalog.js?v=1"></script>
-  <script src="/static/console.js?v=229"></script>
+  <script src="/static/console.js?v=230"></script>
   <script src="/static/mobile-chat.js?v=24"></script>
   <script src="/static/brain-view.js?v=1"></script>
   <script src="/static/push.js?v=3"></script>
