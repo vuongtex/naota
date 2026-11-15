@@ -4,6 +4,18 @@
 
 NAOTA release history. Newest first.
 
+## [1.42.0] - 2026-11-15
+### Added
+- **ChatGPT and Claude can set the model and effort inside the command they send through Naota Gate.** Tell ChatGPT "have Naota do this on Opus at high effort": the model is pinned on that chat as if you picked it in the model bar (the chip shows it, change it back any time), and the effort counts for that one message only, nothing in your settings changes. A new `naota_chat_models` tool lets the outside AI see which models Naota has.
+- **When work ChatGPT sent finishes after it stopped waiting, the Naota bell rings your phone**, with the answer and the sentence to send ChatGPT ("check Naota results"). ChatGPT and Claude do not let outside servers wake a chat yet, so this is the shortest path: one message, and the new `naota_chat_updates` tool hands over every unread result, even in a new ChatGPT chat.
+- **Add GitHub repositories to a Project.** Open the project panel, Documents tab, Add document, then GitHub repository. Every chat in the project gets the repository from its first message, each on its own branch.
+- **Add repositories to an Assistant's documents.** Every private chat with that assistant gets them too, and Naota still commits, pushes and opens the PR as usual.
+- **Pick repositories while creating a Team.** The documents part of the Create team box has an Attach a GitHub repository button, so the new team starts with its repositories.
+### Fixed
+- **Picking several photos at once in a team chat on iPhone now attaches and sends them.** Before, a multi-photo pick put nothing in the composer and only a single photo got through. Adding team documents and importing a team file share the fixed picker.
+### Improved
+- **ChatGPT waits longer for Naota within the same reply** (up to about 10 minutes) instead of giving up after half a minute, and knows how long Naota has been working.
+
 ## [1.41.0] - 2026-11-15
 ### Added
 - **With Auto on, an assistant looks around with full access.** In its private chat, each time it wakes on its own it uses every connected tool (email, calendar, sales, web search...) and may take real actions within its role. Whatever it does is always reported to you.
