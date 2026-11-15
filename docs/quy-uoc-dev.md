@@ -49,6 +49,17 @@ Quy ước này giảm va chạm chứ không diệt hết: hai phiên khởi đ
 cùng đọc `main` rồi cùng chọn một số. Cái nó tránh là va chạm ở phút cuối, lúc PR đã xanh và
 mọi thứ đã xong.
 
+## Thiết kế giao diện: đọc `docs/dev/design-style.md` trước
+
+`docs/dev/design-style.md` gom các lần sửa giao diện của bản nguồn (chữ, điện thoại, màu, bố cục, nút, câu chữ, trang
+của gói Store, cách làm việc), có danh sách kiểm trước khi gửi và bảng những lần đổi ý. Luật riêng của NAOTA (không tự
+bỏ tính năng, màu thương hiệu) đứng trên file đó.
+
+- Việc nào có giao diện (dashboard, trang HTML của gói trong `naota-store`) thì đọc file đó trước khi vẽ, và chạy mục 0
+  "Kiểm trước khi gửi" trước khi báo xong.
+- Màn mới hoặc thiết kế lại: làm bản HTML cho chủ duyệt trước khi code, trừ khi chủ bảo làm thẳng.
+- Chủ chốt thêm một luật thiết kế mới thì ghi vào file đó (đúng mục, kèm ngày và lời chủ), cùng PR với thay đổi.
+
 ## Chữ hiện lên màn hình
 
 Giao diện chạy bằng tiếng Anh với người dùng trình duyệt tiếng Anh, nên chữ MỚI viết cho màn hình

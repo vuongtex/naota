@@ -5,8 +5,12 @@
 NAOTA release history. Newest first.
 
 ## [1.43.0] - 2026-11-15
+### Fixed
+- **Naota no longer answers in Vietnamese while you chat in English.** The language rule is now written in English, says a language you stated wins, and that the Vietnamese around it is no hint.
+- **Background work (Kanban, reminders, loops) no longer always reports in Vietnamese.** It follows the task's own language.
+- **Replies in Japanese, Korean, Chinese and Thai are read aloud by a native voice**, and an English message with an attached file is no longer read as Vietnamese.
 ### Improved
-- In progress: porting new upstream releases.
+- **Naota replies in the language you write in, any language, like Claude or ChatGPT.** The language box in Settings now only changes the interface, and chatbots always answer customers in the customer's language. To always get one language, tell Naota once; a reply language pinned before becomes a sentence in your profile, so it is not lost.
 
 ## [1.42.0] - 2026-11-15
 ### Added
