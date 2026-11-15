@@ -805,8 +805,10 @@ class LoopFeature:
             ), ""
         if goal == "custom":
             objective = (loop.get("body") or "").strip() or "Cải thiện vault theo cách hữu ích nhất bạn thấy."
-            base = f"NHIỆM VỤ CỦA LOOP NÀY (làm ĐÚNG 1 lần mỗi vòng rồi dừng):\n{objective}\n{safety}"
-            return base + ("Thực hiện 1 bước cụ thể cho nhiệm vụ trên rồi báo cáo ngắn (làm gì, chạm file nào)." if is_write
+            base = f"NHIỆM VỤ CỦA LOOP NÀY (mỗi vòng làm TRỌN 1 lượt rồi dừng):\n{objective}\n{safety}"
+            return base + ("Làm TRỌN 1 lượt nhiệm vụ trên: đủ MỌI bước nhiệm vụ ghi, theo đúng thứ tự, không dừng sau "
+                           "bước đầu. Bước nào lỗi thì ghi chú lỗi rồi làm tiếp bước sau. Báo cáo ngắn: đã làm những "
+                           "bước nào, bước nào lỗi, chạm file nào." if is_write
                            else "CHẾ ĐỘ ĐỀ XUẤT - chỉ đọc, không ghi file. Đề xuất 2-3 hành động cụ thể cho nhiệm vụ trên."), ""
         # goal == brain - làm dày bộ não
         if is_write:
