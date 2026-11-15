@@ -6,10 +6,6 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
-## [1.44.0] - 2026-11-15
-### Cải thiện
-- Link mua VPS Hostinger trong hướng dẫn cài dùng mã giới thiệu VUONGTEX.
-
 ## [1.43.0] - 2026-11-15
 ### Sửa lỗi
 - **Naota không còn trả lời tiếng Việt khi bạn đang chat tiếng Anh.** Lời dặn ngôn ngữ viết lại bằng tiếng Anh, nói rõ ngôn ngữ bạn đã dặn thắng, và phần tiếng Việt xung quanh không phải gợi ý.
