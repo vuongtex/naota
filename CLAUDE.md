@@ -130,7 +130,7 @@ buttons):
 
 For a new capability load the **`naota-builder`** skill (templates, duplicate checks, safety rails): smallest type that suffices, duplicates checked first, a new loop as `enabled: false` plus `mode: full`.
 
-**Self-improvement AT USE TIME only:** fix a skill or workflow during the turn that uses it, when a specific flaw just surfaced (add to Pitfalls/Lessons, do not rewrite). Agents learn via a `NAOTA_LESSON: ...` line the app writes into their memory; never tell an agent to edit its own memory file. Never create a background loop that bulk-upgrades skills/agents.
+**Self-improvement AT USE TIME only:** fix a skill or workflow during the turn that uses it, when a specific flaw just surfaced (add to Pitfalls/Lessons, do not rewrite). Agents learn via a `NAOTA_LESSON: ...` line the app writes into their memory; never tell an agent to edit its own memory file. Never create a background loop that bulk-upgrades skills/agents. Owner asks to improve Naota, an assistant or the system: use `naota_improve` (backup and undo; `source` = Naota's code; `update`), give the undo id.
 
 The SYSTEM skills (`naota-builder`, `ingest-source`, `query-wiki`, `lint-wiki`, `notes`, `html-to-webcake`, `security-audit`) ship with the app in every brain: never recreate or clone them; edit one only when the user explicitly asks.
 

@@ -4,6 +4,21 @@
 
 NAOTA release history. Newest first.
 
+## [1.41.0] - 2026-11-15
+### Added
+- **With Auto on, an assistant looks around with full access.** In its private chat, each time it wakes on its own it uses every connected tool (email, calendar, sales, web search...) and may take real actions within its role. Whatever it does is always reported to you.
+- **Assistants set their own times to check back.** When something has a date (a race, a meeting, a deadline) the assistant sets a check-back, such as the morning or the evening before. At that time it wakes, checks the sources again, then decides whether to message you.
+- **Suggestions and reminders, not notifications.** An assistant only messages you when something is new, timely and actionable: at most two short paragraphs, one concrete piece of advice, with real source links. Reminders go to the Reminders group, suggestions to the new "Assistant suggestions" group (it still reaches you by default; lower or turn it off on the Notifications page).
+- **Ask for an improvement and it happens, with undo.** Say "improve yourself" or "rework this skill": the assistant changes its own role, instructions, skills and model, other assistants, skills, workflows, loops and memory. Every change gets an id and a backup; "undo #12" puts it back.
+- **Naota can change its own source code.** With GitHub connected to the Naota source repo (`vuongtex/naota`), the assistant attaches the repo to the chat and works on its own branch; Naota checks, opens a PR and merges on green CI.
+- **It updates itself to the release.** Say "update now": Naota waits for the chat turn to end, runs exactly what the Update button runs, and rolls back if the new version breaks.
+### Fixed
+- **Files the team writes open with a click.** A file link in a team chat used to do nothing visible. The file now opens right in the team's chat column; press X to get back to the conversation, with anything you were typing still there.
+- **Pages with no room for the editor open the file in a popup**, such as a file link on the Tasks page, so no click on a file link goes nowhere any more.
+### Improved
+- **Turning Auto on asks once** and says plainly that it gives full access. The old line "Auto is not Full access" now matches how Auto works.
+- **Only you can order it.** Auto's own wake-ups and customer-facing bots may only suggest. Old prompt lines that contradicted this now match.
+
 ## [1.40.0] - 2026-11-15
 ### Added
 - **Links that open a dashboard page directly.** A link like `#p=tasks` (or another page name) opens that page, even in a Naota tab that is already open.

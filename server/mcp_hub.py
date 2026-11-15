@@ -197,6 +197,9 @@ OWNER_ONLY_TOOLS = frozenset({"naota_reply_policy", "naota_reply_policy_tune", "
                               "naota_core_name",
                               # 2026-11-10: steers which model background jobs run on. Not a customer's call.
                               "naota_tune",
+                              # 2026-11-15: rewrites assistants, skills and memory, attaches Naota's own code, updates
+                              # and restarts the install. Only the owner asks for that.
+                              "naota_improve",
                               # 2026-11-13: rewrites a project's instructions, notes, files and links.
                               "naota_project",
                               # 2026-10-25: writes code that runs in the server (installed OFF, still owner's call).
