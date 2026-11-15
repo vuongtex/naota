@@ -7954,7 +7954,7 @@ def _do_backup(brain: str = "") -> dict:
     cfg = cfgmod.read_settings()
     b = cfg.get("backup", {}) or {}
     if not (b.get("repo_url") and b.get("token")):
-        return {"ok": False, "error": localefmt.chu("Chưa cấu hình repo URL + token", "Repo URL and token are not configured yet")}
+        return {"ok": False, "error": localefmt.chu("Chưa cấu hình repository URL + token", "Repository URL and token are not configured yet")}
     mirror = str(cfgmod.STATE_DIR / "brains-backup")   # repo mirror riêng (tránh nested git từng brain)
     res = git_brain.sync_brains(BRAINS_DIR, mirror, b["repo_url"], b["token"], b.get("branch") or "main",
                                 trash_dir=str(cfgmod.STATE_DIR / "brain-trash"),
@@ -8779,6 +8779,51 @@ def _cwd_luot_chat(row, brain: str) -> str:
     except Exception:
         pass
     return _brain_root(brain)
+
+
+def _inherited_repos(row, persona, brain: str) -> list:
+    """GitHub repos a chat inherits (2026-11-15): its project's, then its assistant's (a private chat on the Partners
+    page). Names only; github_repos.seed_session decides which ones this chat still lacks."""
+    names: list = []
+    pid = (row or {}).get("project_id") or ""
+    if pid:
+        try:
+            names += get_store().project_repo_names(pid)
+        except Exception as e:  # noqa: BLE001 - a store hiccup only means no inherited repo this turn
+            print(f"[repo seed] project {pid}: {type(e).__name__}: {e}", file=sys.stderr)
+    if persona and persona[0] == "agent":
+        try:
+            names += agent_assets.repo_names(_read_md(_agents_dir(brain) / f"{persona[1]}.md")[0])
+        except Exception as e:  # noqa: BLE001
+            print(f"[repo seed] agent {persona[1]}: {type(e).__name__}: {e}", file=sys.stderr)
+    return names
+
+
+async def _seed_chat_repos(ws, row, brain: str, persona) -> None:
+    """Attach the repos of the chat's project or assistant BEFORE the engine starts, so this very turn runs in them.
+    Each repo is offered once per chat (a repo detached from the chat stays detached). A failure is said in one line
+    and never stops the turn; the repo is tried again next turn."""
+    sid = (row or {}).get("id") or ""
+    if not sid:
+        return
+    try:
+        import github_repos
+        names = await asyncio.to_thread(_inherited_repos, row, persona, brain)
+        given = set(await asyncio.to_thread(github_repos.seeded, sid)) if names else set()
+        if not [n for n in names if n.lower() not in given]:
+            return
+        await ws.send_text(json.dumps({"type": "status", "content": localefmt.chu(
+            "Đang gắn repository GitHub vào cuộc này...", "Attaching the GitHub repositories to this chat...")}))
+        res = await asyncio.to_thread(github_repos.seed_session, sid, brain, str(_brain_root(brain)), names)
+    except Exception as e:  # noqa: BLE001 - an inherited repo must never break the turn
+        print(f"[repo seed] {sid[:12]}: {type(e).__name__}: {e}", file=sys.stderr)
+        return
+    if res.get("attached"):
+        print(f"[repo seed] {sid[:12]} attached {', '.join(res['attached'])}", file=sys.stderr)
+    for f in res.get("failed") or []:
+        await ws.send_text(json.dumps({"type": "system", "content": localefmt.chu(
+            f"Chưa gắn được repository {f['full_name']} vào cuộc này: {f['error']}. Lượt sau Naota thử lại.",
+            f"Could not attach {f['full_name']} to this chat: {f['error']}. Naota tries again next turn.")}))
 
 
 def _khoi_coding(row, brain: str = "") -> str:
@@ -10404,7 +10449,7 @@ async def agent_assets_list(slug: str, brain: str = Query("brain")):
     meta, _body = _read_md(f)
     kho = agent_assets.doc(meta)
     return {"ok": True, "slug": slug, "name": meta.get("name", slug),
-            "files": kho["files"], "links": kho["links"]}
+            "files": kho["files"], "links": kho["links"], "repos": agent_assets.repos(meta)}
 
 
 @app.post("/agents/{slug}/assets/files")
@@ -10481,6 +10526,52 @@ async def agent_assets_pin_link(slug: str, link_id: str, pinned: str = Form("1")
     on = str(pinned).strip() in ("1", "true", "True", "on")
     ok, loi = await asyncio.to_thread(_agent_assets_sua, brain, slug, lambda m: agent_assets.ghim_link(m, link_id, on))
     return loi or {"ok": bool(ok), "pinned": on}
+
+
+def _repo_names_form(raw: str) -> list:
+    """Comma separated full names, as the repo picker sends them (team-github.js)."""
+    return [x.strip() for x in str(raw or "").split(",") if x.strip()]
+
+
+async def _repos_prepare(brain: str, have: list, names: list):
+    """The list to store for a project or an assistant: the names kept as they are, the new ones checked and cloned
+    (github_repos.prepare) so their chats only add a worktree. Returns (names, error JSONResponse or None)."""
+    import github_repos
+    low = {h.lower() for h in have}
+    new = [n for n in names if n.lower() not in low]
+    try:
+        fixed = await asyncio.to_thread(github_repos.prepare, brain, str(_brain_root(brain)), new)
+    except github_repos.RepoError as e:
+        return None, JSONResponse({"ok": False, "error": str(e)}, status_code=400)
+    return [n for n in names if n.lower() in low] + fixed, None
+
+
+def _agent_repo_rows(brain: str, slug: str):
+    """The assistant's repo rows, or None when there is no such assistant. Reads its file: call it in a thread."""
+    f = _agent_md_path(brain, slug)
+    return agent_assets.repos(_read_md(f)[0]) if f else None
+
+
+@app.post("/agents/{slug}/assets/repos")
+async def agent_assets_set_repos(slug: str, repos: str = Form(""), brain: str = Form("brain")):
+    """Set the assistant's GitHub repos (2026-11-15). Each private chat with it gets them on its next turn, on the
+    chat's own branch. Removing one only takes it off the list: chats that have it keep it."""
+    have = await asyncio.to_thread(_agent_repo_rows, brain, slug)
+    if have is None:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    names = _repo_names_form(repos)
+    if len(names) > agent_assets.REPOS_MAX:
+        return JSONResponse({"ok": False, "error": localefmt.chu(
+            f"Mỗi trợ lý chỉ gắn được tối đa {agent_assets.REPOS_MAX} repository",
+            f"Each assistant can have at most {agent_assets.REPOS_MAX} repositories")}, status_code=400)
+    final, err = await _repos_prepare(brain, [r["full_name"] for r in have], names)
+    if err:
+        return err
+    change, loi = await asyncio.to_thread(_agent_assets_sua, brain, slug, lambda m: agent_assets.set_repos(m, final))
+    if loi:
+        return loi
+    rows = await asyncio.to_thread(_agent_repo_rows, brain, slug)
+    return {"ok": True, "repos": rows or [], **(change or {})}
 
 
 # ---- Skills ----
@@ -16206,6 +16297,9 @@ async def _bao_luot_dai_xong(conv_sid: str, brain, turn_tag: str, user_message: 
     text = str(final_text or "")
     if not turn_done_notice.should_notify(elapsed, user_message, text):
         return False
+    import chat_bridge as _cb
+    if _cb.co_viec(conv_sid):
+        return False   # work an outside AI sent: chat_bridge rings once, and only if that AI did not read the answer
     body = turn_done_notice.notice_text(channel_context.strip_control_blocks(text))
     if not body:
         return False
@@ -20438,7 +20532,8 @@ async def _chat_socket(ws):
     try:
         async def _do_turn(conv_sid, user_message, brain, turn_tag, runtime_trace=None,
                            has_attachments=False, resume_attempt=0, user_mid=0, user_text=None,
-                           _task_skills=None, _turn_token=None, _route=None, _tried=(), _hops_left=0):
+                           _task_skills=None, _turn_token=None, _route=None, _tried=(), _hops_left=0, effort=""):
+            # `effort`: a level for THIS turn only, over the card's own (Naota Gate: the outside AI asked for it).
             # `_route`, `_tried`, `_hops_left`: run_turn reruns the turn on the next route after a quota error
             # that came before any output (_chat_next_route); `_hops_left` 0 means this run may not hand over.
             ws = _SendProxy(conv_sid, runtime_trace)  # các nhánh engine bên dưới dùng ws proxy này
@@ -20546,6 +20641,10 @@ async def _chat_socket(ws):
                         f"Trợ lý '{_persona[1]}' không còn trong brain này. Mở trang Cộng sự để chọn trợ lý khác.",
                         f"Assistant '{_persona[1]}' is no longer in this brain. Open the Partners page to pick another one.")}))
                 return ""
+            # 2026-11-15: the GitHub repos of the chat's project or assistant join the chat before any engine reads
+            # its folder (`_cwd_luot_chat`, `_khoi_coding` below). A rerun on another route finds them already there.
+            if not _route:
+                await _seed_chat_repos(ws, _row0, brain, _persona)
             prov, kind, api_key, api_model = _route or _chat_provider_for_session(mcfg, _row0)
             # tell the composer which model really answers, so its chip stops showing the chosen
             # model with a green dot while a fallback card does the work. `rerouted`: run_turn already wrote the line.
@@ -20563,6 +20662,8 @@ async def _chat_socket(ws):
                     pass
             elif naota_core.is_core_channel((_row0 or {}).get("channel")):
                 reasoning = _core_reasoning(mcfg)       # Naota Core's own level, not the main chat's
+            if effort in engine.REASONING_LEVELS:
+                reasoning = effort                      # this turn only; nothing saved changes
             fast_mode.use(mcfg.get("fast") is True)
             _CONTEXT_RUNTIME.set_route(
                 runtime_trace,
@@ -21871,7 +21972,7 @@ async def _chat_socket(ws):
 
         async def run_turn(conv_sid, user_message, brain, turn_tag, runtime_trace=None,
                            has_attachments=False, resume_attempt=0, goc_chat="", user_mid=0,
-                           user_text=None):
+                           user_text=None, effort=""):
             _trace_token = context_runtime.bind_trace(runtime_trace)
             # Dashboard = the owner's own surface (signed-in session): no platform sender id.
             # A1: kèm phiên, id tin và agent của phiên (host phân giải) để tool naota_goal biết ĐÚNG lượt nào gọi.
@@ -21917,7 +22018,7 @@ async def _chat_socket(ws):
                 final_text = await _do_turn(
                     conv_sid, user_message, brain, turn_tag, runtime_trace, has_attachments,
                     resume_attempt=resume_attempt, user_mid=user_mid, user_text=user_text,
-                    _task_skills=_task_skills, _turn_token=_luot_token, _hops_left=3,
+                    _task_skills=_task_skills, _turn_token=_luot_token, _hops_left=3, effort=effort,
                 )
                 # the route ran out of quota before writing anything -> same turn again on the next route,
                 # with one line saying why (spec 6.4). _do_turn stops handing over after 3 hops.
@@ -21934,7 +22035,7 @@ async def _chat_socket(ws):
                         conv_sid, user_message, brain, turn_tag, runtime_trace, has_attachments,
                         resume_attempt=resume_attempt, user_mid=user_mid, user_text=user_text,
                         _task_skills=_task_skills, _turn_token=_luot_token,
-                        _route=_nxt["route"], _tried=_nxt["tried"], _hops_left=3 - _hop,
+                        _route=_nxt["route"], _tried=_nxt["tried"], _hops_left=3 - _hop, effort=effort,
                     )
                 _resonance_after_turn(conv_sid, brain, user_mid, _t0_luot, runtime_trace)
                 # A long turn (a render the engine waited for, a background job's follow-up) rings the bell when done.
@@ -21987,6 +22088,13 @@ async def _chat_socket(ws):
                 await send_raw({"type": "turn_done", "session_id": conv_sid,
                                 **context_runtime.event_fields(runtime_trace), **_engine_outcome_pop(conv_sid)})
                 _CHAT_RUNTIME.finish_job(conv_sid, asyncio.current_task())
+                # Naota Gate: ChatGPT or Claude sent work into this chat and may have stopped waiting for it. The bridge
+                # rings the owner's phone once the outside AI has not picked the answer up (it cannot wake by itself).
+                try:
+                    import chat_bridge as _cb
+                    _cb.luot_xong(conv_sid)
+                except Exception as _e:  # noqa: BLE001 - a missed notice never fails the turn
+                    print(f"[gate notice] {type(_e).__name__}: {_e}", file=sys.stderr)
 
         async def run_workflow_turn(conv_sid, user_message, brain, turn_tag, runtime_trace, slug,
                                     resume=None, goc_chat=""):
@@ -22863,9 +22971,11 @@ async def _chat_socket(ws):
                         giu_ban_chep=bool(_voice_uid), user_mid=_user_mid)
                     task = asyncio.create_task(voice_turn_protocol.run(_voice_coro, store, conv_sid, _voice_uid) if _voice_uid else _voice_coro)
                 else:
+                    # `effort`: a level for this one message (Naota Gate, chat_bridge.gui), never saved. _do_turn ignores
+                    # anything off the ladder.
                     _voice_coro = run_turn(
                         conv_sid, user_message, brain, turn_tag, runtime_trace, has_attachments,
-                        goc_chat=_goc, user_mid=_user_mid)
+                        goc_chat=_goc, user_mid=_user_mid, effort=str(payload.get("effort") or ""))
                     task = asyncio.create_task(voice_turn_protocol.run(_voice_coro, store, conv_sid, _voice_uid) if _voice_uid else _voice_coro)
                 _CHAT_RUNTIME.register_job(
                     conv_sid, task, turn_tag,
@@ -22897,7 +23007,56 @@ async def _gate_luu_luot(sid, brain, tin, tra_loi):
     return await _persist_turn(st, sid, brain, tin, tra_loi)
 
 
-chat_bridge.gan(lambda ws: _chat_socket(ws), lambda: _CHAT_RUNTIME, _gate_luu_luot)
+def _gate_models() -> dict:
+    """Naota Gate: the models an outside AI may pick for a chat, the way the chat's model bar lists them (connected
+    cards only, each with its catalog), plus the main model a chat with no pin follows."""
+    cfg = cfgmod.read_settings()
+    em = _effective_main(cfg)
+    ra = []
+    for p in _providers_view(cfg):
+        if not p.get("configured"):
+            continue
+        ids = [m if isinstance(m, str) else str((m or {}).get("id") or (m or {}).get("name") or "")
+               for m in (p.get("models") or [])]
+        ra.append({"provider": p["id"], "name": p.get("label") or p["id"], "models": [i for i in ids if i]})
+    return {"providers": ra, "main": {"provider": em.get("provider") or "", "model": em.get("model") or "",
+                                      "name": _route_name(em.get("provider") or "")}}
+
+
+def _gate_chat_model(sid: str) -> dict:
+    """Naota Gate: the model and effort one chat runs on next. Effort follows the same order as a turn: the card's own,
+    an assistant's own level in its chat, Naota Core's own level in a Core chat."""
+    row = get_store().get_session(sid) or {}
+    mcfg = cfgmod.read_settings().get("model", {})
+    v = _route_view(mcfg, row)
+    effort = v.get("reasoning") or "off"
+    try:
+        _p = workflow_chat.persona_cua_phien(row)
+        if _p and _p[0] == "agent":
+            effort = _agent_reasoning(_read_md(_agents_dir(row.get("brain") or "brain") / f"{_p[1]}.md")[0])
+        elif naota_core.is_core_channel(row.get("channel")):
+            effort = _core_reasoning(mcfg)
+    except Exception:  # noqa: BLE001 - an unreadable assistant file keeps the card's level, as a turn does
+        pass
+    pinned = bool(_core_pin(mcfg)) if naota_core.is_core_channel(row.get("channel")) \
+        else bool(str(row.get("pinned_provider") or "").strip())
+    return {"provider": v["selected_provider"], "model": v["selected_model"], "name": v["selected_name"],
+            "pinned": pinned, "effort": effort,
+            "runs_on": {"provider": v["provider"], "model": v["model"], "name": v["name"]} if v.get("fallback") else None,
+            "note": v.get("content") or ""}
+
+
+async def _gate_bao(sid: str, brain: str, body: str, label: str, dedup: str) -> bool:
+    """Naota Gate: leave a finished task's answer in the bell, which rings the phone (as a long turn does)."""
+    item = await _bo_vao_hom_thu(f"{WEB_CHAT_PREFIX}{sid}", body, kind="answer", label=label, source="job",
+                                 brain=_brain_key(brain or "brain"), dedup=dedup, push_if_away=True)
+    return bool(item) and not item.get("dropped")
+
+
+chat_bridge.gan(lambda ws: _chat_socket(ws), lambda: _CHAT_RUNTIME, _gate_luu_luot,
+                models=_gate_models, model_cua=_gate_chat_model, bao=_gate_bao,
+                # `_pin_chat_model` sits with the /sessions routes further down: looked up when called.
+                ghim=lambda sid, prov, model: _pin_chat_model(sid, prov, model))
 
 
 # ============================================================
@@ -23120,8 +23279,8 @@ def sessions_new(brain: str = Form("brain"), channel: str = Form("web")):
     m = _KENH_CONG_SU_RE.match(ch)
     if not m:
         return JSONResponse({"error": localefmt.chu(
-            "channel phải là agent:<slug>, workflow:<slug> hoặc coding:<repo>",
-            "channel must be agent:<slug>, workflow:<slug> or coding:<repo>")}, status_code=400)
+            "channel phải là agent:<slug>, workflow:<slug> hoặc coding:<repository>",
+            "channel must be agent:<slug>, workflow:<slug> or coding:<repository>")}, status_code=400)
     loai, slug = m.group(1), m.group(2)
     if loai == "coding":
         # Phiên của trang Coding. KHÔNG đòi phải có thư mục nào: bản trước bắt phải chọn repo
@@ -23720,21 +23879,16 @@ async def agent_set_reasoning(slug: str, level: str = Form(...), brain: str = Fo
     return await asyncio.to_thread(_luu)
 
 
-@app.post("/sessions/{session_id}/model")
-async def sessions_set_model(session_id: str, provider: str = Form(""),
-                             model: str = Form(""), brain: str = Form("")):
-    """Ghim model riêng cho phiên (provider rỗng = gỡ ghim, quay về mặc định chung).
-
-    Có `brain` thì tạo hàng nếu phiên chưa tồn tại - dashboard mint id phía client nên
-    user có thể đổi model trước cả tin nhắn đầu tiên (cùng khuôn /sessions/{id}/project).
-    CHỦ Ý không đi qua _set_main_model: hàm đó ghi mốc nhật ký usage cho việc đổi bộ não
-    TOÀN CỤC, ghim theo phiên mà đi qua đó là rác hoá biểu đồ token.
+async def _pin_chat_model(session_id: str, provider: str, model: str, brain=None) -> dict:
+    """Pin one chat's model, what the chat's model bar does (empty provider = follow the main model again). Shared by
+    POST /sessions/{id}/model and Naota Gate (chat_bridge: the outside AI picks the model for the chat it writes in).
+    A failure comes back as {"ok": False, "status", "error"}.
 
     A Naota Core chat pins Naota Core as a whole (`model.core_provider/core_model`), see `_core_pin`."""
     prov = (provider or "").strip()
     if prov and not _provider_def(prov):
-        return JSONResponse({"error": localefmt.chu(f"provider không tồn tại: {prov}",
-                                                    f"provider does not exist: {prov}")}, status_code=400)
+        return {"ok": False, "status": 400, "error": localefmt.chu(f"provider không tồn tại: {prov}",
+                                                                   f"provider does not exist: {prov}")}
     if prov:
         _clear_pin_limit(prov)   # picking a model in the chat bar means "use this one": its old quota mark goes
     _row = get_store().get_session(session_id)
@@ -23743,11 +23897,25 @@ async def sessions_set_model(session_id: str, provider: str = Form(""),
         if (_row.get("pinned_provider") or "").strip():
             get_store().set_pinned_model(session_id, "", "")   # an older stamp of this chat must not show as a pin
         return {"ok": True, "pinned_provider": _cp["provider"] or None, "pinned_model": _cp["model"] or None, "scope": "core"}
-    ok = get_store().set_pinned_model(session_id, prov, model,
-                                      brain=_brain_key(brain) if (brain or "").strip() else None)
-    if not ok:
-        return JSONResponse({"error": localefmt.chu("phiên không tồn tại", "session does not exist")}, status_code=404)
+    if not get_store().set_pinned_model(session_id, prov, model, brain=brain):
+        return {"ok": False, "status": 404, "error": localefmt.chu("phiên không tồn tại", "session does not exist")}
     return {"ok": True, "pinned_provider": prov or None, "pinned_model": (model or "").strip() or None}
+
+
+@app.post("/sessions/{session_id}/model")
+async def sessions_set_model(session_id: str, provider: str = Form(""),
+                             model: str = Form(""), brain: str = Form("")):
+    """Ghim model riêng cho phiên (provider rỗng = gỡ ghim, quay về mặc định chung).
+
+    Có `brain` thì tạo hàng nếu phiên chưa tồn tại - dashboard mint id phía client nên
+    user có thể đổi model trước cả tin nhắn đầu tiên (cùng khuôn /sessions/{id}/project).
+    CHỦ Ý không đi qua _set_main_model: hàm đó ghi mốc nhật ký usage cho việc đổi bộ não
+    TOÀN CỤC, ghim theo phiên mà đi qua đó là rác hoá biểu đồ token."""
+    out = await _pin_chat_model(session_id, provider, model,
+                                brain=_brain_key(brain) if (brain or "").strip() else None)
+    if not out.get("ok"):
+        return JSONResponse({"error": out["error"]}, status_code=out["status"])
+    return out
 
 
 @app.post("/sessions/{session_id}/project")
@@ -23882,6 +24050,37 @@ def projects_del_link(project_id: str, link_id: str):
     if err:
         return err
     return {"ok": get_store().remove_project_link(project_id, link_id)}
+
+
+@app.post("/projects/{project_id}/repos")
+async def projects_set_repos(project_id: str, repos: str = Form("")):
+    """Set the project's GitHub repos (2026-11-15), the same comma separated "set" the repo picker sends for a chat.
+    Every chat of the project gets them on its next turn, each on its own branch (github_repos.seed_session). A repo
+    removed here stays on the chats that already have it. The brain is the project's, never the client's."""
+    p, err = await asyncio.to_thread(_proj_or_404, project_id)
+    if err:
+        return err
+    names = _repo_names_form(repos)
+    if len(names) > sessions.PROJECT_REPOS_MAX:
+        return JSONResponse({"ok": False, "error": localefmt.chu(
+            f"Mỗi project chỉ gắn được tối đa {sessions.PROJECT_REPOS_MAX} repository",
+            f"Each project can have at most {sessions.PROJECT_REPOS_MAX} repositories")}, status_code=400)
+    have = await asyncio.to_thread(_project_repo_names_of, project_id)
+    final, bad = await _repos_prepare(p.get("brain") or "brain", have, names)
+    if bad:
+        return bad
+    change, rows = await asyncio.to_thread(_project_repos_store, project_id, final)
+    return {"ok": True, "repos": rows, **change}
+
+
+def _project_repo_names_of(project_id: str) -> list:
+    return get_store().project_repo_names(project_id)
+
+
+def _project_repos_store(project_id: str, names: list):
+    """Write the project's repo list and read it back (sqlite: call it in a thread). Returns (change, rows)."""
+    store = get_store()
+    return store.set_project_repos(project_id, names), store.list_project_repos(project_id)
 
 
 # ── What Naota learnt about a project (2026-11-13) ────────────────────────────

@@ -40,8 +40,8 @@
   <!-- Biến --ic-* cho icon dùng trong content: của CSS. Phải đứng TRƯỚC style.css
        vì style.css tham chiếu các biến này. -->
   <link rel="stylesheet" href="/static/vendor/lucide-icons.css?v=1">
-  <link rel="stylesheet" href="/static/style.css?v=183">
-  <link rel="stylesheet" href="/static/console.css?v=168">
+  <link rel="stylesheet" href="/static/style.css?v=184">
+  <link rel="stylesheet" href="/static/console.css?v=169">
   <!-- Áp tông đã lưu TRƯỚC khi vẽ để không nháy tối rồi mới đổi sang sáng.
        Giá trị cũ "dim" (tông tối-nhạt, gỡ) quy về tối; theme.js sẽ ghi đè lại.
        Chưa chọn gì thì SÁNG (NAOTA 1.0.0). Chế độ "auto" (chỉ khi người dùng tự chọn) tính theo khung giờ "HH:MM-HH:MM", cùng quy tắc với
@@ -1058,8 +1058,8 @@
   "/static/agent-judge-ui.js?v=2"
  ],
  "teams": [
-  "/static/team-github.js?v=1",
-  "/static/teams.js?v=34"
+  "/static/team-github.js?v=2",
+  "/static/teams.js?v=35"
  ],
  "packs": [
   "/static/packs.js?v=8"
@@ -1198,7 +1198,7 @@
   <script src="/static/screen-awake.js?v=1"></script>
   <script src="/static/incoming-call.js?v=1"></script>
   <script src="/static/call-bar.js?v=1"></script>
-  <script src="/static/app.js?v=174"></script>
+  <script src="/static/app.js?v=175"></script>
   <!-- Sau app.js: dải việc nền đọc window.NaotaSessions (app.js dựng) để biết phiên + brain. -->
   <script src="/static/background-strip.js?v=4"></script>
   <!-- Thân bảng chọn model dùng chung: phải đứng TRƯỚC model-picker.js (thanh chat) và
@@ -1222,7 +1222,7 @@
   <script src="/static/brain-picker.js?v=8"></script>
   <!-- One Reorder box (drag or arrows) for projects, pinned chats and tags. Before sessions-ui.js. -->
   <script src="/static/reorder-dialog.js?v=3"></script>
-  <script src="/static/sessions-ui.js?v=34"></script>
+  <script src="/static/sessions-ui.js?v=35"></script>
   <link rel="stylesheet" href="/static/improvement-candidates.css?v=3">
   <script src="/static/improvement-experiments.js?v=1"></script>
   <script src="/static/improvement-candidates.js?v=3"></script>
@@ -1236,7 +1236,7 @@
   <script src="/static/tag-picker.js?v=1"></script>
   <script src="/static/workspace.js?v=45"></script>
   <!-- Hộp chọn thành viên kiểu Zalo: nạp TRƯỚC teams.js, teams.js gọi window.NaotaTeamPicker. -->
-  <script src="/static/team-picker.js?v=2"></script>
+  <script src="/static/team-picker.js?v=3"></script>
   <!-- Bộ phán xử nói / chờ / im của từng trợ lý: lịch sử quyết định và nút sửa. Nạp TRƯỚC teams.js
        (ngăn Nhóm gọi window.NaotaAgentJudge.hydrate); góp phần "judge" vào khung nhịp qua window.NaotaPulseParts. -->
   <!-- Nút mic nhập chữ của khung soạn Nhóm: nạp TRƯỚC teams.js. -->
