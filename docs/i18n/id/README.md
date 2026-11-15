@@ -113,7 +113,7 @@ Apa yang Anda dapatkan dari situ:
 | **Pekerjaan** | Menjawab, lalu menunggu | **Loop background, pengingat, dan antrean tugas yang dijalankan AI** yang melapor kembali ke Anda |
 | **Antarmuka** | Kotak chat | Dashboard + knowledge graph + **suara hands-free** + Telegram, Slack, WhatsApp, Zalo + CLI |
 | **Hasil kerja Anda** | Tertinggal di server vendor, dalam format vendor | **File biasa di mesin Anda**: riwayat, memori, skill, agent, dan workflow ikut pindah ke model baru mana pun |
-| **Deployment** | Cloud milik orang lain | **Self-hosted**: [Hostinger](https://www.hostinger.com) sekali klik, Docker, atau VPS apa pun |
+| **Deployment** | Cloud milik orang lain | **Self-hosted**: [Hostinger](https://www.hostinger.com?REFERRALCODE=VUONGTEX) sekali klik, Docker, atau VPS apa pun |
 
 > 💡 **Filosofinya: kemampuan ada di Naota, bukan di model.** Setiap otak mendapat kotak peralatan yang sama lewat satu hub koneksi bersama (MCP Hub). Beralih dari Claude ke Gemini tidak membuat Anda kehilangan apa pun kecuali akses shell, yang hanya dimiliki engine CLI.
 
@@ -237,7 +237,7 @@ flowchart LR
 <details open>
 <summary><b>Opsi 1: Hostinger Docker Manager (domain + HTTPS, sekali klik)</b></summary>
 
-> 🛒 **Belum punya VPS?** [Sewa VPS Hostinger di sini](https://www.hostinger.com). Docker Manager sudah tersedia, jadi Naota terpasang sekali klik. Setelah siap, kembali ke langkah di bawah.
+> 🛒 **Belum punya VPS?** [Sewa VPS Hostinger di sini](https://www.hostinger.com?REFERRALCODE=VUONGTEX). Docker Manager sudah tersedia, jadi Naota terpasang sekali klik. Setelah siap, kembali ke langkah di bawah.
 
 VPS Hostinger → **Docker Manager → Compose → URL** → tempel file Hostinger lalu tekan **Deploy**:
 
@@ -265,7 +265,7 @@ Detail dan pemecahan masalah: [DEPLOY.en.md](../../../DEPLOY.en.md).
 <details>
 <summary><b>Opsi 2: Docker di VPS apa pun (tanpa clone)</b></summary>
 
-> 🛒 **Butuh VPS?** [VPS Hostinger](https://www.hostinger.com) juga bisa menjalankan opsi ini.
+> 🛒 **Butuh VPS?** [VPS Hostinger](https://www.hostinger.com?REFERRALCODE=VUONGTEX) juga bisa menjalankan opsi ini.
 
 ```bash
 # Docker required (don't have it?  curl -fsSL https://get.docker.com | sh)

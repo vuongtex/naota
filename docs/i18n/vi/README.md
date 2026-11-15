@@ -113,7 +113,7 @@ Nhờ vậy:
 | Tự cải thiện | Không | **Vòng lặp tự chạy nền** + hàng đợi việc do AI tự vận hành |
 | Giao diện | Khung chat | Dashboard + đồ thị tri thức + **giọng nói rảnh tay** + Telegram |
 | Công việc của bạn | Nằm trên máy chủ nhà cung cấp, theo định dạng của họ | **File thường trên máy bạn**: lịch sử, trí nhớ, skill, agent, workflow mang sang được mọi model mới |
-| Triển khai | Khoá vào 1 nhà cung cấp | **Tự host**: [Hostinger](https://www.hostinger.com) 1-click / Docker / VPS bất kỳ |
+| Triển khai | Khoá vào 1 nhà cung cấp | **Tự host**: [Hostinger](https://www.hostinger.com?REFERRALCODE=VUONGTEX) 1-click / Docker / VPS bất kỳ |
 
 > 💡 **Triết lý:** Naota *biên dịch một lần* tri thức từ ghi chú thô → Wiki, rồi *duy trì* nó sống cùng mỗi nguồn mới. Tri thức **tích luỹ**, không tái phát hiện mỗi lần.
 
@@ -159,7 +159,7 @@ Nhờ vậy:
 
 ### Cách 1 - Hostinger Docker Manager (tên miền + HTTPS) ⚡
 
-> 🛒 **Chưa có VPS?** [Đăng ký VPS Hostinger tại đây](https://www.hostinger.com). VPS có sẵn Docker Manager nên cài Naota đúng một cú bấm. Thuê xong quay lại làm các bước dưới.
+> 🛒 **Chưa có VPS?** [Đăng ký VPS Hostinger tại đây](https://www.hostinger.com?REFERRALCODE=VUONGTEX). VPS có sẵn Docker Manager nên cài Naota đúng một cú bấm. Thuê xong quay lại làm các bước dưới.
 
 VPS Hostinger → **Docker Manager → Compose → URL** → dán **file Hostinger** rồi **Deploy**:
 ```
@@ -190,7 +190,7 @@ Deploy → đợi 1-3 phút Traefik cấp SSL → mở `https://<DOMAIN_NAME>`. 
 
 ### Cách 2 - Docker trên VPS bất kỳ (pull image, không cần clone)
 
-> 🛒 **Cần thuê VPS?** [VPS Hostinger](https://www.hostinger.com) chạy được cả cách này.
+> 🛒 **Cần thuê VPS?** [VPS Hostinger](https://www.hostinger.com?REFERRALCODE=VUONGTEX) chạy được cả cách này.
 
 ```bash
 # Cần Docker (chưa có?  curl -fsSL https://get.docker.com | sh)
