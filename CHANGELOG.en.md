@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.43.0] - 2026-11-15
+### Improved
+- In progress: porting new upstream releases.
+
 ## [1.42.0] - 2026-11-15
 ### Added
 - **ChatGPT and Claude can set the model and effort inside the command they send through Naota Gate.** Tell ChatGPT "have Naota do this on Opus at high effort": the model is pinned on that chat as if you picked it in the model bar (the chip shows it, change it back any time), and the effort counts for that one message only, nothing in your settings changes. A new `naota_chat_models` tool lets the outside AI see which models Naota has.

@@ -6,6 +6,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.43.0] - 2026-11-15
+### Cải thiện
+- Đang làm: lấy các bản mới của bản nguồn.
+
 ## [1.42.0] - 2026-11-15
 ### Thêm mới
 - **ChatGPT và Claude đổi được model và effort ngay trong câu lệnh gửi qua Naota Gate.** Bảo ChatGPT "bảo Naota làm việc này bằng Opus, effort cao" là xong: model được ghim cho hội thoại đó như khi bạn chọn trên thanh model (chip hiện đúng, đổi lại lúc nào cũng được), còn effort chỉ áp cho đúng tin đó, không đổi cài đặt chung. Công cụ mới `naota_chat_models` cho AI bên ngoài xem Naota có những model nào.
