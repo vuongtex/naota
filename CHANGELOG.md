@@ -6,6 +6,16 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.45.0] - 2026-11-16
+### Sửa lỗi
+- **Chat với Naota qua Zalo không còn mặc định trả lời tiếng Việt.** Ai nhắn tiếng gì thì Naota trả lời tiếng đó.
+- **Nhắc hẹn tạo qua Telegram nói đúng múi giờ bạn đặt trong Cài đặt**, không còn ghi "giờ Việt Nam" cho mọi người.
+- **Mức nghĩ (Effort) giờ có tác dụng với Gemini 4.** Chạy Gemini 4 Hydrogen, Argon hay Carbon bằng API key Gemini thì trước đây chọn mức nghĩ nào cũng như không, model luôn chạy theo mức mặc định của nó. Giờ mức bạn chọn được gửi đi, và mọi đời Gemini sau này cũng tự được nhận.
+- **Trang Mức dùng tính đúng tiền Gemini mới.** Gemini 4 trước đây bị tính theo giá Gemini cũ nên hiện rẻ hơn thực tế nhiều lần, còn Gemini 3.5 Flash-Lite lại bị tính theo giá bản Pro. Giờ mỗi model có giá riêng.
+### Cải thiện
+- **Luật lõi Naota gửi cho model nay viết bằng tiếng Anh, một bản cho mọi ngôn ngữ.** Gồm luật từng kênh chat, chế độ tiết kiệm token, vai Naota Core, đường dẫn agent và skill. Trước đây khoảng một phần tư lời dặn là tiếng Việt và nó kéo câu trả lời về tiếng Việt; nay Naota giữ đúng thứ tiếng bạn viết. Bạn vẫn chat tiếng Việt như cũ, Naota vẫn trả lời tiếng Việt.
+- **Lời dặn ngắn hơn về số token**, nên mỗi lượt chat nhẹ hơn một chút.
+
 ## [1.44.0] - 2026-11-15
 ### Sửa lỗi
 - **Loop tự đặt nhiệm vụ giờ làm trọn nhiệm vụ trong một vòng, không còn dừng sau bước đầu.** Trước đây lời dặn "thực hiện 1 bước cụ thể" khiến loop nhiều bước (ví dụ đăng bài lên đủ các kênh) chỉ làm bước đầu rồi báo xong. Nay mỗi vòng làm đủ các bước nhiệm vụ ghi, bước nào lỗi thì ghi chú rồi làm tiếp bước sau.
