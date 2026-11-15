@@ -4,6 +4,25 @@
 
 NAOTA release history. Newest first.
 
+## [1.39.0] - 2026-11-15
+### Added
+- **A "Keep me signed in on this device" box on the sign-in screen.** Ticked, as before, the device stays signed in for 30 days. Untick it on someone else's device: closing the browser signs you out, and Naota also signs you out after 4 hours unused or 24 hours at most.
+- The Security page marks devices signed in without being remembered.
+- **Tap a quote to scroll back to the original sentence.** Quote a sentence from a long answer to ask more, then later tap that quote in your message: the chat scrolls up to that exact sentence and highlights it for a few seconds.
+- When the original sits in older messages not loaded yet, Naota loads them to find it. Works in the main chat and on the Teams page.
+### Fixed
+- **The model picker opens right above the model chip.** A tall composer (a file attached, a few lines typed) used to push it far above the chip, and a long list lost its first rows off the top. The model list, Effort, plan usage and the "+" menu now open just above the row of chips and always stay on screen.
+- **The Team chat's "+" menu does the same**, along with the folder and GitHub panels it opens.
+- **"Push again" and the warning mark on the GitHub card no longer stay stuck.** A job that had stored a branch name already taken on GitHub (from before the previous fix) kept pushing to that same name, so every retry said "has commits this machine lacks". Now, while nothing has been pushed yet, Naota picks a free branch name again (or follows the branch checked out on this machine), pushes, opens the PR, and the warning clears.
+- **The second GitHub job in a chat no longer gets stuck at the push.** The PR title and branch name now come from the request itself, skipping the dashboard's bracketed context lines, so every job gets its own name. When the name is already used on this machine or on GitHub, Naota adds -2, -3 and pushes, instead of stopping with "has commits this machine lacks, Naota does not overwrite them".
+- **The Google Workspace connection does real work on Forms, Drive and Sheets.** The card only turned on a reduced tool set, so Naota could not edit Form questions, read responses, browse a Drive folder, rename or copy a file, add a tab or append rows to Sheets. All of that works now, with no new Google sign-in.
+- Connections made earlier move to the full tool set after the update.
+- **Editing the compose in hPanel and pressing Deploy works again.** Version 1.37.0 made the Hostinger file 33,167 characters, over hPanel's 32,768 limit. It is now under 30,000 characters, and the update guard runs exactly as before.
+- Opening Naota for the first time in a new browser no longer shows a wrong red "Your sign-in has expired" line.
+- **Read-only reminders can see My Tasks.** A reminder that checks progress used to say it could not check; it now reads the list, while adding, editing, deleting and ticking still need write access.
+### Security
+- **Sharing a file or calendar with someone needs Full access.** So do deleting a whole tab, task list or contact group, creating Gmail filters and publishing Apps Script. At Read only, Naota cannot copy a Drive file or append rows to Sheets.
+
 ## [1.38.0] - 2026-11-14
 ### Added
 - **Zalo messages can quote the message they answer.** When you ask Naota to reply to one specific message, the message goes out with the quoted original above it, like tapping "Reply" in Zalo. Only text messages can be quoted. The Zalo connection moves to naota-zalo 1.11.0 on its next start.
