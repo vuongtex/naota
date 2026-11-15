@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.39.0] - 2026-11-15
+### Improved
+- In progress: porting new upstream releases.
+
 ## [1.38.0] - 2026-11-14
 ### Added
 - **Zalo messages can quote the message they answer.** When you ask Naota to reply to one specific message, the message goes out with the quoted original above it, like tapping "Reply" in Zalo. Only text messages can be quoted. The Zalo connection moves to naota-zalo 1.11.0 on its next start.
