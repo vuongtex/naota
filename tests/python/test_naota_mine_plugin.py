@@ -48,7 +48,7 @@ tool = ctx._tools[0]
 h = tool["handler"]
 check("tool naota_mytask registered with list readable at every level",
       tool["name"] == "naota_mytask" and tool["min_mode"] == "readonly")
-# Issue 1421: a reminder running at `suggest` (read only) must be able to list the owner's tasks, never change them.
+# A reminder running at `suggest` (read only) must be able to list the owner's tasks, never change them.
 for op in ("add", "update", "delete", "skip", "check", "uncheck"):
     need = plugins_host._required_mode(tool, {"op": op})
     check(f"op={op} needs safe, blocked at suggest", need == "safe" and not plugins_host._min_mode_ok(need, "suggest"))
