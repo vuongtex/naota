@@ -170,7 +170,9 @@ def mo_ta_lenh(members: List[dict]) -> str:
         # Claude Code's Bash tool wraps the command ("bash -c source <snapshot> ... eval '<cmd>' ..."): show <cmd>.
         inner = _EVAL_INNER.search(cmd) if _CLAUDE_SHELL.search(cmd) else None
         if inner and inner.group(1).strip():
-            cmd = inner.group(1).strip()
+            # Inside eval '...' every ' was written as '"'"' (or '\''): turn it back so the line
+            # reads as typed instead of a run of quote marks.
+            cmd = inner.group(1).strip().replace("'\"'\"'", "'").replace("'\\''", "'")
         if not cmd:
             continue
         dau = cmd.split()[0]

@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.46.2] - 2026-11-17
+### Fixed
+- **Background commands show their quotes correctly.** On the Office page and the background work strip, a command with single quotes (like `<<'EOF'`) used to show as a hard-to-read run of quote marks. It now reads exactly as typed.
+
 ## [1.46.1] - 2026-11-17
 ### Fixed
 - **The Chatbot page works again.** 1.46.0 shipped a stray line in the Chatbot page code, so the Bot tab stayed blank and no bot could be created. The line is gone, and a new check keeps this kind of slip out of future releases.

@@ -237,6 +237,17 @@ wrapped = ("/bin/bash -c source /root/.claude/shell-snapshots/snapshot-bash-1-x.
 check("Claude Code's shell wrapper is unwrapped in the description",
       T.mo_ta_lenh([{"cmd": wrapped}]) == "ffmpeg -i in.mp4 -c:v libx264 out.mp4", T.mo_ta_lenh([{"cmd": wrapped}]))
 
+# ---- 5. Single quotes inside the wrapper read as typed, not as '"'"' runs ----
+quoted = ("/bin/bash -c source /root/.claude/shell-snapshots/snapshot-bash-1-x.sh 2>/dev/null || true && "
+          "eval 'cd /data && python3 - <<'\"'\"'EOF'\"'\"' p='\"'\"'server.py'\"'\"'' < /dev/null "
+          "&& pwd -P >| /tmp/claude-ab12-cwd")
+check("single quotes in a wrapped command are shown as typed",
+      T.mo_ta_lenh([{"cmd": quoted}]) == "cd /data && python3 - <<'EOF' p='server.py'", T.mo_ta_lenh([{"cmd": quoted}]))
+quoted2 = ("/bin/bash -c source /root/.claude/shell-snapshots/snapshot-bash-1-x.sh 2>/dev/null || true && "
+           "eval 'cat > a.sh <<'\\''EOF'\\''' < /dev/null && pwd -P >| /tmp/claude-ab12-cwd")
+check("the '\\'' quote form is shown as typed too",
+      T.mo_ta_lenh([{"cmd": quoted2}]) == "cat > a.sh <<'EOF'", T.mo_ta_lenh([{"cmd": quoted2}]))
+
 if fails:
     raise SystemExit(f"\nFAIL - test_claude_bg_adopt: {len(fails)}")
 print("\nOK - test_claude_bg_adopt")
