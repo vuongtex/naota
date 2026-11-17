@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.46.1] - 2026-11-17
+### Improved
+- **Switch between Vietnamese and English right in the sidebar.** The interface language picker is back in its old spot above the version line, no trip to Settings needed. The one in Settings stays, and the two always match.
+
 ## [1.46.0] - 2026-11-16
 ### Added
 - **Custom API connection.** Any service with a REST API and an API key but no MCP (POS, CRM, shipping, e-invoices...) now connects on the Connections page: paste the base URL and the key, and every engine can call that API.
