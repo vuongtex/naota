@@ -736,7 +736,6 @@
                      : '<option value="">' + esc(window.t("cb.khong_agent")) + '</option>';
   }
 
-=======
   // ===== Thành phần dùng chung của form và thẻ =====================================
   // Form đi theo bốn phần: Bot là ai, Bot trả lời ai, Bot dựa vào đâu để trả lời, Bot được làm gì.
   // Mỗi phần một tiêu đề có icon, mỗi lựa chọn ngắn là một nút bấm chọn một thay cho ô xổ xuống kèm

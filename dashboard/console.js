@@ -10709,9 +10709,9 @@
       }
     } catch (e) { /* dựng lại hỏng thì giữ khung cũ, phần quét nhãn tĩnh bên dưới vẫn phải chạy */ }
     try { window.NaotaI18n && NaotaI18n.applyDom(); } catch (e) { /* noop */ }
-    // Ô chọn ngôn ngữ ở trang Cài đặt (1.3.0: chỗ duy nhất) đi theo ngôn ngữ đang dùng, không cần F5.
+    // Both interface language pickers (sidebar and Settings) follow the language in use, no reload needed.
     try {
-      for (const id of ["vpUiLang"]) {
+      for (const id of ["railLang", "vpUiLang"]) {
         const sel = document.getElementById(id);
         if (sel && window.NaotaI18n && sel.value !== NaotaI18n.lang()) sel.value = NaotaI18n.lang();
       }
@@ -10885,7 +10885,25 @@
           }
         }
       } catch (e) { /* lỗi thì giữ ngôn ngữ đang hiện, không chặn phần còn lại */ }
-      graphEnabled =!(s.dashboard && s.dashboard.graph_enabled === false);
+      // Interface language picker at the foot of the sidebar. Same list as Settings (uiLangChoices); shown only with
+      // two or more languages, since a single option is decoration.
+      try {
+        const wrap = document.getElementById("railLangWrap");
+        const sel = document.getElementById("railLang");
+        const langs = uiLangChoices(s);
+        if (wrap && sel && langs.length > 1) {
+          const cur = (window.NaotaI18n && NaotaI18n.lang()) || "vi";
+          sel.innerHTML = langs.map(l =>
+            `<option value="${esc(l.ma)}"${l.ma === cur ? " selected" : ""}>${esc(l.ten)}</option>`).join("");
+          sel.onchange = async () => {
+            // Apply on this device first, then save: the interface language is per device and must not wait on the network.
+            try { await NaotaI18n.setLang(sel.value); } catch (e) { /* noop */ }
+            saveSetting("locale", { ui_lang: uiLangForServer(sel.value, s) });
+          };
+          wrap.hidden = false;
+        }
+      } catch (e) { /* missing picker must not break the sidebar */ }
+      graphEnabled = !(s.dashboard && s.dashboard.graph_enabled === false);
       recomputeGraph();
       // Deep link the tab was opened with (#open=, #cs=, #p=): see runDeepLink above.
       runDeepLink();
