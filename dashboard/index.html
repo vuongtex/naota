@@ -760,6 +760,13 @@
     <!-- Version and an Update button, always in sight at the foot of the rail (anh Vương 03/11/2026:
          like 1.2.1, the version shows at the bottom with a button to update). The button opens the
          Update page and turns yellow when the server reports a new version. -->
+    <!-- Interface language picker above the version line (back in 1.46.1 at anh Vuong's request; 1.3.0 had moved it
+         into Settings only). Options come from the server's language list, the same source as Settings. Changing it
+         applies on this device at once, then saves ui_lang. Hidden until there are at least two languages to pick. -->
+    <div class="rail-lang" id="railLangWrap" hidden>
+      <i data-ic="globe"></i>
+      <select id="railLang" class="rail-lang-sel" aria-label="Interface language" data-i18n-aria="settings.ui_lang.title"></select>
+    </div>
     <div class="rf-meta">
       <div class="rf-ver-row">
         <span class="rf-ver" id="railVersion">v0.0.0</span>

@@ -534,6 +534,19 @@ button.ord-mi:hover, button.ord-mi:focus-visible { background: var(--bg3); }
 }
 .rail-collapse-btn:hover { color: var(--text); background: var(--surface-2); }
 .rail-collapse-btn svg { width: 18px; height: 18px; }
+.rail-lang {                                           /* interface language picker, right above the version row */
+  flex: none; display: flex; align-items: center; gap: 6px; padding: 8px 10px 0;
+  border-top: 1px solid var(--glass-brd); color: var(--text3);
+}
+.rail-lang svg { width: 14px; height: 14px; flex: 0 0 auto; }
+.rail-lang-sel {
+  flex: 1; min-width: 0; background: transparent; color: var(--text2);
+  border: 1px solid var(--glass-brd); border-radius: 8px;
+  font-family: var(--font-ui); font-size: 12px; padding: 4px 6px; cursor: pointer;
+}
+.rail-lang-sel:hover { color: var(--text); background: var(--surface-2); }
+.rail-lang-sel option { background: var(--panel-solid); color: var(--text); }
+.rail-lang[hidden], .rail.collapsed .rail-lang { display: none; }         /* a select does not fit the icon-only rail */
 .rf-meta { flex: none; text-align: left; min-width: 0; padding: 8px 10px 4px; font-family: var(--font); line-height: 1.35; }
 .rf-ver-row { display: flex; align-items: center; gap: 8px; }
 .rf-meta .rf-ver { font-size: 13px; font-weight: 600; color: var(--text2); font-variant-numeric: tabular-nums; }

@@ -154,8 +154,8 @@ const cho = (ms = 30) => new Promise((r) => setTimeout(r, ms));
         helpers.uiLangChoices(S).some((l) => l.ma === "de") && helpers.uiLangChoices({ lang_list: S.lang_list }).length === 2);
   check("console.js: không còn chỗ nào ghi thẳng ui_lang chưa qua uiLangForServer",
         !/ui_lang: (sel|selUi)\.value/.test(con) && !/ui_lang: I\.lang\(\)/.test(con)
-        // 1.3.0: the sidebar language box is gone (language lives in Settings only), so two writes remain.
-        && (con.match(/ui_lang: uiLangForServer\(/g) || []).length === 2);
+        // 1.46.1: the sidebar language box is back next to Settings, so three writes (sidebar, Settings, auto-detect).
+        && (con.match(/ui_lang: uiLangForServer\(/g) || []).length === 3);
   check("console.js: ô chọn ngôn ngữ giao diện (trang Cài đặt) lấy danh sách từ uiLangChoices",
         (con.match(/uiLangChoices\(s\)/g) || []).length >= 2);
   const cfg = fs.readFileSync(path.join(ROOT, "server/config.py"), "utf8");
