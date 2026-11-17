@@ -7,6 +7,8 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
 ## [1.46.1] - 2026-11-17
+### Sửa lỗi
+- **Trang Chatbot mở lại được.** Bản 1.46.0 sót một dòng thừa trong mã trang Chatbot nên tab Bot trắng trơn, không tạo được bot. Đã bỏ dòng đó và thêm bài kiểm để lỗi này không lọt ra bản phát hành nữa.
 ### Cải thiện
 - **Đổi tiếng Việt hay tiếng Anh ngay ở thanh bên trái.** Ô chọn ngôn ngữ giao diện trở lại chỗ cũ, trên dòng số phiên bản, khỏi phải vào Cài đặt. Ô trong Cài đặt vẫn còn, hai ô luôn khớp nhau.
 

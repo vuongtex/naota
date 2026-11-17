@@ -5,6 +5,8 @@
 NAOTA release history. Newest first.
 
 ## [1.46.1] - 2026-11-17
+### Fixed
+- **The Chatbot page works again.** 1.46.0 shipped a stray line in the Chatbot page code, so the Bot tab stayed blank and no bot could be created. The line is gone, and a new check keeps this kind of slip out of future releases.
 ### Improved
 - **Switch between Vietnamese and English right in the sidebar.** The interface language picker is back in its old spot above the version line, no trip to Settings needed. The one in Settings stays, and the two always match.
 
