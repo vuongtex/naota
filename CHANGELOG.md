@@ -6,6 +6,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.46.2] - 2026-11-17
+### Sửa lỗi
+- **Lệnh chạy nền hiện đúng dấu nháy.** Ở trang Văn phòng và dải việc nền, lệnh có dấu nháy đơn (như `<<'EOF'`) từng hiện thành một dãy dấu ngoặc khó đọc. Giờ lệnh hiện y như lúc gõ.
+
 ## [1.46.1] - 2026-11-17
 ### Sửa lỗi
 - **Trang Chatbot mở lại được.** Bản 1.46.0 sót một dòng thừa trong mã trang Chatbot nên tab Bot trắng trơn, không tạo được bot. Đã bỏ dòng đó và thêm bài kiểm để lỗi này không lọt ra bản phát hành nữa.
