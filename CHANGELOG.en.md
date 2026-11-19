@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.47.0] - 2026-11-19
+### Improved
+- In progress: porting chat và điện thoại từ bản nguồn.
+
 ## [1.46.2] - 2026-11-17
 ### Fixed
 - **Background commands show their quotes correctly.** On the Office page and the background work strip, a command with single quotes (like `<<'EOF'`) used to show as a hard-to-read run of quote marks. It now reads exactly as typed.

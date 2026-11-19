@@ -6,6 +6,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.47.0] - 2026-11-19
+### Cải thiện
+- Đang làm: lấy chat và điện thoại từ bản nguồn.
+
 ## [1.46.2] - 2026-11-17
 ### Sửa lỗi
 - **Lệnh chạy nền hiện đúng dấu nháy.** Ở trang Văn phòng và dải việc nền, lệnh có dấu nháy đơn (như `<<'EOF'`) từng hiện thành một dãy dấu ngoặc khó đọc. Giờ lệnh hiện y như lúc gõ.
