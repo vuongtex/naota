@@ -6,6 +6,42 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.48.0] - 2026-11-19
+### Thêm mới
+- **Nút @ trong khung chat nhóm.** Khi trợ lý tag bạn mà tin đã trôi khỏi màn hình, góc dưới bên phải hiện nút tròn có chữ @ và số tin đang chờ. Bấm là cuộn tới đúng tin đó, bấm tiếp tới tin sau; đọc hết hay bạn đã trả lời thì nút tự ẩn.
+- **Tab Team hiện model của từng thành viên.** Dưới tên mỗi trợ lý có dòng engine và model nó đang chạy, ghi rõ "Model chính" khi trợ lý chưa chọn model riêng, để dễ kiểm soát cả nhóm.
+- **Trả lời được thẻ Xin duyệt trong chat team.** Thẻ còn hai nút lớn có icon: Duyệt và Trả lời. Trả lời mở một khung ngay trong thẻ với ba lựa chọn: Hỏi thêm (câu hỏi vào chat kèm trích dẫn, gọi đúng cộng sự đã xin, thẻ vẫn chờ bạn), Sửa (gửi yêu cầu sửa như trước) và Từ chối. Mỗi lựa chọn có vài câu gợi ý bấm nhanh. Bấm icon trích ở một dòng (Sẽ làm, Ảnh hưởng) để hỏi đúng dòng đó. Ctrl hoặc Cmd + Enter để gửi, Esc để đóng. Không còn hộp hỏi xám của trình duyệt.
+### Sửa lỗi
+- **Mở một team không còn kẹt lâu ở "Đang tải tin nhắn của nhóm".** Mỗi lần mở, máy chủ từng cộng lại chi phí model của cả team từ trước tới nay, team càng lâu càng chậm, trong khi màn hình không còn hiện con số đó. Giờ bỏ hẳn bước này khi mở team.
+- **Tab Thông tin của team không còn "Đang tải..." mãi.** Team mở ở tab Việc rồi bấm sang Thông tin thì giờ hiện ngay ảnh, tài liệu và link của team.
+- **Danh sách skill khi gõ / trong Team không còn chồng chữ.** Mỗi skill một dòng tên, một dòng mô tả, tên dài được cắt bằng dấu ba chấm, danh sách cuộn khi dài.
+- **Thanh "Đang xem tin của việc" gọn còn một dòng** trên điện thoại: tên việc, một icon mở nghiệm thu và mức dùng, một dấu X để xem lại mọi tin. Trước đây nó chiếm ba dòng và đẩy khung chat xuống.
+- **Bấm tên việc hay "Mở tab Việc" trong khung chi tiết của viên thuốc giờ mở đúng thứ đó,** trước đây khung chỉ đóng lại.
+- **Việc bạn đã trả lời không hiện lại trên viên thuốc** khi bạn đang xem tin của một việc khác. Việc chưa có tin nào thì khung chat nói đúng như vậy.
+- **Câu gợi ý trả lời không còn đè lên dòng "đang gõ"** khi dòng đó hiện ra phía trên ô nhập, ở cả trang Team lẫn chat chính.
+### Cải thiện
+- **Tab cài đặt của team gọn hẳn và tự lưu.** Bỏ mục Nâng cao (nghiệm thu, mức dùng, các con số giới hạn, quyền chi tiết của phó nhóm, bảng giới hạn, sổ lần trả lời): Naota tự lo theo mặc định, còn quyền của phó nhóm theo ba mức đã chọn. Tên và mô tả tự lưu khi rời ô, tạm dừng là một công tắc, không còn nút Lưu. Lưu trữ và Xoá team đứng riêng ở cuối, viền đỏ. Hai lựa chọn "Hành động ra ngoài của nhóm" là thẻ chọn giống ba mức tự quyết.
+- **Tin hết lượt không còn nút "Mở giới hạn của team"**, vì không còn con số nào để mở; nút Thử lại vẫn còn.
+- **Team không còn giới hạn số lần trả lời mỗi ngày.** Trước đây một team dùng hết 100 lần trả lời trong ngày thì mọi cộng sự dừng với "Team đã hết số lần trả lời cho phép", và "Mở giới hạn của team" chỉ nâng thêm từng nấc. Nay không còn trần theo ngày, kể cả với team đã lưu một con số trước đây, với nút "Cho thêm lượt" hay quyền tự quyết của phó nhóm. Giới hạn của từng việc giữ nguyên. Việc đang dừng vì hết lượt ngày thì bấm "Cho thêm lượt" hay "Thử lại" để chạy tiếp.
+- **Nút tới tin được tag giờ nằm ở góc trên.** Nút tròn có mũi tên hướng lên, dưới là @ kèm số tin đang chờ, giống Zalo, vì tin được tag thường nằm phía trên. Nút hiện hay ẩn không làm xô lệch tin đang đọc.
+- **Team chỉ tải các tin gần nhất, cuộn lên mới tải tiếp tin cũ.** Gần tới đầu khung chat là tự tải thêm một trang, giữ nguyên chỗ đang đọc, giống khung chat chính và trang Chatbot. Lúc đang tải hiện dòng "Đang tải tin cũ...".
+- **Việc của team chạy song song.** Mọi việc giao cho team bắt đầu ngay, kể cả việc giao chung cho cả team (trước đây việc chung phải chờ nhau vì cùng tính là của phó nhóm).
+- **Chỉ chờ khi cần kết quả của người khác:** các phần trong một việc có thứ tự trước sau vẫn chờ nhau, và việc anh viết kiểu "sau khi … xong", "lần lượt" vẫn chờ việc trước nó. Mỗi cộng sự làm lần lượt các phần được giao, đúng thứ tự giao.
+- **Bỏ giới hạn số việc mỗi team (trước là 3) và số team làm việc cùng lúc (trước là 4).** Một bước chờ cộng sự đang bận ở việc khác trong cùng team giờ cứ chờ tới lượt, không còn bị báo dừng "bận quá lâu".
+- **Tab Việc của team làm lại theo kiểu trang Nhiệm vụ.** Mỗi việc là một thẻ, ngay dưới là từng thành viên đang làm gì: xong, đang làm hay chờ lượt, kèm lời giao. Việc đang chờ bạn đứng trên cùng.
+- **Nút chữ đổi thành icon.** Sửa yêu cầu, nghiệm thu, huỷ, ưu tiên và cất vào Lưu trữ đều là icon; chỉ còn một nút có chữ cho việc đang chờ bạn. Ba tab Thông tin, Việc, Team có icon, tab Việc kèm số việc đang mở.
+- **Bấm một việc đã hoàn thành để xem tóm tắt:** xong lúc nào, kết quả, ai đã làm gì. Việc đã hoàn thành và Lưu trữ đều lật trang, 5 việc một trang.
+- **Lưu trữ không còn bị cắt ở 30 việc** và có ô tìm khi dài hơn một trang. Nút "Xoá tất cả" đứng riêng ở cuối.
+- **Nhắn thêm trong team là cộng sự đọc ngay.** Cộng sự đang soạn câu trả lời cho tin trước thì dừng lại và trả lời gộp cả hai tin, tin mới nhất được ưu tiên. Không còn cảnh phải chờ trả lời xong câu trên mới đọc câu dưới.
+- **Phó nhóm đang làm một bước việc cũng đọc tin mới ở bước kế tiếp,** nên đổi được cách làm ngay giữa chừng. Dòng trạng thái ghi rõ "Đã đọc giữa chừng".
+- **Thẻ xin duyệt đã trả lời thì thông báo tự tắt.** Bấm Duyệt, Sửa, Từ chối, hay Trả lời hỏi lại trên thẻ, thông báo của nó trong chuông chuyển thành đã đọc. Yêu cầu hết hạn hay bị huỷ cũng vậy.
+- **Phó nhóm nổi bật trong cài đặt team:** đứng ngay dưới chủ nhóm, có nền màu, viền nhấn và huy hiệu ngôi sao.
+- **Việc của team gọn thành một viên thuốc ngay trên khung nhập,** giống việc nền ở chat chính. Bấm vào mới mở chi tiết: lý do dừng, nút xử lý, ai đang làm.
+- **Việc chờ bạn tự ẩn khỏi viên thuốc khi bạn đã nhắn trong khung chat sau lúc nó dừng.** Việc vẫn còn ở tab Việc cho tới khi xử lý xong.
+- **Đổi tên vai trong team:** bạn, người tạo team, là Trưởng nhóm; cộng sự dẫn team là Phó nhóm (trước là "Điều phối"). Nhãn vai luôn nằm trên một dòng, và "Chia việc", "Làm" ở từng bước thành tag gọn.
+- **Tab Việc đứng đầu ngăn bên** (Việc, Thông tin, Team). Mở team đang có việc thì vào thẳng tab Việc, chưa có việc thì vào tab Thông tin.
+- **Thẻ Xin duyệt gọn hơn.** Hạn duyệt hiện "còn 5 giờ" ở đầu thẻ cạnh nhãn "Chờ bạn"; bằng chứng và lời gọi thu vào một dòng có số, đường dẫn dài chỉ hiện tên tệp (rê chuột xem đủ). Thẻ nghiệm thu và cơ hội dùng chung khung nền đặc, bo 16px.
+
 ## [1.47.0] - 2026-11-19
 ### Thêm mới
 - **Giao việc nền kèm điều kiện hoàn thành cố định.** Việc do script hay quy trình giao mỗi ngày giữ nguyên lời giao và được chấm đúng theo các điều kiện đó, không còn hôm đạt hôm kẹt.
