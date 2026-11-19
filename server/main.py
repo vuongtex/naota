@@ -203,6 +203,7 @@ import naota_core        # Naota Core: system assistant pinned in every brain
 import main_prompt_rendering  # pure shared prompt blocks; no live reads
 import main_attachment_rendering  # pure shared attachment templates; no live reads
 import memory_control    # list/edit/forget memories, learning switch, person profile
+import agent_learned     # the Learned tab of an assistant (Cộng sự page)
 import memory_chat       # the same, plus agent lessons, from chat (tool naota_memory)
 import project_context   # 2026-11-13: what Naota learnt about a project, and tool naota_project
 import memory_receipt    # the "Đã nhớ · Hoàn tác" line under an answer, and no empty "đã quên"
@@ -7269,6 +7270,13 @@ async def connect_substack_resolve_uid(q: str = Query("")):
 @app.post("/connect/update")
 async def connect_update(request: Request):
     data = await request.json()
+    # "Change key" form of a Google connection: borrow the key of another connection of the same family, copied
+    # here on the server (reuse_client_fields checks the family). The browser only names the donor.
+    reuse_from = (data.get("reuse_from") or "").strip()
+    if reuse_from and data.get("id"):
+        own = mcp_store.get_connection(data.get("id")) or {}
+        data = dict(data, fields=mcp_store.reuse_client_fields(
+            mcp_catalog.get(own.get("connector_id")), data.get("fields") or {}, reuse_from))
     ok = mcp_store.update_connection(data.get("id"), data)
     mcp_hub.invalidate_cache()
     return {"ok": ok}
@@ -17467,6 +17475,9 @@ async def _start_scheduler():
                              session_probe=_manual_session_probe, session_undo=_manual_session_undo,
                              # hear what is said in a video a customer sends (same Groq key as voice messages).
                              transcribe=_stt_nghe,
+                             # 2026-11-18: a photo a staff member sends from the Zalo OA app / Page inbox is read by a
+                             # connected brain, so the bot can answer about the quote in it.
+                             describe=lambda paths, caption, chat_id="": _bot_xem_ho(paths, caption, "", "", chat_id),
                              # A dedicated bot never polls the token of a running admin bot.
                              admin_tokens=_admin_bot_tokens,
                              # Lượt bot hỏng: khách không nhận gì, chủ nghe ở chuông thông báo.
@@ -30226,13 +30237,16 @@ def _chan_ngoai_le(raw, cu, xac_nhan):
 
 
 @app.get("/chatbots/chats")
-async def chatbots_chats(account_ids: str = "", bot_id: str = "", q: str = "", limit: int = 60):
+async def chatbots_chats(account_ids: str = "", bot_id: str = "", q: str = "", limit: int = 60, chon: str = ""):
     """Các cuộc chat ĐÃ BIẾT (người và nhóm) cho ô "chọn người và nhóm" của form bot.
 
     Nguồn là Hộp thư (`conversations`) nên có tên hiển thị thật thay vì id. `account_ids` (cách nhau
     bằng dấu phẩy) là các tài khoản kênh ĐANG TÍCH trong form, kể cả khi bot chưa tồn tại; `bot_id`
     thêm hàng chờ duyệt và cờ "đã chọn". Phải đăng ký TRƯỚC mọi route có `{bot_id}` để "chats" không
     bị coi là id bot.
+
+    `chon` (id cách nhau bằng dấu phẩy) là các cuộc chat form ĐANG TÍCH: `ten` trả tên của chúng (cùng mọi id bot đã
+    lưu) dù ô tìm hay giới hạn trang để chúng ra ngoài danh sách, để form không vẽ chúng thành id trần.
     """
     bot = chatbot_store.get_bot(bot_id) if bot_id else None
     ids = [x.strip() for x in str(account_ids or "").split(",") if x.strip()]
@@ -30242,7 +30256,10 @@ async def chatbots_chats(account_ids: str = "", bot_id: str = "", q: str = "", l
     else:
         tk = list((bot or {}).get("accounts") or [])
     cho = chatbot_runtime.nhom_cho(bot_id) if bot else []
-    return {"ok": True, "chats": chatbot_cuoc_chat.danh_sach(tk, q, limit, cho, bot)}
+    can_ten = [x.strip() for x in str(chon or "").split(",") if x.strip()]
+    can_ten += [str(x) for x in list((bot or {}).get("groups") or []) + list((bot or {}).get("people") or [])]
+    return {"ok": True, "chats": chatbot_cuoc_chat.danh_sach(tk, q, limit, cho, bot),
+            "ten": chatbot_cuoc_chat.ten_da_chon(tk, can_ten)}
 
 
 @app.get("/chatbots/zalo-labels")
@@ -34285,6 +34302,13 @@ async def _learn_tick():
 agent_review.register_routes(app, agent_review.LearnRouteDeps(
     brain_key=lambda b: _brain_key(b), agent_exists=lambda root, slug: _agent_md_path(root, slug) is not None,
     agent_key=lambda root, slug: _agent_jobs_key(root, slug), store=_pulse_store))
+# 2026-11-16: the Learned tab of an assistant (Cộng sự page): what it learnt, from the same store the prompt reads.
+agent_learned.register_routes(app, agent_learned.Deps(
+    brain_key=lambda b: _brain_key(b), agent_exists=lambda root, slug: _agent_md_path(root, slug) is not None,
+    agent_key=lambda root, slug, reg: _agent_jobs_key(root, slug, register=reg),
+    store=lambda create: _pulse_store() or (_resonance_store() if create else None),
+    legacy_file=lambda root, slug: _brain_memory_dir(root) / "agents" / slug / "MEMORY.md",
+    refuse=lambda text: project_context.blocked_reason(text)))
 
 @app.get("/model/fast-state")
 async def model_fast_state():

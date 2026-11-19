@@ -4,6 +4,30 @@
 
 NAOTA release history. Newest first.
 
+## [1.50.0] - 2026-11-19
+### Added
+- **Bots read the files staff send customers on Zalo OA and Fanpage.** A PDF, Word or Excel quote, or a photo, sent from the OA app or the Page inbox now shows in the Inbox (labelled Staff) and the bot knows what it says when the customer asks about it. Photos are read by a connected brain that can see.
+- **Bots read the PDF, Word and Excel files customers send**, instead of only knowing "there is a file".
+- **The Partners page has a Learned tab for each assistant.** The top bar button now reads "Documents & Learned". The new tab lists what the assistant worked out while working, exactly the lessons it uses, with where each applies (private chat, a team, everywhere). Edit, delete or add a lesson right there, like a project's Learned tab.
+- A lesson you add is used everywhere. A lesson you edit becomes yours and is never dropped when the list is full. Delete one and the assistant stops using it and does not learn those exact words again.
+- **Naota Store has an All tab.** It comes first, puts every assistant, skill, workflow, tool and connector in one grid, and the Store opens on it. Its search box covers the whole Store, and each card says which kind it is.
+- **A search that finds nothing in one tab offers to search All.** The button shows how many items match in the other tabs and keeps the words you typed.
+### Fixed
+- **An assistant's Jobs tab records each run it started on its own.** The Auto block could say "Worked on its own 1 times today" while the Jobs tab stayed empty, because the tab only read goals, team jobs, chat jobs and workflow runs. Each look around or self-review is now a card under the Auto source, with what it ended in: the work it did, a message to you, a job it proposed, or nothing that needed doing. Today's number and the cards always agree because both read the same ledger.
+- **Waiting icons on the Chatbot page spin again.** The "AI is writing..." button, the draft's Send button, the mic while transcribing and the customer profile card used to stand still.
+- **Playwright no longer says "browser not installed" right after Naota downloaded one.** Naota now hands Playwright the exact browser file it downloaded, so the two can run on different versions. A browser you chose yourself is left alone.
+- **The repository picker in a project and a team is no longer cut off.** The "Selected" section used to show as a thin strip, and the list under it could not scroll to the last repositories. Every row now shows in full and the list scrolls, in the documents of a project or an assistant, the create-team box and the team chat.
+- **A Store pack can be installed in several brains.** A pack installed in one brain used to show "Installed" in another brain with only Turn off and Uninstall, so its assistants and skills could never reach that brain. The card now offers "Install in this brain". Updating the pack brings every brain that has it to the new version, keeping what you edited. Uninstalling removes it from every brain, and the confirmation names each one.
+- **The Chatbot group picker no longer shows bare ids.** A ticked group hidden by the search box, or older than the 80 latest chats, used to show as a long number. Every group now keeps its real name from the inbox, and a group with no known name reads "Group …" with the end of its id.
+### Improved
+- **One step to turn it on:** for Zalo OA, enable the `oa_send_text`, `oa_send_image` and `oa_send_file` events in the app's Webhook section. For a Fanpage, click **Repair** on the checklist so Naota turns on `message_echoes`.
+- In the documents drawer of the Partners page the tabs sit above the "Of the assistant / Only this chat" switch, since that switch only belongs to the Documents tab.
+- **Reuse a Google key for every Google service.** The "Reuse this key" row now sits at the top of the form, shows on Google Ads, Analytics, Merchant Center and Search Console too, and borrows a key (service accounts included) saved for any other Google service. Google shows a client secret only once, when it is made, so the key kept in Naota is often the only copy left.
+- **Change a key right on the connection.** "Reconnect (sign in / change key)" on Gmail, Calendar, Analytics, Ads and the rest now opens a change-key form: pick a key saved for another service, or paste a new one, then sign in again.
+- **A warning before a key is lost.** Deleting the last connection that holds a Google key says so in the confirmation, with how to keep it.
+- **"AI reply" and "Rewrite" in the inbox now show what the AI is doing.** Where the draft will appear, an "AI is writing" box shows a pulsing icon, the current step (reading the chat, checking documents, looking at the customer's photo, writing the reply), the seconds so far and three moving lines. Past 25 seconds it calmly says the AI is still writing, so nobody thinks it broke.
+- **Drafts come a little faster:** the document lookup, the plugin context and the look at the customer's photo now run together instead of one after another.
+
 ## [1.49.0] - 2026-11-19
 ### Fixed
 - **The estimated saving on the Usage page now matches what is really sent.** Optimized used to count only the short rules and forgot the base that still goes with them (the chat channel rules included), so the page claimed 84% for every brain. Now an API-key brain sees the real figure, and a subscription plan (Claude Code, ChatGPT...) sees plainly that the full rules stay and only memory and skills load the relevant parts.
