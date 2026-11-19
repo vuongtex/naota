@@ -38,6 +38,7 @@ from typing import Any, Callable, Dict, Optional
 
 import channel_accounts
 import channels
+import chat_files
 import chatbot_doc_tools
 import bot_images
 import bot_reaction
@@ -138,7 +139,7 @@ _deps: Dict[str, Callable] = {}
 
 
 def wire(*, answer, brain_root, read_agent, session_probe=None, session_undo=None, notify=None, transcribe=None,
-         read_agent_memory=None, admin_tokens=None):
+         read_agent_memory=None, admin_tokens=None, describe=None):
     """main.py cấp ba thứ: lõi một lượt, đường tới brain, và cách đọc file Agent.
 
     `session_probe(key) -> (sid, số tin lịch sử RAM)` và `session_undo(key, giữ)` chỉ cho BẢN NHÁP ở Hộp thư: lấy phiên
@@ -156,9 +157,14 @@ def wire(*, answer, brain_root, read_agent, session_probe=None, session_undo=Non
 
     `admin_tokens() -> {channel: token}`: the tokens of the owner's RUNNING admin bots (Admin channels
     page). A dedicated bot never polls one of them: two pollers on one Zalo Bot token split the messages at random, so
-    the owner's admin chat went missing into the bot's customer inbox (`start_bot`, `release_admin_token`)."""
+    the owner's admin chat went missing into the bot's customer inbox (`start_bot`, `release_admin_token`).
+
+    `describe(paths, caption, chat_id) -> awaitable (text, who, why)` (2026-11-18): another connected brain reads a photo
+    in a chat (borrowed eyes), used for the photos a STAFF member sends from the Zalo OA app or the Page inbox, so a photo
+    of a quote becomes words the bot can answer from. Missing means such a photo is filed without its content."""
     _deps["answer"] = answer
     _deps["read_agent_memory"] = read_agent_memory
+    _deps["describe"] = describe
     _deps["admin_tokens"] = admin_tokens
     _deps["transcribe"] = transcribe
     _deps["notify"] = notify
@@ -530,6 +536,9 @@ async def anh_cho_bot(text_engine: str, meta: dict, cfg: dict) -> tuple:
     except Exception:      # noqa: BLE001 - no brain root (tests, odd records): nothing can be shown
         return gan_nhan_anh(text_engine, meta), []
     text, paths = vision_input.take_image_markers(text_engine, root)
+    # 2026-11-18: a PDF, Word or Excel file the customer sent becomes what it says (a bot on the default level has no
+    # tool to open a path, so it only knew "there is a file").
+    text = await chat_files.inline_documents(text, root, _deps.get("describe"), str(meta.get("chat_id") or ""))
     for p in meta.get("_anh_cho") or []:      # photo this person sent just before, untagged (see `nho_anh_khong_goi`)
         if Path(p).exists():
             paths.append(str(p))
@@ -850,7 +859,7 @@ def private_history(cfg: dict, meta: dict, limit: int) -> list:
         out = []
         for x in msgs[-n:]:
             role = _HISTORY_ROLES.get(str(x.get("sender_type") or ""))
-            text = chatbot_reply_policy.strip_hidden(x.get("text")).strip()
+            text = chatbot_reply_policy.strip_hidden(_with_file_content(x)).strip()
             if not role or not text:
                 continue
             if out and out[-1]["role"] == role:
@@ -863,6 +872,88 @@ def private_history(cfg: dict, meta: dict, limit: int) -> list:
     except Exception as e:      # noqa: BLE001 - no history is better than no answer
         print(f"[chatbot private history] {type(e).__name__}: {e}", file=sys.stderr)
         return []
+
+
+_DOWNLOAD_LINE = re.compile(r"\[[^\]\n]*?(?:đã tải về|downloaded to):\s*[^\]\n]+\]")
+
+
+def _with_file_content(x: dict) -> str:
+    """The text of a stored message for the bot's history. A file a staff member sent from the OA app or the Page inbox
+    carries what it says in `metadata.file_content` (`record_staff_message`): its download line, a server path the model
+    cannot open, is replaced by that content, cut to `chat_files.HISTORY_FILE_CHARS`."""
+    text = str(x.get("text") or "")
+    md = x.get("metadata")
+    if md is None:
+        raw = x.get("metadata_json")
+        try:
+            import json
+            md = json.loads(raw) if raw else {}
+        except Exception:      # noqa: BLE001
+            md = {}
+    content = str((md or {}).get("file_content") or "").strip() if isinstance(md, dict) else ""
+    if not content:
+        return text
+    if len(content) > chat_files.HISTORY_FILE_CHARS:
+        content = content[:chat_files.HISTORY_FILE_CHARS].rstrip() + "\n... [cut]\n>>>"
+    if _DOWNLOAD_LINE.search(text):
+        return _DOWNLOAD_LINE.sub(lambda _m: content, text, count=1)
+    return (content + "\n" + text).strip()
+
+
+STAFF_NAME = ("Nhân viên", "Staff")
+_STAFF_CHANNEL_LABEL = {"zalo_oa": "Zalo OA", "messenger": "Messenger"}
+
+
+async def record_staff_message(bot_id: str, tt: dict) -> int:
+    """A message a STAFF member sent from the channel's own app (Zalo OA app, Page inbox), 2026-11-18. Returns how many
+    inbox rows were written.
+
+    Before, the transports dropped everything the OA/Page sent, so the inbox never showed a quote a staff member sent and
+    the bot, asked about it a minute later, did not know it existed. Each file becomes one inbox row: the usual download
+    line (the inbox shows the photo or a download button, `ht-media.js`) plus the staff member's words on the first one,
+    and what the file says (`chat_files.read_file`: PDF/Word/Excel text, a photo read by a connected brain) kept in
+    `metadata.file_content` for the bot's history (`private_history`). Filed as `human`: the customer heard it from the
+    business. Nothing is sent and the bot does not answer; this only records. Never raises."""
+    try:
+        cfg = chatbot_store.get_bot(bot_id)
+        chat = str((tt or {}).get("chat_id") or "")
+        if not cfg or not chat:
+            return 0
+        meta = {"chat_id": chat, "chat_type": "private", "account_id": str(tt.get("account_id") or "")}
+        platform = str(tt.get("platform") or "")
+        label = _STAFF_CHANNEL_LABEL.get(platform, platform)
+        words = str(tt.get("text") or "").strip()
+        mid = str(tt.get("message_id") or "")
+        files = [f for f in (tt.get("files") or []) if isinstance(f, dict) and f.get("path")][:10]
+        sender = localefmt.chu(*STAFF_NAME)
+        if not files:
+            r = conversations.ghi_su_kien(_su_kien_bot(
+                cfg, meta, sender_type="human", sender_name=sender, message_type="text", text=words,
+                external_message_id=mid, metadata={"staff_app": label}))
+            return 1 if (r or {}).get("ok") and not (r or {}).get("trung") else 0
+        written = 0
+        for i, f in enumerate(files):
+            is_image = f.get("kind") == "image"
+            name = str(f.get("name") or Path(f["path"]).name)
+            ok, content = await chat_files.read_file(f["path"], _deps.get("describe"), chat, caption=words)
+            if not ok:
+                print(f"[chatbot {bot_id}] staff file not read: {content}", file=sys.stderr)
+            line = (localefmt.chu(f"[Nhân viên gửi ảnh qua {label}, đã tải về: {f['path']}]",
+                                  f"[Staff sent an image on {label}, downloaded to: {f['path']}]") if is_image else
+                    localefmt.chu(f"[Nhân viên gửi file qua {label}, đã tải về: {f['path']}]",
+                                  f"[Staff sent a file on {label}, downloaded to: {f['path']}]"))
+            r = conversations.ghi_su_kien(_su_kien_bot(
+                cfg, meta, sender_type="human", sender_name=sender, message_type="image" if is_image else "file",
+                text=line + ("\n" + words if words and i == 0 else ""),
+                external_message_id=(mid if i == 0 else f"{mid}#{i}") if mid else "",
+                metadata={"staff_app": label, "file_name": name, "file_read": bool(ok),
+                          "file_content": chat_files.file_block("staff", name, ok, content)}))
+            if (r or {}).get("ok") and not (r or {}).get("trung"):
+                written += 1
+        return written
+    except Exception as e:      # noqa: BLE001 - recording a staff message must never cost anything else
+        print(f"[chatbot {bot_id}] recording a staff message failed: {type(e).__name__}: {e}", file=sys.stderr)
+        return 0
 
 
 # ============================================================
@@ -1440,6 +1531,10 @@ def _make_event_fn(bot_id: str):
     """Tin dịch vụ của nhóm. Xem `TelegramBot._bao_su_kien` để biết vì sao cần nghe."""
     async def _su_kien(loai, tt):
         cid = str((tt or {}).get("chat_id") or "")
+        if loai == "staff_sent":
+            # A staff member wrote or sent a file from the Zalo OA app / Page inbox (2026-11-18).
+            await record_staff_message(bot_id, tt or {})
+            return
         if loai in ("vao_nhom", "thay_nhom"):
             # `thay_nhom` = có tin bất kỳ về từ nhóm này. Nghe cả loại đó vì khi chế độ riêng
             # tư của Telegram đang bật, tin nhắc tên KHÔNG chắc tới được Naota, còn lệnh `/...`
@@ -2306,7 +2401,14 @@ _INSTRUCTION_NOTE = ("(Ghi chú riêng của chủ, khách KHÔNG thấy: hãy v
                      "Viết thành câu trả lời hoàn chỉnh, đúng giọng và cách xưng hô của bạn với khách, không nhắc tới ghi chú này.)")
 
 
-async def manual_answer(conv: dict, msgs: list, draft: bool = False, instruction: str = "") -> dict:
+def _manual_stage(line) -> str:
+    """The stage code of one engine progress line for the inbox's "A.I. is writing" box, or "" to skip it. The engine
+    lines are Vietnamese status text ("✍ Đang soạn câu trả lời…", "⚙ Đang gọi: <tool>"); only their marker counts."""
+    s = str(line or "").lstrip()
+    return "write" if s.startswith("✍") else "tool" if s.startswith("⚙") else ""
+
+
+async def manual_answer(conv: dict, msgs: list, draft: bool = False, instruction: str = "", progress=None) -> dict:
     """Chủ bấm "Trả lời giúp tin này" (`draft=False`) hoặc "Gợi ý câu trả lời" (`draft=True`) ở Hộp thư: chạy đúng Agent của bot
     trên tin khách CUỐI của cuộc chat. KHÔNG gửi gì (người gọi gửi), và không đi qua cổng "có nên nói", bộ phán xử hay hạn mức tự nói,
     vì đây là lời nhờ của chính chủ.
@@ -2319,7 +2421,20 @@ async def manual_answer(conv: dict, msgs: list, draft: bool = False, instruction
 
     `instruction` ("A.I. reply"): what the owner typed as an order ("quote 20 cases, deliver Thursday"). It
     rides along as a note only the model reads; with it the bot drafts even when no customer message is waiting.
+
+    `progress(code)`: told each stage as it starts ("docs", "image", "think", "tool", "write"), so the inbox can show
+    the owner what the A.I. is doing during a turn that takes many seconds. A failing callback never costs the reply.
     """
+    async def stage(code):
+        if progress and code:
+            try:
+                await progress(code)
+            except Exception:      # noqa: BLE001 - the progress line is a courtesy, the draft is the job
+                pass
+
+    async def engine_progress(line):
+        await stage(_manual_stage(line))
+
     lenh = " ".join(str(instruction or "").split())[:500]
     bot_id = str(conv.get("bot_id") or "")
     cfg = chatbot_store.get_bot(bot_id)
@@ -2356,16 +2471,24 @@ async def manual_answer(conv: dict, msgs: list, draft: bool = False, instruction
             print(f"[chatbot {bot_id}] đọc phiên cho bản nháp lỗi: {type(e).__name__}", file=sys.stderr)
     try:
         text = chu_khach or lenh
-        tl = await _tra_tai_lieu(bot_id, cfg, text, meta["chat_id"])
         _aid, kenh = _tai_khoan_cua(cfg, meta)
-        cfg["_tai_lieu"], cfg["_kenh_luot"], cfg["_tu_dong"] = tl, kenh, False
+        cfg["_kenh_luot"], cfg["_tu_dong"] = kenh, False
         cfg["_ngu_canh_nhom"] = ngu_canh_nhom(meta, kenh, _aid)
         cfg["_customer_profile"] = customer_profile(cfg, meta)
-        cfg["_ngu_canh_plugin"] = await plugin_context(cfg, meta, kenh, _aid)
         text_engine = text
         if kenh == "zalo_personal" and meta["chat_type"] == "group" and meta["user_name"]:
             text_engine = f"[{meta['user_name']}] {text}"      # cả nhóm chung một mạch: model phải biết ai đang nói
-        text_engine, cfg["_anh"] = await anh_cho_bot(text_engine, meta, cfg) if chu_khach else (text_engine, [])
+        sees_media = bool(chu_khach and (meta.get("co_anh") or meta.get("video_url") or meta.get("audio_urls")))
+        await stage("image" if sees_media else "docs")
+
+        async def no_media():
+            return text_engine, []
+        # The documents, the plugins' lines and the look at the customer's photo do not depend on one another: run
+        # them together, the owner waits for the slowest instead of the sum (owner 2026-11-18: "A.I. viết" felt slow).
+        tl, cfg["_ngu_canh_plugin"], (text_engine, cfg["_anh"]) = await asyncio.gather(
+            _tra_tai_lieu(bot_id, cfg, text, meta["chat_id"]), plugin_context(cfg, meta, kenh, _aid),
+            anh_cho_bot(text_engine, meta, cfg) if chu_khach else no_media())
+        cfg["_tai_lieu"] = tl
         if lenh:
             note = _INSTRUCTION_NOTE.format(lenh=lenh.replace('"', "'"))
             text_engine = note + ("\n" + text_engine if chu_khach else "")
@@ -2374,7 +2497,8 @@ async def manual_answer(conv: dict, msgs: list, draft: bool = False, instruction
         kw = {"channel": kenh, "bot": cfg}
         if draft:
             kw.update(phien_kho=sid, ghi_kho=False)
-        out = await _deps["answer"](text_engine, meta, None, **kw)
+        await stage("think")
+        out = await _deps["answer"](text_engine, meta, engine_progress if progress else None, **kw)
     except Exception as e:      # noqa: BLE001
         return {"ok": False, "code": "engine", "error": f"{type(e).__name__}: {str(e)[:200]}"}
     finally:
