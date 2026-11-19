@@ -1445,7 +1445,8 @@ function handleMessage(data) {
         else window.NaotaInbox.refresh();
       }
     } catch (e) {}
-    try { if (window.NaotaStar) window.NaotaStar.moment("work"); } catch (e) {}   // việc nền vừa trả kết quả
+    // `cleared`: a notice turned read (approval answered), not new work.
+    if (!data.cleared) { try { if (window.NaotaStar) window.NaotaStar.moment("work"); } catch (e) {} }
     return;
   }
   if (data.type === "status") {

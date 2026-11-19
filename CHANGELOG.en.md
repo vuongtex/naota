@@ -4,6 +4,42 @@
 
 NAOTA release history. Newest first.
 
+## [1.48.0] - 2026-11-19
+### Added
+- **An @ button in team chats.** When an assistant tags you and the message has scrolled out of view, a round @ button with the number of waiting messages shows at the bottom right. Tap it to jump to that message, tap again for the next; it hides once you have read them or replied.
+- **The Team tab shows each member's model.** Under each assistant's name is the engine and model it runs on, marked "Main model" when it has no model of its own, so the whole team is easy to keep an eye on.
+- **Answer an approval card in the team chat.** The card has two big buttons with icons: Approve and Reply. Reply opens a box inside the card with three choices: Ask (a question in the chat that quotes the card and calls the member who asked, the card keeps waiting), Change (asks for changes as before) and Reject. Each choice offers a few quick answers. The quote button on a line (Will do, Impact) asks about that exact line. Ctrl or Cmd + Enter sends, Esc closes. No more grey browser prompt.
+### Fixed
+- **Opening a team no longer hangs on "Loading the team's messages".** Each open used to add up every model call the team ever made, slower the older the team, although the page no longer shows those figures. Opening a team skips that now.
+- **The team Info tab no longer stays on "Loading...".** A team that opened on Jobs now shows its images, files and links as soon as you switch to Info.
+- **The / skill list in a team chat no longer overlaps.** Each skill shows one line of name and one of description, a long name ends in "...", and the list scrolls when long.
+- **The "Showing one job's messages" bar is one line** on a phone: the job's name, an icon for its acceptance and usage, an X to see every message again. It used to take three lines and push the chat down.
+- **Pressing a job's title or "Open the Jobs tab" in the job pill's details now opens it;** the details used to just close.
+- **A job you already answered no longer comes back on the pill** while you look at another job's messages. A job with no message yet says so in the chat.
+- **The reply suggestion no longer lands on top of the "is typing" line** when that line shows up above the input, on the Teams page and in the main chat.
+### Improved
+- **The team's settings tab is much shorter and saves itself.** Advanced is gone (acceptance, usage, limit numbers, the deputy's detailed rights, the limits table, the reply log): Naota keeps its automatic defaults, and the deputy's rights follow the three levels. Name and description save when you leave the field, pause is one switch, there is no Save button. Archive and Delete stand apart at the end in a red-edged box. The two "outside actions" choices are choice cards like the three levels.
+- **A reply stopped by a limit no longer offers "Open the team limits"**, since there are no numbers to open; Try again stays.
+- **A team no longer has a daily reply cap.** A team that used its 100 replies of the day used to stop every member with "The team has used up its replies", and "Open the team limits" only raised it a step at a time. There is no daily cap now, also for a team that saved a number before, through "Give more turns", or in the deputy's rights. The caps of one job stay. A job stopped by the daily cap goes on with "Give more turns" or "Try again".
+- **The button to tagged messages now sits at the top.** A round button with an up arrow and "@" plus the count under it, like Zalo, since the tagged messages are usually above. Showing or hiding it never moves the messages you are reading.
+- **A team loads only its latest messages, and older ones as you scroll up.** Near the top of the chat the next page loads by itself and you stay on the same message, like the main chat and the Chatbot page. A "Loading older messages..." line shows meanwhile.
+- **Team jobs run side by side.** Every job given to a team starts at once, jobs given to the whole team too (they used to wait for each other because they all counted as the deputy lead's).
+- **Waiting only where a result is needed:** parts of one job that come one after another still wait for each other, and a job you word as "after … is done" or "one by one" still waits for the jobs before it. Each assistant works through the parts given to them, in the order given.
+- **No cap on jobs per team (was 3) nor on teams at work (was 4).** A step waiting for an assistant busy with another job of the same team now waits its turn instead of stopping as "busy too long".
+- **The team Jobs tab now follows the Tasks page.** Each job is a card, and right under it you see what every member is doing: done, working or waiting its turn, with what they were asked to do. Jobs waiting for you come first.
+- **Icons replace text buttons.** Edit, acceptance, cancel, priority and move to Archive are icons; one text button is left, on a job that waits for you. The Info, Jobs and Team tabs have icons, and Jobs shows how many jobs are open.
+- **Press a finished job to read a summary:** when it ended, the result, who did what. Finished jobs and the Archive are paged, five jobs a page.
+- **The Archive is no longer cut at 30 jobs** and gets a search box once it is longer than one page. "Delete all" stands apart at the end.
+- **A message added in a team is read at once.** A member still writing the answer to the previous message stops and answers both together, the newest one first in priority. No more waiting for the earlier answer before the next message is read.
+- **A deputy busy with a step of a job reads the new message at its next step,** so the way of working can change mid-way. The status line says "Read mid-way".
+- **An answered approval request stops ringing.** Approve, Change, Reject or a Reply question on the card turns its notice in the bell read. A request that expires or is cancelled does too.
+- **The deputy stands out in the team settings:** right under the owner, on a tinted row with an accent edge and a star badge.
+- **Team jobs fold into one pill right above the composer,** like background work in the main chat. Press it for the details: why a job stopped, the button that resolves it, who is working.
+- **A job waiting for you leaves the pill once you have written in the chat after it stopped.** It stays in the Jobs tab until it is resolved.
+- **Team roles renamed:** you, who made the team, are the Team lead; the assistant who leads the team is the Deputy lead (was "Coordinator"). Role badges stay on one line, and the role of each step ("Planning", "Working") is a small tag.
+- **The Jobs tab comes first in the side panel** (Jobs, Info, Team). A team with jobs opens on Jobs, a team without any opens on Info.
+- **A tidier approval card.** The deadline reads "5 h left" at the top next to "Waiting for you"; evidence and calls fold into one line with a count, and a long path shows only its file name (the full path on hover). The acceptance and opportunity cards share the solid, 16px-rounded frame.
+
 ## [1.47.0] - 2026-11-19
 ### Added
 - **Background jobs can carry fixed done-criteria.** A job a script or workflow hands out every day keeps its wording and is checked against exactly those criteria, so it no longer passes one day and sticks the next.
