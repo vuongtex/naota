@@ -4,6 +4,20 @@
 
 NAOTA release history. Newest first.
 
+## [1.49.0] - 2026-11-19
+### Fixed
+- **The estimated saving on the Usage page now matches what is really sent.** Optimized used to count only the short rules and forgot the base that still goes with them (the chat channel rules included), so the page claimed 84% for every brain. Now an API-key brain sees the real figure, and a subscription plan (Claude Code, ChatGPT...) sees plainly that the full rules stay and only memory and skills load the relevant parts.
+- **The running total of tokens saved no longer counts every Max-level turn as a shortcut turn.** Only simple questions take the shortcut, so the total uses the Optimized price; the measured part of the page still shows what the shortcut really saved.
+### Improved
+- **Background jobs on an API-key engine send about 60% fewer fixed tokens.** Kanban jobs, loops and reminders that do work carry a short background rule set instead of the whole chat rule set in every tool call. Every rule about acting stays: do exactly the job within its permission level, never invent numbers, report to whoever assigned it, no empty promises, no jobs created unasked, new plugins always off. Tested with a real model on 7 sample background jobs: results on par with the full rules.
+- **Subscription engines are unchanged.** Claude Code, ChatGPT, Grok and Antigravity keep the full rules. It starts on about 10% of background jobs and follows the Off level.
+- **Long skills load selectively, chosen by Naota before loading.** For a menu-style skill such as the agent/loop/plugin builder, Naota loads only the part a request needs plus every rules section (and any part it says to create first, such as the agent template for a workflow), about 47-63% lighter. Measured with a real model on 7 kinds of request, answers as complete as with the whole skill.
+- **Every language alike.** The choice does not lean on Vietnamese or English: it reads every script (Chinese, Japanese, Korean and Thai included), matches words with inflected endings (Russian, German, Turkish, Korean), and finds filler words from the skill itself. When someone asks in another language than the skill, the model sums up the task in the skill's language so Naota picks the right part. When unsure it loads the whole skill as before, and a skill that is one procedure always loads whole.
+- **Learns from use.** A part the model keeps fetching is loaded up front next time. It starts on about 10% of chat sessions and follows the Off level.
+- **Long turns cost fewer tokens, on every brain.** When the model calls the same tool with the same arguments and the result is identical, it gets a one-line reference instead of the whole text again. The tool still runs every time, so changed data always reaches the model in full. For Claude Code and Codex this happens at the hub, and Naota forgets the turn's record whenever they compact their conversation.
+- **Leaner JSON.** Indented or escaped JSON results are written compactly with the same content. Files, terminal output, web pages and skills stay exactly as they are.
+- Choosing **Off** on the Usage page turns both savings off. What they save shows in the tool results line of that page.
+
 ## [1.48.0] - 2026-11-19
 ### Added
 - **An @ button in team chats.** When an assistant tags you and the message has scrolled out of view, a round @ button with the number of waiting messages shows at the bottom right. Tap it to jump to that message, tap again for the next; it hides once you have read them or replied.
