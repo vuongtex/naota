@@ -6,6 +6,20 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.49.0] - 2026-11-19
+### Sửa lỗi
+- **Số tiết kiệm ước tính trên trang Mức dùng nay đúng với thứ thật sự được gửi.** Mức Tối ưu trước đây chỉ tính bản luật rút gọn và quên phần nền vẫn gửi kèm (có khối luật kênh chat), nên trang báo bớt 84% cho mọi bộ não. Nay: bộ não dùng API key thấy con số thật, còn gói thuê bao (Claude Code, ChatGPT...) thấy rõ là bộ luật được giữ nguyên, chỉ bộ nhớ và skill nạp phần liên quan.
+- **Số token đã tiết kiệm cộng dồn không còn tính mọi lượt ở mức Siêu tiết kiệm như lượt đi đường tắt.** Chỉ câu hỏi đơn giản đi đường tắt, nên phần cộng dồn tính theo giá mức Tối ưu; phần "đo được" của trang vẫn cho thấy đường tắt bớt thật bao nhiêu.
+### Cải thiện
+- **Việc chạy nền trên bộ não dùng khóa API gửi ít token hơn khoảng 60%.** Việc Kanban, việc lặp và nhắc hẹn có làm việc mang bộ luật việc nền ngắn thay cho toàn bộ bộ luật chat, ở mỗi lần gọi công cụ. Mọi luật về hành động được giữ nguyên: làm đúng việc trong mức quyền, không bịa số, báo kết quả về đúng người giao, không hứa suông, không tự tạo thêm việc, plugin mới luôn tắt. Thử bằng model thật trên 7 loại việc nền mẫu, kết quả ngang bản đầy đủ.
+- **Gói thuê bao không đổi.** Claude Code, ChatGPT, Grok, Antigravity vẫn mang bộ luật đầy đủ. Bật thử cho khoảng 10% việc chạy nền, tắt theo mức Tắt.
+- **Skill dài nạp có chọn lọc, Naota chọn trước khi nạp.** Với skill kiểu thực đơn như trình tạo agent/loop/plugin, Naota chỉ nạp phần yêu cầu cần cùng mọi mục luật (và phần nó dặn tạo trước, như workflow kéo theo mẫu agent), nhẹ hơn khoảng 47-63%. Đo bằng model thật trên 7 loại yêu cầu, câu trả lời đủ ý như khi nạp cả skill.
+- **Mọi ngôn ngữ như nhau.** Cách chọn không dựa vào tiếng Việt hay tiếng Anh: tách chữ được mọi hệ chữ (kể cả Trung, Nhật, Hàn, Thái), nhận cả từ có đuôi biến đổi (tiếng Nga, Đức, Thổ, Hàn), và tự tìm từ thừa ngay trong skill. Người hỏi bằng ngôn ngữ khác skill thì model tóm việc bằng ngôn ngữ của skill để Naota chọn đúng phần. Không chắc là nạp cả skill như cũ, và skill dạng quy trình liền mạch luôn nạp đủ.
+- **Học từ cách dùng.** Phần nào model hay phải lấy thêm thì lần sau Naota nạp sẵn. Bật thử cho khoảng 10% phiên chat trước, tắt theo mức Tắt.
+- **Lượt dài tốn ít token hơn, với mọi bộ não.** Model gọi lại đúng công cụ với đúng tham số mà kết quả y hệt lần trước thì nhận một dòng tham chiếu thay vì cả khối chữ lần nữa. Công cụ vẫn chạy lại thật, nên dữ liệu đổi là model nhận bản mới đầy đủ. Với Claude Code và Codex, việc này làm ở cổng hub, và Naota quên sổ của lượt đó mỗi khi chúng nén hội thoại.
+- **JSON gọn hơn.** Kết quả JSON thụt lề hay có chữ Việt bị mã hoá được viết gọn lại, cùng nội dung. Tệp, terminal, trang web và skill thì giữ nguyên từng ký tự.
+- Chọn mức **Tắt** trên trang Mức dùng là tắt luôn hai cách tiết kiệm này. Số ký tự bớt được hiện chung ở dòng kết quả tool trên trang đó.
+
 ## [1.48.0] - 2026-11-19
 ### Thêm mới
 - **Nút @ trong khung chat nhóm.** Khi trợ lý tag bạn mà tin đã trôi khỏi màn hình, góc dưới bên phải hiện nút tròn có chữ @ và số tin đang chờ. Bấm là cuộn tới đúng tin đó, bấm tiếp tới tin sau; đọc hết hay bạn đã trả lời thì nút tự ẩn.
