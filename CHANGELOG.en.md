@@ -4,6 +4,31 @@
 
 NAOTA release history. Newest first.
 
+## [1.47.0] - 2026-11-19
+### Added
+- **Background jobs can carry fixed done-criteria.** A job a script or workflow hands out every day keeps its wording and is checked against exactly those criteria, so it no longer passes one day and sticks the next.
+- **Notify every answer when you are not viewing that chat.** Turn on the new box under Push notifications in the bell: when Naota finishes an answer the phone rings if you switched to another app or opened another chat. Viewing that chat keeps it quiet. Tapping the notice opens the chat.
+### Fixed
+- **Locking the phone no longer hides the answer.** Ask on the phone, lock it, and when you come back Naota pulls in the answer that finished while you were away, no need to ask again or keep the screen on.
+- **A home-screen app that was closed shows the full answer when reopened.** The chat used to show only the old copy kept on the phone until you opened it again from History.
+- **A background job that answers `[SILENT]` finishes quietly**, like reminders: no more "nothing to report" messages on every run, and the automatic check no longer fails it.
+- **Editing a schedule changes its permission level, who gets the result and the spoken note.** Naota used to say "updated" while the old level stayed.
+- **Short wikilinks like `[[log]]` open** even when many files mention the word. When an approval team refuses ChatGPT on Docker, the message now says how to turn the sandbox back on.
+- **Text Naota writes before and after each tool call no longer runs together** (as in "needs a sign-in.Done with item 3"). Each new stretch starts on a new line, on Claude Code, Codex, Grok Build and Antigravity.
+- **The notes Naota writes while it works follow your language too**, instead of drifting into English halfway through code or logs.
+- **Playwright screenshots show right in the chat.** When Naota took a screenshot of a page with Playwright, the image reached the model as a long string of characters and nothing appeared in the chat. The image is now saved in the brain under `attachments/tool-images/` and Naota embeds it in its reply so you can preview it. Images returned by other tools (charts, designs) are handled the same way.
+### Improved
+- **Typing while a goal runs no longer pauses it.** Your message is added to the goal: the running round reads it at its next step and every later round carries it, so you can adjust or widen the goal while Naota works. Each such message gives one more round (10 at most). If a round reports the goal met before it read your message, Naota runs one more round for it. The Stop button still pauses the goal as before.
+- The project selector and project list show a red dot when another project has unread replies. The selected project uses its chat dots without a duplicate folder alert.
+- Opening a project keeps chats unread until they are opened. Badges update for new replies and reads in another tab.
+- **After an update, work in flight carries on by itself.** A team job cut in the middle continues with the step it was on, and a team reply that was being written is written again; no more pressing "Continue" or "Retry".
+- **A chat answer cut short is answered again** when the page comes back after the server restarts, in the main chat and in chats with an assistant.
+- **Background jobs go back to the queue at once** instead of waiting 90 seconds, and the cut no longer counts as a failed attempt.
+- **Nothing outside happens twice.** A step that had already sent a message, posted or created an order before the server stopped makes Naota stop and tell you instead of doing it again. A workflow run cut short no longer says "running" for ever.
+- **A partner's unread count sits on the bottom left of the avatar.** The time keeps the bottom right corner to itself, rows breathe on a phone, and the collapsed avatar strip on desktop now shows who has new messages.
+- **The "Add Naota to your Home Screen" prompt no longer pops up right after you sign in.** It used to show 12 seconds after the page opened, on top of the sign-in screen and the first-run setup. Now it shows only after about 3 minutes of real use (added up across visits), never while the sign-in screen, the setup or another dialog is open, and not while you are typing. The "Install on phone" button in the menu still opens the steps at any time.
+- **The long-turn notice is no longer swallowed while you are in another chat.** It used to stay quiet whenever Naota was open; now only when the screen shows that very chat.
+
 ## [1.46.2] - 2026-11-17
 ### Fixed
 - **Background commands show their quotes correctly.** On the Office page and the background work strip, a command with single quotes (like `<<'EOF'`) used to show as a hard-to-read run of quote marks. It now reads exactly as typed.

@@ -168,6 +168,7 @@ import resonance_api           # Naota Resonance MVP: API thẻ mục tiêu và 
 import agent_presence          # Auto registry in step with the assistant files (pack reinstall, 2026-11-11)
 import limit_learner          # học hạn mức từ chính lỗi nhà cung cấp trả về
 import limit_resume           # tự chạy lại lượt chat khi gói thuê bao mở lại hạn mức
+import turn_ledger            # chat turns in flight, on disk: a restart cuts them, the next process runs them again
 import quota_scheduler        # sổ cái TPM dùng chung (Việc 6)
 import model_limits           # hạn mức GỢI Ý theo provider, để khai quota profile cho canary
 import model_router           # Phase 12: chọn model theo từng bước, lọc năng lực trước
@@ -249,6 +250,10 @@ import voice_call     # nút mic là gọi Naota: tự chọn ChatGPT Live / Liv
 app = FastAPI(title="NAOTA")
 import voice_persona  # a voice call from a partner's chat speaks as that partner
 _CHAT_RUNTIME = ChatRuntime()
+# 16/11/2026: a chat job that is over closes its row in the ledger of turns in flight (kept during shutdown).
+_CHAT_RUNTIME.on_finish = turn_ledger.end
+_CHAT_RUNTIME.on_start = lambda sid, turn: turn_ledger.begin(
+    sid, turn.get("user_mid") or 0, turn.get("user_message") or "", turn.get("user_text"), turn.get("brain") or "")
 
 
 def _steer_read(sid, ids):
@@ -7813,6 +7818,9 @@ async def settings_set(section: str = Form(...), data: str = Form("{}")):
         # "hidden" = push notifications say only that something arrived, without its text.
         if "preview" in patch:
             cfg.setdefault("push", {})["preview"] = "hidden" if patch.get("preview") == "hidden" else "full"
+        if "turn_done" in patch:
+            # 2026-11-17: "all" = every dashboard answer rings when the owner is not looking at that chat.
+            cfg.setdefault("push", {})["turn_done"] = "all" if patch.get("turn_done") == "all" else "long"
     elif section == "zalo_bot":
         # Cùng khuôn với telegram. Id Zalo là chuỗi HEX chứ không phải số, nhưng `tg_parse_ids`
         # chỉ tách và bỏ trùng chứ không ép kiểu nên dùng chung được.
@@ -14529,6 +14537,44 @@ async def _ghi_lich_su(gen, *, brain, slug, name, input, source, session_id, run
                 pass
 
 
+def close_cut_workflow_runs() -> list:
+    """Workflow runs the last restart cut short (owner, 16/11/2026: work in flight must not be lost by an update).
+
+    A run that was `running` when the process died used to say "running" for ever. It is closed with the reason. What
+    happens next depends on who started it:
+    - Kanban, a reminder, a loop or a webhook: that scheduler runs its job again by itself (the Kanban job goes back
+      to the queue, the reminder is still due, the loop is still overdue), which starts a new run.
+    - The owner, in the workflow's chat (source "web"): it is NOT run again from the start, because the steps that had
+      finished may have sent or posted something and a workflow run has no once-only record of its own. The chat gets
+      one stored line saying where the run stopped, and Run starts it again."""
+    import workflow_runs
+    rows = workflow_runs.get_store().close_cut(_PROCESS_STARTED, localefmt.chu(
+        "Máy chủ khởi động lại giữa chừng", "The server restarted in the middle of this run"))
+    for r in rows:
+        if r.get("source") != "web" or not r.get("session_id"):
+            continue
+        done = sum(1 for b in (r.get("steps") or []) if b.get("output"))
+        name = str(r.get("name") or r.get("slug") or "")
+        try:
+            get_store().append_message(str(r["session_id"]), "assistant", localefmt.chu(
+                f"Máy chủ khởi động lại khi quy trình \"{name}\" đang chạy (đã xong {done} bước). Naota không tự chạy "
+                "lại từ đầu, vì các bước đã xong có thể đã gửi hoặc đăng gì đó. Bấm Chạy để chạy lại.",
+                f"The server restarted while the workflow \"{name}\" was running ({done} steps done). Naota did not "
+                "run it again from the start, because the finished steps may have sent or posted something. "
+                "Press Run to run it again."))
+        except Exception as ex:  # noqa: BLE001 - the chat of the run is gone: the history row still tells it
+            print(f"[workflow cut note] {type(ex).__name__}: {ex}", file=sys.stderr)
+    return rows
+
+
+@app.on_event("startup")
+async def _close_cut_workflow_runs():
+    try:
+        await asyncio.to_thread(close_cut_workflow_runs)
+    except Exception as ex:  # noqa: BLE001 - never keep the server from starting
+        print(f"[workflow cut runs] {type(ex).__name__}: {ex}", file=sys.stderr)
+
+
 # Sources that run a workflow with nobody pressing a button. A workflow switched off is not run
 # from these; Studio and the workflow chat (source "web") still run it, since there the owner
 # asked for this one run in person, typically to try it out before switching it on.
@@ -15140,7 +15186,7 @@ async def _bo_vao_hom_thu(owner_chat, text, *, kind="answer", label="", source="
         # Giữ tham chiếu tới task, không thì bộ dọn rác có thể nuốt nó giữa chừng.
         t = asyncio.create_task(
             webpush.gui_het(title, body, url, tag=f"naota-{item['id']}", phien_hop_le=_phien_con_hieu_luc(),
-                            **({"quiet_if_visible": True} if push_if_away else {})))
+                            **({"quiet_if_visible": True, "session_id": sid} if push_if_away else {})))
         _PUSH_TASKS.add(t)
         t.add_done_callback(_PUSH_TASKS.discard)
     except Exception as e:
@@ -16377,7 +16423,7 @@ async def _bao_luot_dai_xong(conv_sid: str, brain, turn_tag: str, user_message: 
     (turn_done_notice.py). True when a notice was filed."""
     text = str(final_text or "")
     if not turn_done_notice.should_notify(elapsed, user_message, text):
-        return False
+        return _bao_luot_xong_ngan(conv_sid, text)
     import chat_bridge as _cb
     if _cb.co_viec(conv_sid):
         return False   # work an outside AI sent: chat_bridge rings once, and only if that AI did not read the answer
@@ -16388,6 +16434,35 @@ async def _bao_luot_dai_xong(conv_sid: str, brain, turn_tag: str, user_message: 
                                  label=turn_done_notice.label(elapsed, user_message), source="job",
                                  brain=_brain_key(brain), dedup=f"turn:{turn_tag}", push_if_away=True)
     return bool(item)
+
+
+def _bao_luot_xong_ngan(conv_sid: str, final_text: str) -> bool:
+    """A short dashboard turn ended and the owner turned on "notify every answer" (push.turn_done = "all"): push only,
+    no bell entry. The phone stays quiet when a tab in front of the owner shows this chat (sw.js asks the tab).
+    True when a push was scheduled."""
+    try:
+        st = cfgmod.read_settings()
+        if not turn_done_notice.every_turn(st) or not conv_sid or not webpush.so_sub():
+            return False
+        import chat_bridge as _cb
+        if _cb.co_viec(conv_sid):
+            return False
+        body = turn_done_notice.push_text(channel_context.strip_control_blocks(final_text))
+        if not body:
+            return False
+        if (st.get("push") or {}).get("preview") == "hidden":
+            body = localefmt.chu("Naota đã trả lời xong.", "Naota has answered.")
+        # Not awaited: a dead subscription waits up to 15 s and the turn is already over. One notice per chat: a newer
+        # answer replaces the older one (tag).
+        t = asyncio.create_task(webpush.gui_het(
+            "Naota", body, f"/?mo_phien={conv_sid}", tag=f"naota-turn-{conv_sid[:24]}",
+            phien_hop_le=_phien_con_hieu_luc(), quiet_if_visible=True, session_id=conv_sid))
+        _PUSH_TASKS.add(t)
+        t.add_done_callback(_PUSH_TASKS.discard)
+        return True
+    except Exception as e:  # noqa: BLE001 - a missed doorbell never fails the turn
+        print(f"[turn push] {type(e).__name__}: {e}", file=sys.stderr)
+        return False
 
 
 async def _canh_bao_hua_suong(brain: str, chat_id: str, final_text: str,
@@ -22711,6 +22786,59 @@ async def _chat_socket(ws):
                 runtime_step_id=runtime_trace.step_id if runtime_trace else "",
             )
 
+        async def _resume_cut_turns():
+            """Chat turns the last restart cut short answer again (owner, 16/11/2026: "việc nào đang dang dở kể cả ở
+            cộng sự, ở chat ... khởi động lại server sau khi update cũng phải khởi động lại").
+
+            Runs when a page connects, because a chat turn is built from this handler's closures: the first page back
+            after the restart (the dashboard reloads by itself after an update) takes every cut turn, once. A turn is
+            run again only while its question is still the last message of the chat. It is NOT run again when it had
+            already done something outside (send, post, order), or when restarts cut it turn_ledger.MAX_RESUMES times;
+            the chat then gets one stored line saying why."""
+            for row in turn_ledger.take_cut():
+                sid = row["session_id"]
+                try:
+                    msgs = await asyncio.to_thread(store.get_messages, sid) or []
+                except Exception:  # noqa: BLE001 - the session is gone
+                    msgs = []
+                last = msgs[-1] if msgs else {}
+                if (not turn_ledger.resume_on() or not row["user_mid"] or last.get("role") != "user"
+                        or int(last.get("id") or 0) != int(row["user_mid"]) or _CHAT_RUNTIME.get_job(sid)):
+                    turn_ledger.drop(sid)
+                    continue
+                why = ""
+                if row["acted"]:
+                    why = localefmt.chu(
+                        "Máy chủ khởi động lại khi Naota đang làm dở câu này, và lượt đó đã làm một việc ra ngoài "
+                        "(gửi, đăng, tạo...). Naota không tự chạy lại để tránh làm trùng. Nhắn \"làm tiếp\" nếu "
+                        "bạn muốn Naota làm nốt.",
+                        "The server restarted while Naota was in the middle of this, and that turn had already done "
+                        "something outside (sent, posted, created...). Naota did not run it again so nothing "
+                        "happens twice. Say \"continue\" if you want Naota to finish.")
+                elif int(row["resumes"] or 0) >= turn_ledger.MAX_RESUMES:
+                    why = localefmt.chu(
+                        "Máy chủ đã khởi động lại nhiều lần khi đang trả lời câu này nên Naota dừng tự chạy lại. "
+                        "Gửi lại câu hỏi khi máy chủ đã ổn.",
+                        "The server restarted several times while answering this, so Naota stopped running it again. "
+                        "Send the question again once the server is steady.")
+                if why:
+                    turn_ledger.drop(sid)
+                    _persist_limit_notice(store, sid, row["user_message"], why)
+                    await send_raw({"type": "system", "session_id": sid, "content": why})
+                    continue
+                await send_raw({"type": "system", "session_id": sid, "content": localefmt.chu(
+                    "Máy chủ vừa khởi động lại. Naota trả lời lại câu đang dở.",
+                    "The server just restarted. Naota is answering the question it was on again.")})
+                # On disk again until this run is over; the same question keeps its count of restarts.
+                turn_ledger.begin(sid, int(row["user_mid"]), row["user_message"], row["user_text"], row["brain"])
+                await _start_resumed_turn(sid, row["user_message"], row["brain"], 0, None,
+                                          user_mid=int(row["user_mid"]), user_text=row["user_text"])
+
+        try:
+            await _resume_cut_turns()
+        except Exception as _e:  # noqa: BLE001 - a broken resume must never keep a page from connecting
+            print(f"[turn resume] {type(_e).__name__}: {_e}", file=sys.stderr)
+
         while True:
             raw = await _real_ws.receive_text()
             try:
@@ -22756,13 +22884,18 @@ async def _chat_socket(ws):
                     _sid = str(payload.get("session_id") or "").strip()
                     _txt = str(payload.get("message") or "").strip()[:steer_inbox.MAX_CHARS]
                     _cid = str(payload.get("client_id") or "")[:40]
+                    # 2026-11-16: typed while a /goal runs. The goal goes on: the round reads it, or the dashboard folds
+                    # it into the next round. Never a turn of its own ("goal" mode): that would race the next round.
+                    _goal = bool(payload.get("goal"))
                     _row = store.get_session(_sid) if _sid else None
                     if not _row or not _txt:
                         continue
                     store.append_message(_sid, "user", _txt)
-                    _it = steer_inbox.INBOX.put(_sid, _txt)
+                    _it = steer_inbox.INBOX.put(_sid, _txt, goal=_goal)
                     if _it:
-                        _mode, _id = ("live" if steer_inbox.INBOX.live(_sid) else "after"), _it["id"]
+                        _mode, _id = ("live" if steer_inbox.INBOX.live(_sid) else ("goal" if _goal else "after")), _it["id"]
+                    elif _goal:
+                        _mode, _id = "goal", 0
                     else:
                         # The turn just ended (or too many are waiting): this message is its own next turn.
                         _mode, _id = "after", 0
@@ -23048,6 +23181,7 @@ async def _chat_socket(ws):
                     except Exception:
                         _vconf = None
                     _bao_lan_nhanh_bo_qua(_vconf)
+                _turn_row = None
                 if _vconf and _vconf.get("mode") == "fast" and _vconf.get("provider"):
                     _voice_coro = run_voice_turn(
                         conv_sid, user_message, brain, turn_tag, runtime_trace, _vconf,
@@ -23061,10 +23195,15 @@ async def _chat_socket(ws):
                         conv_sid, user_message, brain, turn_tag, runtime_trace, has_attachments,
                         goc_chat=_goc, user_mid=_user_mid, effort=str(payload.get("effort") or ""))
                     task = asyncio.create_task(voice_turn_protocol.run(_voice_coro, store, conv_sid, _voice_uid) if _voice_uid else _voice_coro)
+                    # 16/11/2026: the owner's question goes on disk with its job (`turn=`), so a restart in the middle
+                    # answers it again (the ledger of turns in flight, `_resume_cut_turns`). Passed through the
+                    # runtime, not written here, because tests run this block and `run_turn` on their own with stubs.
+                    _turn_row = {"user_mid": _user_mid, "user_message": user_message, "user_text": None, "brain": brain}
                 _CHAT_RUNTIME.register_job(
                     conv_sid, task, turn_tag,
                     runtime_task_id=runtime_trace.task_id if runtime_trace else "",
                     runtime_step_id=runtime_trace.step_id if runtime_trace else "",
+                    turn=_turn_row,
                 )
                 if _pending_voice_receipt:
                     await send_client(_pending_voice_receipt)
@@ -31004,7 +31143,8 @@ async def slash_memory(brain: str = Query("brain")):
 
 @app.post("/slash/block")
 async def slash_block(kind: str = Form(...), dk: str = Form(""), vong: int = Form(1),
-                      toi_da: int = Form(lenh_he_thong.GOAL_MAX_ROUNDS), left: str = Form("")):
+                      toi_da: int = Form(lenh_he_thong.GOAL_MAX_ROUNDS), left: str = Form(""),
+                      them: str = Form("")):
     """Khối chỉ dẫn của `/plan` và `/goal` cho khung chat web.
 
     Máy chủ là nguồn DUY NHẤT của chữ trong khối (Telegram dùng chung `lenh_he_thong`): trình
@@ -31018,7 +31158,13 @@ async def slash_block(kind: str = Form(...), dk: str = Form(""), vong: int = For
                                 status_code=400)
         toi_da = max(1, min(int(toi_da), 20))
         vong = max(1, min(int(vong), toi_da))
-        return {"block": lenh_he_thong.khoi_muc_tieu(dk, vong, toi_da, left)}
+        # 2026-11-16: `them` = JSON list of what the owner typed while the goal ran (folded into the goal).
+        try:
+            _them = json.loads(them) if (them or "").strip() else []
+        except ValueError:
+            _them = []
+        _them = [str(x) for x in _them] if isinstance(_them, list) else []
+        return {"block": lenh_he_thong.khoi_muc_tieu(dk, vong, toi_da, left, _them)}
     return JSONResponse({"error": localefmt.chu("kind phải là plan hoặc goal", "kind must be plan or goal")},
                         status_code=400)
 
@@ -31292,6 +31438,9 @@ async def _warm_mcp_hub():
 @app.on_event("shutdown")
 async def _shutdown_mcp_pool():
     """Đóng các session MCP sống lâu (stdio subprocess, httpx client) khi server tắt."""
+    # 16/11/2026: from here on a chat turn that gets cancelled is a turn this stop cut short, not one that ended:
+    # its row stays in the ledger so the next process answers it again (turn_ledger.py).
+    turn_ledger.closing = True
     try:
         await _shutdown_improvement_candidates()
     except Exception:
@@ -31923,6 +32072,10 @@ def _team_engine_for(team, agent_key, role):
         # Bind before asyncio.to_thread: constructors and CLI correlation inherit the host execution.
         import uuid
         ambient = turn_context.current() or turn_context.make("team", chat_id=req.get("team_id"))
+        # 16/11/2026: a tool step of a team job records its outside actions once per step chain (once_ledger.py, keyed
+        # on the turn's `job`), so the step can run again after a restart without sending or posting twice.
+        if req.get("once_key"):
+            ambient["job"] = str(req["once_key"])
         ambient["execution"] = turn_context.execution_metadata({
             "team_id": req.get("team_id"), "task_id": req.get("task_id"), "step_id": req.get("step_id"),
             "turn_id": req.get("turn_id"), "attempt": req.get("attempt"), "job_revision": req.get("job_revision"),
