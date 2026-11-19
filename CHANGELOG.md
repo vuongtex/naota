@@ -7,8 +7,29 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
 ## [1.47.0] - 2026-11-19
+### Thêm mới
+- **Giao việc nền kèm điều kiện hoàn thành cố định.** Việc do script hay quy trình giao mỗi ngày giữ nguyên lời giao và được chấm đúng theo các điều kiện đó, không còn hôm đạt hôm kẹt.
+- **Báo mỗi câu trả lời khi bạn không xem hội thoại đó.** Bật ô mới trong phần Thông báo đẩy của chuông: Naota trả lời xong là điện thoại kêu, nếu bạn đã chuyển sang app khác hoặc đang mở một hội thoại khác. Đang xem đúng hội thoại đó thì im. Bấm thông báo là mở thẳng hội thoại.
+### Sửa lỗi
+- **Khoá màn hình rồi mở lại vẫn thấy câu trả lời.** Hỏi trên điện thoại, khoá máy, lúc mở lại Naota tự kéo câu trả lời đã xong trong lúc vắng mặt, không phải hỏi lại hay treo màn hình chờ.
+- **App trên màn hình chính bị tắt hẳn rồi mở lại cũng đủ câu trả lời.** Trước đây khung chat chỉ hiện bản lưu cũ trên máy, phải vào Lịch sử bấm lại mới thấy.
+- **Việc nền trả lời `[SILENT]` thì xong lặng lẽ**, như nhắc hẹn: không còn tin "không có gì" mỗi lần chạy, cũng không bị máy tự kiểm chấm trượt.
+- **Sửa lịch đổi được mức quyền, nơi nhận kết quả và giọng đọc.** Trước đây Naota báo "Đã sửa" mà lịch vẫn giữ mức cũ.
+- **Wikilink tên ngắn như `[[log]]` mở được** cả khi brain có nhiều file nhắc tới chữ đó. Team cần duyệt chạy ChatGPT trên Docker bị từ chối thì câu báo chỉ luôn cách bật sandbox.
+- **Chữ Naota viết trước và sau mỗi lần gọi công cụ không còn dính liền nhau** (kiểu "cần đăng nhập.Xong mục 3"). Mỗi đoạn mới bắt đầu ở một dòng mới, với Claude Code, Codex, Grok Build và Antigravity.
+- **Ghi chú Naota viết trong lúc đang làm cũng theo đúng thứ tiếng bạn dùng**, không còn trôi sang tiếng Anh giữa chừng khi đọc code hay log.
+- **Ảnh chụp màn hình của Playwright hiện ngay trong khung chat.** Trước đây khi Naota chụp màn hình một trang bằng Playwright, ảnh bị đổi thành một chuỗi ký tự dài gửi cho model, nên bạn không thấy gì trong khung chat. Giờ ảnh được lưu vào bộ não ở `attachments/tool-images/` và Naota nhúng nó vào câu trả lời để bạn xem trước. Ảnh do công cụ khác trả về (biểu đồ, thiết kế) cũng được xử lý giống vậy.
 ### Cải thiện
-- Đang làm: lấy chat và điện thoại từ bản nguồn.
+- **Gõ thêm lúc đang theo đuổi mục tiêu không còn làm mục tiêu tạm dừng.** Tin bạn gửi được gộp vào mục tiêu: vòng đang chạy đọc nó ở bước kế tiếp, các vòng sau đều mang theo, nên bạn chỉnh hay mở rộng mục tiêu ngay khi Naota đang làm. Mỗi tin như vậy cho thêm một vòng (tối đa 10). Vòng nào báo đạt mà chưa kịp đọc tin của bạn thì Naota vẫn làm thêm một vòng cho tin đó. Nút Dừng vẫn tạm dừng mục tiêu như trước.
+- Thanh chọn dự án và danh sách dự án có chấm đỏ khi dự án khác có câu trả lời chưa đọc. Dự án đang xem chỉ báo trên từng cuộc chat, tránh báo trùng.
+- Mở dự án vẫn giữ dấu chưa đọc cho đến khi mở đúng cuộc chat. Dấu báo cập nhật khi có câu trả lời mới hoặc khi đọc ở tab khác.
+- **Cập nhật xong, việc đang dở tự chạy tiếp.** Việc team bị cắt giữa chừng tự làm tiếp đúng bước đang dở, câu team đang trả lời tự trả lời lại; không còn phải bấm "Làm tiếp" hay "Thử lại".
+- **Câu chat đang trả lời dở cũng được trả lời lại** khi trang mở lại sau khi máy chủ khởi động, cho cả chat chính lẫn chat với cộng sự.
+- **Việc nền quay lại hàng đợi ngay** thay vì chờ 90 giây, và lần bị cắt không còn bị tính là một lần thử hỏng.
+- **Không làm trùng việc ra ngoài.** Bước nào đã kịp gửi tin, đăng bài hay tạo đơn trước khi máy chủ dừng thì Naota dừng lại báo bạn, không tự làm lại. Lượt workflow bị cắt không còn treo "đang chạy" mãi.
+- **Số tin chưa đọc của cộng sự nằm ở góc dưới trái avatar.** Giờ chat có chỗ riêng ở góc dưới phải, dòng thoáng hơn trên điện thoại, và dải avatar thu gọn trên máy tính giờ cũng thấy ai có tin mới.
+- **Lời nhắc "Thêm Naota vào Màn hình chính" không bung ngay lúc vừa đăng nhập nữa.** Trước đây nó hiện 12 giây sau khi mở trang, đè lên cả màn đăng nhập và bộ cài đặt lần đầu. Nay nó chỉ hiện khi bạn đã dùng Naota thật khoảng 3 phút (cộng dồn qua các lần mở), không lúc nào có màn đăng nhập, bộ cài đặt hay hộp khác đang mở, và không giữa lúc bạn đang gõ. Nút "Cài lên điện thoại" trong menu vẫn mở hướng dẫn bất cứ lúc nào.
+- **Thông báo lượt chạy lâu không còn bị nuốt khi bạn đang ở hội thoại khác.** Trước đây cứ mở Naota là im, nay chỉ im khi màn hình đang hiện đúng hội thoại đó.
 
 ## [1.46.2] - 2026-11-17
 ### Sửa lỗi

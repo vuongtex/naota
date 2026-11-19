@@ -40,8 +40,8 @@
   <!-- Biến --ic-* cho icon dùng trong content: của CSS. Phải đứng TRƯỚC style.css
        vì style.css tham chiếu các biến này. -->
   <link rel="stylesheet" href="/static/vendor/lucide-icons.css?v=1">
-  <link rel="stylesheet" href="/static/style.css?v=186">
-  <link rel="stylesheet" href="/static/console.css?v=169">
+  <link rel="stylesheet" href="/static/style.css?v=187">
+  <link rel="stylesheet" href="/static/console.css?v=170">
   <!-- Áp tông đã lưu TRƯỚC khi vẽ để không nháy tối rồi mới đổi sang sáng.
        Giá trị cũ "dim" (tông tối-nhạt, gỡ) quy về tối; theme.js sẽ ghi đè lại.
        Chưa chọn gì thì SÁNG (NAOTA 1.0.0). Chế độ "auto" (chỉ khi người dùng tự chọn) tính theo khung giờ "HH:MM-HH:MM", cùng quy tắc với
@@ -213,6 +213,8 @@
         <button class="noti-text-btn primary" id="notificationPushToggle" type="button" data-i18n="noti.push_on">Bật</button>
         <label class="noti-push-hide" id="notificationPushHideRow" hidden><input type="checkbox" id="notificationPushHide">
           <span data-i18n="noti.push_hide">Ẩn nội dung trên thông báo đẩy</span></label>
+        <label class="noti-push-hide" id="notificationPushEveryRow" hidden><input type="checkbox" id="notificationPushEvery">
+          <span data-i18n="noti.push_every">Báo mỗi câu trả lời khi bạn không xem hội thoại đó</span></label>
       </div>
       <div class="noti-foot">
         <button class="noti-text-btn" id="notificationRefresh" type="button" data-i18n="noti.refresh">↻ Làm mới</button>
@@ -1133,7 +1135,7 @@
   <script src="/static/voice.js?v=31"></script>
   <script src="/static/graph.js?v=18"></script>
   <script src="/static/pan-zoom.js?v=1"></script>
-  <script src="/static/chat-render.js?v=29"></script>
+  <script src="/static/chat-render.js?v=30"></script>
   <script src="/static/code-hl.js?v=1"></script>
   <script src="/static/dataview.js?v=2"></script>
   <!-- window.NaotaCopy: chép một chuỗi vào bảng nhớ tạm, có đường lui cho http trần. Đứng
@@ -1165,8 +1167,8 @@
   <script src="/static/chat-slash.js?v=5"></script>
   <!-- Lệnh "/" hệ thống (/status /model /compact /plan /goal ...): chạy lệnh mà chat-slash.js vừa nhận
        diện. Phải nạp TRƯỚC app.js (sendMessage gọi window.NaotaLenh) và SAU chat-slash.js (đọc menu). -->
-  <script src="/static/chat-goal.js?v=1"></script>
-  <script src="/static/chat-lenh.js?v=3"></script>
+  <script src="/static/chat-goal.js?v=2"></script>
+  <script src="/static/chat-lenh.js?v=4"></script>
   <script src="/static/chat-acts.js?v=7"></script>
   <script src="/static/chat-suggest.js?v=3"></script>
   <!-- One POST /upload with progress and stall watch, shared by the main chat and the Team chat (app.js, teams.js). -->
@@ -1205,7 +1207,7 @@
   <script src="/static/screen-awake.js?v=1"></script>
   <script src="/static/incoming-call.js?v=1"></script>
   <script src="/static/call-bar.js?v=1"></script>
-  <script src="/static/app.js?v=175"></script>
+  <script src="/static/app.js?v=176"></script>
   <!-- Sau app.js: dải việc nền đọc window.NaotaSessions (app.js dựng) để biết phiên + brain. -->
   <script src="/static/background-strip.js?v=4"></script>
   <!-- Thân bảng chọn model dùng chung: phải đứng TRƯỚC model-picker.js (thanh chat) và
@@ -1229,7 +1231,7 @@
   <script src="/static/brain-picker.js?v=8"></script>
   <!-- One Reorder box (drag or arrows) for projects, pinned chats and tags. Before sessions-ui.js. -->
   <script src="/static/reorder-dialog.js?v=3"></script>
-  <script src="/static/sessions-ui.js?v=35"></script>
+  <script src="/static/sessions-ui.js?v=36"></script>
   <link rel="stylesheet" href="/static/improvement-candidates.css?v=3">
   <script src="/static/improvement-experiments.js?v=1"></script>
   <script src="/static/improvement-candidates.js?v=3"></script>
@@ -1241,7 +1243,7 @@
   <script src="/static/pulse-seen.js?v=1"></script>
   <!-- Tag filter bar and tag picker shared by Cộng sự and Team: load BEFORE workspace.js and teams.js. -->
   <script src="/static/tag-picker.js?v=1"></script>
-  <script src="/static/workspace.js?v=45"></script>
+  <script src="/static/workspace.js?v=46"></script>
   <!-- Hộp chọn thành viên kiểu Zalo: nạp TRƯỚC teams.js, teams.js gọi window.NaotaTeamPicker. -->
   <script src="/static/team-picker.js?v=3"></script>
   <!-- Bộ phán xử nói / chờ / im của từng trợ lý: lịch sử quyết định và nút sửa. Nạp TRƯỚC teams.js
@@ -1274,12 +1276,12 @@
   <script src="/static/console.js?v=233"></script>
   <script src="/static/mobile-chat.js?v=24"></script>
   <script src="/static/brain-view.js?v=1"></script>
-  <script src="/static/push.js?v=3"></script>
-  <script src="/static/install-nudge.js?v=3"></script>
+  <script src="/static/push.js?v=4"></script>
+  <script src="/static/install-nudge.js?v=4"></script>
   <!-- Mời tặng sao GitHub: thẻ hiện ở khoảnh khắc vui, xem server/star_nudge.py. -->
   <link rel="stylesheet" href="/static/star-nudge.css?v=6">
   <script src="/static/star-nudge.js?v=4"></script>
-  <script src="/static/notifications.js?v=14"></script>
+  <script src="/static/notifications.js?v=15"></script>
   <!-- Linh vật ở mép màn hình. Nạp SAU app.js vì nó chỉ được app.js gọi vào
        (setOrbState -> NaotaPet.setState), và sau console.js để trang Cài đặt vẽ được thẻ chọn. -->
   <!-- Mascot menu the owner arranges (Settings > Mascot): load BEFORE pet.js, which builds its menu from it. -->

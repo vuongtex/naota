@@ -1125,8 +1125,8 @@ function _baoDutVeMayChu() {
       .catch(() => {});
   } catch (e) {}
 }
-function _dropDeadSocket() {
-  _ghiDut("ping", false, _wsMoLuc);
+function _dropDeadSocket(why) {
+  _ghiDut(why || "ping", false, _wsMoLuc);
   _wsMoLuc = 0;
   const cu = ws;
   ws = null;
@@ -1183,6 +1183,13 @@ function _resumeSauNgu(force) {
   // Chỉ đồng bộ từ server khi socket đứt hoặc trang trở về từ bfcache.
   if (savedSessionId && (force || !socketConSong)) {
     try { openStoredSession(savedSessionId); } catch (e) {}
+  } else if (savedSessionId && turns[savedSessionId] && turns[savedSessionId].running) {
+    // Customer report, 17/11/2026: asked on the phone, locked the screen, came back and the answer never showed, with
+    // no reload button in the home-screen app. This page still believed the turn was running, so the last-message
+    // check below stood aside, and a frozen socket only got dropped after the pong wait (up to 20 s more). The turn
+    // may well have ended while the phone slept and its `turn_done` was lost with the socket: reconnect now, and
+    // `hello` brings the turns really running plus the answers finished meanwhile.
+    _dropDeadSocket("resume");
   } else if (savedSessionId) {
     // Socket "còn sống" trên giấy: iOS hay trả về một socket readyState OPEN mà thực ra đã
     // chết trong lúc app ngủ, tin tới lúc đó rơi mất. Từng gặp: hỏi một câu mà
@@ -1201,19 +1208,24 @@ function _resumeSauNgu(force) {
 function _chuanTinSo(s) {
   return String(s || "").replace(/<!--[\s\S]*?-->/g, "").replace(/\s+/g, " ").trim().slice(0, 80);
 }
-async function _dongBoNeuLech() {
+async function _dongBoNeuLech(isRetry) {
   const sid = savedSessionId;
   if (!sid || (turns[sid] && turns[sid].running)) return;
+  // A chat being opened meanwhile (the Partners page reopening its chat after a reload) wins: never redraw over it.
+  const seq = sessionOpenSeq;
   try {
     const s = await (await fetch(`/sessions/${encodeURIComponent(sid)}?limit=1`)).json();
-    if (sid !== savedSessionId || !s || s.error || (turns[sid] && turns[sid].running)) return;
+    if (sid !== savedSessionId || seq !== sessionOpenSeq || !s || s.error || (turns[sid] && turns[sid].running)) return;
     const m = (s.messages || []).slice(-1)[0];
     if (!m) return;
     const c = convo.length ? convo[convo.length - 1] : null;
     const cungVai = !!c && ((m.role === "assistant") === (c.role === "naota"));
     const chuSv = m.role === "user" ? chuNguoiGo(m.content || "") : (m.content || "");
     if (!cungVai || _chuanTinSo(chuSv) !== _chuanTinSo(c.text)) openStoredSession(sid);
-  } catch (e) {}
+  } catch (e) {
+    // A phone just back from sleep often has no network for a second or two: ask once more instead of giving up.
+    if (!isRetry) setTimeout(() => _dongBoNeuLech(true), 2000);
+  }
 }
 
 function handleMessage(data) {
@@ -1222,7 +1234,10 @@ function handleMessage(data) {
   if (data.type === "hello") {
     // Socket NỐI LẠI (không phải lần chào đầu): tin tới trong lúc đứt có thể đã rơi mất, ví dụ
     // câu trả lời của một lượt chạy xong khi điện thoại đang tắt màn hình. Đồng bộ nhẹ.
-    if (_daChao) setTimeout(_dongBoNeuLech, 300);
+    // Customer report, 17/11/2026: the FIRST hello checks too. A home-screen app that iOS closed in the background starts
+    // again from this browser's own copy of the chat (restoreSession), so an answer finished while it was closed never
+    // showed: only a reconnect used to ask the server. One cheap read of the last message, a reload only when it differs.
+    setTimeout(_dongBoNeuLech, 300);
     _baoDutVeMayChu();
     // Nhóm chat: gói team_message/team_replies lỡ trong lúc mất kết nối không được gửi lại, nên trang Nhóm
     // tự tải lại tin và kết cục lượt trả lời của nhóm đang mở khi socket nối lại.
@@ -1999,18 +2014,16 @@ function sendMessage(text, opts) {
   // endpoint() TRƯỚC khi gọi vào đây, mà lượt bị nuốt thì không bao giờ có turn_done để hạ nó,
   // nên orb đứng mãi ở "đang suy nghĩ" và người dùng không thấy tin mình vừa nói ở đâu cả.
   if ((turns[sid] && turns[sid].running) || (opts && opts.adaptive && _luotDaDung[sid]!=null)) {
-    // Ngoại lệ: đang chạy /goal thì người dùng gõ chữ CŨNG là chen ngang. Vòng tự động không phải lượt
-    // họ tự bấm gửi, nên "đợi nó xong rồi mới gõ được" là kẹt họ trong một vòng lặp họ không điều khiển.
-    // Dừng vòng hiện tại (stopCurrent cũng dừng /goal), tin của họ đi ngay sau khi lượt cũ dừng hẳn.
-    if (window.NaotaLenh && window.NaotaLenh.dangCoMucTieu() && !(_tuGiong || handsFree)) {
-      chatInput.value = ""; chatInput.style.height = "auto";
-      stopCurrent();
-      datTinCho(msg, opts);
-      return;
-    }
     // ("like Claude Code, type and send more while it works"): typed text goes to the
     // running turn. It reads it at its next step, or it runs right after the turn (server steer_inbox.py).
-    if (!(_tuGiong || handsFree)) { guiBoSung(msg, atts); return; }
+    // A /goal round is no longer stopped either. The message is a goal steer: the round reads it
+    // at its next step, and the goal keeps it for every later round (chat-lenh.js gopBoSung), so the goal goes on and
+    // adjusts to it instead of pausing.
+    if (!(_tuGiong || handsFree)) {
+      const _goal = !!(window.NaotaLenh && window.NaotaLenh.dangCoMucTieu());
+      if (guiBoSung(msg, atts, _goal) && _goal) { try { window.NaotaLenh.gopBoSung(sid, msg); } catch (e) {} }
+      return;
+    }
     // Đang gọi: KHÔNG dừng lượt đang chạy. Câu mới xếp hàng, gửi khi lượt cũ xong và
     // loa đọc xong. Đã gặp: nói chen một câu là "Đã dừng lượt này", mô hình bị
     // cắt liên tục nên không liền mạch; cuộc gọi chỉ được dừng khi bấm lại nút mic.
@@ -2059,12 +2072,12 @@ function sendMessage(text, opts) {
   const _goalRound = (_slash.type === "prefix" && window.NaotaLenh && window.NaotaLenh.docVong)
     ? window.NaotaLenh.docVong(_slash.prefix) : null;
   const userElement = _goalRound ? appendGoalRound(_goalRound, true) : appendUserMessage(msg, atts);
-  // /goal đang chạy: tin do vòng tự động gửi thì gắn nó vào phiên này; tin người dùng tự gõ thì
-  // dừng mục tiêu (lời của họ lên trước, không chạy tiếp vòng tự động dưới một câu họ vừa nói).
+  // /goal đang chạy: tin do vòng tự động gửi thì gắn nó vào phiên này; tin người dùng tự gõ thì gộp vào
+  // mục tiêu (2026-11-16: không tạm dừng nữa), vòng sau đi ngay sau lượt của tin này.
   try {
     if (window.NaotaLenh) {
       if (_slash.type === "prefix") window.NaotaLenh.daGui(sid, opts);
-      else window.NaotaLenh.chenNgang(sid);
+      else window.NaotaLenh.chenNgang(sid, msg);
     }
   } catch (e) {}
   // Lưu cả `url` (đường /upload/raw của file stage): thiếu nó thì F5 xong ảnh trong tin cũ
@@ -2914,7 +2927,8 @@ function appendUserMessage(text, attachments, ts, via) {
 // what the server reports: read by the running turn, or waiting to run right after it.
 let _boSungSeq = 0;
 const _boSungEl = {};   // client_id or "s<steer_id>" -> the status line of that message
-function guiBoSung(msg, atts) {
+// `goal`: a /goal runs in this chat, so the message joins the goal (server never runs it as its own turn).
+function guiBoSung(msg, atts, goal) {
   const sid = savedSessionId;
   const tep = (atts || []).filter(a => a.path);
   let chu = String(msg || "");
@@ -2934,7 +2948,7 @@ function guiBoSung(msg, atts) {
     div.appendChild(note);
     _boSungEl[cid] = note;
   }
-  ws.send(JSON.stringify({ action: "steer", session_id: sid, message: chu, client_id: cid }));
+  ws.send(JSON.stringify({ action: "steer", session_id: sid, message: chu, client_id: cid, goal: !!goal }));
   syncActiveUI();
   return true;
 }
@@ -2943,8 +2957,10 @@ function trangThaiBoSung(data) {
   if (data.type === "steer_ack") {
     const el = _boSungEl[data.client_id];
     if (el && data.steer_id) _boSungEl["s" + data.steer_id] = el;
-    ghi(el, data.mode === "live" ? "app.steer_live" : "app.steer_after");
+    ghi(el, data.mode === "live" ? "app.steer_live" : data.mode === "goal" ? "app.steer_goal" : "app.steer_after");
   } else {
+    // The running /goal round read the owner's message: its verdict now covers it (chat-lenh.js boSungDaDoc).
+    if (data.type === "steer_read") { try { if (window.NaotaLenh) window.NaotaLenh.boSungDaDoc(data.session_id); } catch (e) {} }
     (data.ids || []).forEach(id => ghi(_boSungEl["s" + id], data.type === "steer_read" ? "app.steer_read" : "app.steer_turn"));
   }
 }

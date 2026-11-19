@@ -341,6 +341,7 @@ class TaskStore:
         max_attempts: int = 3,
         task_id: str = "",
         dedupe_title: bool = True,
+        metadata: Optional[dict] = None,
     ) -> str:
         root = str(brain_root)
         self.ensure_board(root)
@@ -378,14 +379,15 @@ class TaskStore:
                         id, brain_root, title, normalized_title, intent, route,
                         capability, execution_mode, priority, status, needs_approval,
                         created_by, chat_id, idempotency_key, max_attempts,
-                        created_at, updated_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        created_at, updated_at, metadata_json
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     (
                         tid, root, title, normalized, intent or title, route or "auto",
                         capability or "auto", execution_mode or "auto",
                         max(1, min(3, int(priority or 2))), safe_status,
                         int(bool(needs_approval)), created_by or "user", str(chat_id or ""),
                         idempotency_key or "", max(1, int(max_attempts or 3)), ts, ts,
+                        _json(metadata or {}),
                     ),
                 )
                 for dep in dict.fromkeys(str(d) for d in (deps or []) if str(d)):
@@ -611,6 +613,51 @@ class TaskStore:
                 (task_id,),
             ).fetchall()
         return [{"id": str(r["id"]), "title": str(r["title"])} for r in rows]
+
+    # A job that keeps being running when the server dies gets its attempt back this many times; after that a cut
+    # costs an attempt like any failure, so a job that brings the server down cannot run for ever.
+    BOOT_REFUNDS = 2
+
+    def reclaim_boot(self, brain_root: str) -> int:
+        """At process start no worker is alive, so every `running` job of this brain was cut by the restart (owner,
+        16/11/2026: work in flight carries on by itself after an update). It goes back to `ready` at once instead of
+        waiting out its lease (`reclaim_stale`, up to 90 s), and the attempt the dead run had taken is given back:
+        a restart is not the job's failure, and on Windows every update is a hard kill, so three updates in the
+        middle of a long job used to fail it. Outside actions of the dead run stay protected by once_ledger.py.
+        Team jobs (`team_running`) are not touched: the team runner recovers those."""
+        ts = now()
+        with self._lock:
+            self._tx()
+            try:
+                rows = self._db.execute(
+                    "SELECT id, attempts, current_run_id FROM tasks WHERE brain_root=? AND status='running'",
+                    (brain_root,),
+                ).fetchall()
+                for row in rows:
+                    tid = str(row["id"])
+                    run_id = str(row["current_run_id"] or "")
+                    before = self._db.execute(
+                        "SELECT COUNT(*) AS n FROM task_runs WHERE task_id=? AND status='stale' AND error='server restarted'",
+                        (tid,),
+                    ).fetchone()["n"]
+                    back = 1 if int(before) < self.BOOT_REFUNDS else 0
+                    self._db.execute(
+                        """UPDATE tasks SET status='ready', claimed_by='', claim_expires_at=0, current_run_id='',
+                           attempts=MAX(attempts-?, 0), updated_at=? WHERE id=? AND status='running'""",
+                        (back, ts, tid),
+                    )
+                    if run_id:
+                        self._db.execute(
+                            """UPDATE task_runs SET status='stale', finished_at=?, error='server restarted'
+                               WHERE id=? AND status='running'""",
+                            (ts, run_id),
+                        )
+                    self._event(tid, "reclaimed", "server restarted", run_id)
+                self._db.commit()
+                return len(rows)
+            except Exception:
+                self._db.rollback()
+                raise
 
     def reclaim_stale(self, brain_root: str, active_worker_ids: set[str]) -> int:
         ts = now()
