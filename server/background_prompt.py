@@ -35,7 +35,7 @@ CLAUDE_MD_PATH = Path(__file__).resolve().parent.parent / "CLAUDE.md"
 # sha256 of the CLAUDE.md this contract was checked against. Changing CLAUDE.md fails
 # tests/python/test_background_prompt.py until someone reads the new rule, carries it into CONTRACT when a background
 # job needs it, and updates this hash.
-REVIEWED_CLAUDE_MD_SHA256 = "edcce32a6d507477d79d450d6d709b7865a95d6dff02a8e229d4372c636f4371"
+REVIEWED_CLAUDE_MD_SHA256 = "52daf4a7b8c71a25eec4df7f3d557661e2a19482aca72e28d07b80d82aa48e76"
 DEFAULT_BASIS_POINTS = 1000   # 10% of background jobs
 SALT = "background-prompt-v1"
 
@@ -82,7 +82,8 @@ options, no "Other") may follow it.
 `zalo_create_note|reminder|poll`; see images with `zalo_read_images`; react with `zalo_add_reaction`. Never the old \
 `naota_zalo_send`. Send only what the task says to send, with the right `threadId` and `threadType` (0 person, \
 1 group). A name matching several chats: never guess, ask. Exactly one exact match: send.
-- Customer chats from every channel are on the Chatbot page; store pack `naota.crm` adds `crm_*` tools.
+- Customer chats from every channel are on the Chatbot page; reply to one on its own channel with `inbox_find`, \
+then `inbox_reply` (several matches for a name: never guess, ask). Store pack `naota.crm` adds `crm_*` tools.
 - Images: create or edit with `naota_generate_image` (signed-in ChatGPT plan); it takes real reference images in \
 `images`. Show an image or file in the result with a path relative to the vault root: `![name](attachments/x.jpg)`, \
 `[name.pdf](exports/x.pdf)`. An .html app to SHARE (`/s/<token>/`) reads data by a relative path (`./data.json`), \

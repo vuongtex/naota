@@ -4,6 +4,19 @@
 
 NAOTA release history. Newest first.
 
+## [1.52.0] - 2026-11-20
+### Added
+- **Page videos post with a cover image.** The video tool takes a .jpg/.png thumbnail and can post as a Reel. The result says plainly whether the cover was set.
+- **Naota can message a customer straight from chat.** Ask "tell Lan size M is in stock" and it finds the chat in the inbox and sends through that chat's own Messenger Page, Instagram, Telegram or Zalo bot, as if you typed it in the inbox. Before, Naota said it had no Messenger send tool and asked you to paste the message yourself.
+- **The message is recorded as yours, and that chat's bot keeps running.** Only you can ask for this: a customer talking to a bot can never read or message other customers, and Naota sees only the chats of the brain in use.
+- **Links Naota sends on WhatsApp show a preview card** with the page's title and picture, instead of a bare link.
+- **The bot learns from replies you confirm.** The draft box in the Inbox has a "Bot learns this" tick, on by default. Sending a reply that carries your order, or one you rewrote, saves it to the Agent's documents (file `tri-thuc-chatbot/<agent>.md`). Next time another customer asks the same thing, the bot answers the way you confirmed. Untick it for something about one customer only.
+### Fixed
+- **Bot cards show the Facebook Page name instead of its numeric ID.** A Page added by pasting its token only stored the ID, so the channel chip showed a string of digits. Each time the bot starts, Naota now keeps the Page's real name and the chip shows it. A label you set yourself (a short name) still wins, and the ID shows when you hover the chip.
+- **The reply draft button follows the owner's order.** Type "schedule confirmed 8pm on the 21st and 22nd" and press draft: the reply gives that schedule instead of "I have no confirmed schedule yet" just because no document had it or the bot earlier said it was checking. The owner's order is the newest word, above the documents and the chat history, with no list of banned phrases. Rewrite follows it too.
+### Improved
+- **"AI draft" is now "Naota draft"** on the composer button, the mode above the chat and the lines of the draft.
+
 ## [1.51.0] - 2026-11-20
 ### Added
 - **Chat draws math formulas.** Formulas written as `$...$`, `$$...$$`, `\(...\)` or `\[...\]` now show as real fractions, roots and powers instead of raw code. KaTeX loads only the first time a formula appears; offline, the source text still shows. Money like "$5 and $10" is left alone.
