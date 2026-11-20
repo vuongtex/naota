@@ -212,6 +212,9 @@ OWNER_ONLY_TOOLS = frozenset({"naota_reply_policy", "naota_reply_policy_tune", "
                               # tìm và đọc web. Bot nói chuyện với khách lạ không được biến
                               # máy chủ của chủ thành máy đi đọc web hộ bất kỳ ai nhắn tới.
                               "naota_web_search", "naota_web_fetch",
+                              # 2026-11-19 (PR 1554 review): list, read and message EVERY customer of the shop. A
+                              # stranger chatting with a bot must never read other customers' chats or write to them.
+                              "inbox_find", "inbox_reply",
                               # 2026-11-05 audit: adds an MCP server to the store EVERY brain shares and dials it
                               # at once. A customer must never plant a server in the owner's tool list.
                               "naota_add_mcp"})
