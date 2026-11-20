@@ -306,7 +306,8 @@
     var t = String(typed || "");
     var head = t.match(/^\/([a-zA-Z0-9_-]+)(?:\s+([\s\S]*))?$/);
     if (head && list.indexOf(head[1].toLowerCase()) >= 0) return { cmd: head[1].toLowerCase(), rest: (head[2] || "").trim(), mid: false };
-    var re = /(^|\s)\/([a-zA-Z0-9_-]+)(?=\s|$)/g, m, hit = null;
+    // Punctuation right after the name ("/viet-email," "/viet-email.") still counts, as in the main chat.
+    var re = /(^|\s)\/([a-zA-Z0-9_-]+)(?=[.,!?;:\u2026)\]"'\u201d]*(?:\s|$))/g, m, hit = null;
     while ((m = re.exec(t)) !== null) { if (list.indexOf(m[2].toLowerCase()) >= 0) hit = m; }
     if (!hit) return null;
     var start = hit.index + hit[1].length;
@@ -2333,7 +2334,7 @@
     S.el.innerHTML =
       '<div class="tm-page" data-view="' + S.view + '" data-side="0">' +
       '<aside class="tm-list"><div class="tm-bar tm-list-bar"><strong class="tm-list-title">' + esc(tw("page.teams.label")) + "</strong>" +
-      '<button type="button" class="ws-btn tm-new">' + ic("plus") + esc(tw("teams.create")) + "</button>" +
+      '<button type="button" class="ws-btn tm-new" title="' + esc(tw("teams.create")) + '">' + ic("plus") + esc(tw("teams.create")) + "</button>" +
       '<button type="button" class="ws-btn tm-import" title="' + esc(tw("teams.import_title")) + '">' + ic("upload-cloud") +
       esc(tw("teams.import")) + "</button></div>" +
       '<div class="cside-proj ws-nhom-bar tm-tagbar" hidden></div>' +
@@ -4234,12 +4235,23 @@
       esc(kind === "link" ? x.url : x.path) + '" data-desc="' + esc(x.description || "") + '" aria-label="' +
       esc(tw("teams.info_desc")) + '" title="' + esc(tw("teams.info_desc")) + '">' + ic("pencil") + "</button>";
   }
+  // 2026-11-19 (owner: "popup làm lại khi sửa để mở rộng ra dễ sửa"): the same roomy edit box as the project drawer
+  // (text-edit-dialog.js) instead of prompt(); prompt() stays only as the fallback when that script is missing.
   function describeDoc(kind, ref, old) {
+    var send = function (text) {
+      var f = new FormData();
+      f.append("kind", kind); f.append("ref", ref); f.append("description", text);
+      return assetPost("/describe", f);
+    };
+    var E = window.NaotaTextEdit;
+    if (E && E.open) {
+      return E.open({ title: tw("teams.info_desc"), value: old || "", max: 200, placeholder: tw("proj.desc_ph"),
+        hint: String(ref || "").split("/").pop(), allowEmpty: true,
+        save: function (text) { return Promise.resolve(send(text)).then(function () { return ""; }); } });
+    }
     var text = window.prompt(tw("teams.info_desc_q"), old || "");
     if (text == null || text.trim() === (old || "")) return;
-    var f = new FormData();
-    f.append("kind", kind); f.append("ref", ref); f.append("description", text.trim());
-    return assetPost("/describe", f);
+    return send(text.trim());
   }
 
   // The info panel: who is in the team, the working folder, pictures, files and links shared in it.
@@ -6035,10 +6047,33 @@
       st: badge ? st : un ? "need" : "" });
   }
 
+  // 2026-11-19 (owner: "tạo team với nhập team ở trên 1 hàng thôi đừng xuống dòng 2 hàng nhìn rất lãng phí không gian,
+  // nếu kéo về thu nhỏ quá thì chỉ hiện icon thôi"): Create and Import stay on one row with their text on one line.
+  // When the list column (dragged narrower, a larger text size, a longer language) has no room for both labels, the
+  // bar gets .tm-chi-icon and the two buttons show only their icons (the title keeps the name on hover). Measured, not
+  // a fixed width, because the room the labels need depends on the font and the language.
+  function fitListBar() {
+    var bar = S && S.el && S.el.querySelector(".tm-list-bar");
+    if (!bar) return;
+    bar.classList.remove("tm-chi-icon");
+    if (bar.clientWidth && bar.scrollWidth > bar.clientWidth + 1) bar.classList.add("tm-chi-icon");
+  }
+  function watchListBar() {
+    var list = S && S.el && S.el.querySelector(".tm-list");
+    if (!list) return;
+    fitListBar();
+    if (typeof ResizeObserver === "function") {
+      S.barRO = new ResizeObserver(fitListBar);
+      S.barRO.observe(list);
+    }
+  }
+
   function render(el) {
     if (S && S.scroll) S.scroll.detach();
+    if (S && S.barRO) S.barRO.disconnect();
     S = fresh(el);
     shell();
+    watchListBar();
     var CS = typeof window !== "undefined" && window.NaotaChatScroll;
     var msgsBox = el.querySelector(".tm-msgs");
     S.scroll = CS && msgsBox ? CS.attach(msgsBox, { buttonClass: "nt-new-msg tm-new-msg", msg: ".tm-msg",

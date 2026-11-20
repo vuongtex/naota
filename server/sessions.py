@@ -1485,7 +1485,8 @@ class SessionStore:
                       project: Optional[str] = None,
                       channel: Optional[str] = None,
                       also_channels: Optional[List[str]] = None,
-                      archived_only: bool = False) -> List[Dict[str, Any]]:
+                      archived_only: bool = False,
+                      unread_first: bool = False) -> List[Dict[str, Any]]:
         """Danh sách hội thoại, MỤC GHIM luôn nằm trên đầu.
 
         `project`: bỏ trống = tất cả; "none" = các cuộc chưa xếp vào project nào;
@@ -1505,9 +1506,14 @@ class SessionStore:
         Mặc định (không chọn kênh) loại cả kênh cộng sự lẫn kênh bot khỏi lịch sử trang Trò chuyện.
 
         `archived_only`: only the archived chats (the "Archived" view of the history column).
+
+        `unread_first` (2026-11-19, owner: "những tin chấm đỏ mà chưa đọc em sắp xếp kéo lên trên đầu"): unread chats
+        right after the pinned ones, so the first page of the history column holds every red dot. Only the history
+        column asks for it: "the latest chat to continue" (limit=1) and every other caller keep plain newest first.
         """
         where_sql, params = self._list_where(brain, include_archived, project, channel, also_channels, archived_only)
         params.append(limit)
+        chua_doc_truoc = ("CASE WHEN s.pinned = 1 THEN 0 ELSE %s END DESC," % UNREAD_SQL) if unread_first else ""
         rows = self._read(
             f"""
             SELECT s.id, s.title, s.brain, s.engine, s.model, s.channel, s.cli_session_id,
@@ -1527,6 +1533,7 @@ class SessionStore:
             ORDER BY s.pinned DESC,
                      CASE WHEN s.pinned = 1 THEN (po.pos IS NULL) ELSE 0 END,
                      CASE WHEN s.pinned = 1 THEN po.pos ELSE 0 END,
+                     {chua_doc_truoc}
                      s.updated_at DESC, s.rowid DESC
             LIMIT ?
             """,
@@ -1573,6 +1580,20 @@ class SessionStore:
                 params.append(tien_to + "%")
         where_sql = ("WHERE " + " AND ".join(where)) if where else ""
         return where_sql, params
+
+    def unread_summary(self, brain: Any = None) -> Dict[str, int]:
+        """Unread chats per rail entry (2026-11-19): `chat` (the Chat page's own list) and `workspace` (partner and
+        workflow chats), archived ones left out. Same unread rule as the dot on each history row (UNREAD_SQL)."""
+        # With no channel, _list_where keeps only the Chat page's chats (partner, bot and team chats left out).
+        where, params = self._list_where(brain, False, None, None, None, False)
+        rows = self._read(f"SELECT COUNT(*) FROM sessions s {where} AND {UNREAD_SQL} = 1", params)
+        chat = int(rows[0][0] or 0) if rows else 0
+        cond, bparams = loc_brain(brain)
+        pre = " OR ".join("s.channel LIKE ?" for _ in KENH_CONG_SU)
+        q = (f"SELECT COUNT(*) FROM sessions s WHERE s.archived = 0 AND ({pre}) AND {UNREAD_SQL} = 1"
+             + (f" AND {cond}" if cond else ""))
+        ws = self._read(q, [p + "%" for p in KENH_CONG_SU] + list(bparams))
+        return {"chat": chat, "workspace": int(ws[0][0] or 0) if ws else 0}
 
     def mark_read(self, session_id: str, at: Optional[float] = None) -> bool:
         """The owner has this chat on screen: every message up to now is read. False when no such chat exists yet

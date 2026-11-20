@@ -4,6 +4,30 @@
 
 NAOTA release history. Newest first.
 
+## [1.51.0] - 2026-11-20
+### Added
+- **Chat draws math formulas.** Formulas written as `$...$`, `$$...$$`, `\(...\)` or `\[...\]` now show as real fractions, roots and powers instead of raw code. KaTeX loads only the first time a formula appears; offline, the source text still shows. Money like "$5 and $10" is left alone.
+- **A link that opens one task.** An address like `#task=<id>` opens the Tasks page and then that item: one of your own tasks (`m:`), a reminder (`r:`) or a job Naota does (`k:`). An outside page such as a home-made dashboard can lead straight to a task instead of only to the Tasks page.
+### Fixed
+- **Calling `naota_team` no longer says "does not exist" when the hub runs in lazy mode.** With many tools the hub hides most behind its search tool, but assistants call them by name and got an error. A call by name now reaches the right tool, through the same permission layer. The quick reminder cancel works again in lazy mode too.
+- **/goal and /plan work at the end or in the middle of a message.** They used to work only at the start, so "...do it for me /goal" went out as a plain chat. The rest of the text becomes the goal.
+- **Skills, agents and workflows installed mid-conversation can be called with "/" mid-sentence right away.** The page reloads its list before sending when it meets an unknown name, instead of treating it as plain text.
+- **Agent and workflow names work without the prefix.** "/seo-pro" opens the seo-pro agent, same as "/agent-seo-pro".
+- **Punctuation right after a command no longer hides it.** "/viet-email," and "/goal." are still recognized.
+- **Zooming a chat image no longer pushes it to the left.** At actual size, a picture smaller than the screen stays centered, and a larger one opens at the spot you clicked.
+### Improved
+- **A much quieter bell.** Answers in chats, partner chats and teams no longer go to the bell. A **red dot** on Chat, Partners and Team in the menu shows them instead, like the dot already on each chat.
+- **Scheduled jobs no longer ring on every run.** The result still reaches its chat or Telegram; the bell rings only when the job fails for good, or when the run itself finds something you must act on.
+- **Readable notice titles.** Each run writes a short headline about its result instead of "Checking...", and the card no longer repeats the title below it.
+- **Unread chats move to the top of the history.** Every chat with a red dot now sits in an **Unread** group right under Pinned, even an old one that used to be on a later page. Once read, it goes back to its place by date.
+- **Typing while Naota works turns the Stop button into Send** in the same spot, saving room. Empty the box and Stop comes back.
+- **The Learned and Documents tabs now show 20 items a page.** A long list gets a search box (ignores Vietnamese marks) and the Add button sits at the top, so adding never means scrolling to the end.
+- **Learned notes are easier to scan.** Filter by Fact, Decision or Term; each kind has its own colour; your own notes carry an orange bar on the left.
+- **Edit notes, lessons and document descriptions in a roomy box.** It replaces the browser's one-line prompt: the whole text shows, with a character count, the note type, and Ctrl+Enter to save. On a phone it slides up from the bottom.
+- **Naota finds the right tool far more often when many sources are connected.** Everyday requests such as "today's POS revenue", "Zalo message history" or "Google Ads cost" now reach the right tool, even when tool descriptions are in English. On 55 real test requests, hits rose from 20 to 55.
+- **Naming a source lists its tools**, and several accounts of one kind (three POS shops, two Zalo accounts) share one line instead of crowding out other tools.
+- **Calling a tool without its source prefix or with a typo still works** when only one tool matches; with several matches Naota names them to pick from. Search results are also shorter, so tokens stay low.
+
 ## [1.50.0] - 2026-11-19
 ### Added
 - **Bots read the files staff send customers on Zalo OA and Fanpage.** A PDF, Word or Excel quote, or a photo, sent from the OA app or the Page inbox now shows in the Inbox (labelled Staff) and the bot knows what it says when the customer asks about it. Photos are read by a connected brain that can see.
