@@ -5,6 +5,10 @@ Kiến trúc: Voice (browser) ⇄ FastAPI WebSocket ⇄ Claude Code CLI subproce
 Naota KHÔNG gọi Anthropic API trực tiếp. Mọi reasoning + tool calling đi qua
 `claude` CLI đã cài trên máy → tự kế thừa MCP, skills, auth.
 """
+# Before ANY startup work: a second copy on a port another Naota already serves must not run startup at all
+# (2026-11-19, see port_guard.py). Does nothing when main is imported by tests.
+import port_guard
+port_guard.claim_port()
 import brain_seed_i18n   # file hạt giống của brain mới theo ngôn ngữ người dùng
 import brain_label   # tên hiển thị của brain, tách khỏi thư mục
 import brain_export   # xuất/nhập cả bộ não thành một file .zip
@@ -14404,6 +14408,7 @@ async def _execute_workflow_raw(brain, slug, input="", tools=None, session_id=""
         attempt = 0
         reason = ""
         loi_buoc = ""      # bước này HỎNG vì sao. "" = bước chạy được.
+        step_limit: dict = {}   # Reset point when the step stopped on an exhausted plan
         while True:
             out = ""
             loi_engine = ""
@@ -14429,6 +14434,7 @@ async def _execute_workflow_raw(brain, slug, input="", tools=None, session_id=""
             # của đúng cái gói vừa hết để hỏi một câu vô nghĩa.
             loi_buoc = _loi_het_luot_cua_buoc(out, loi_engine, agent_prov, agent_name) or loi_engine
             if loi_buoc:
+                step_limit = _step_subscription_limit(out, loi_engine, agent_prov)
                 break
 
             if not verify_slug:
@@ -14486,7 +14492,10 @@ async def _execute_workflow_raw(brain, slug, input="", tools=None, session_id=""
             # còn tasks.py gộp step_error và error vào chung một biến.
             if loi_buoc != loi_engine:
                 yield {"type": "step_error", "i": i, "content": loi_buoc}
-            yield {"type": "error", "i": i, "agent": agent_name, "content": loi_buoc}
+            err_ev = {"type": "error", "i": i, "agent": agent_name, "content": loi_buoc}
+            if step_limit:
+                err_ev["limit"] = step_limit   # The Kanban queue waits for this reset
+            yield err_ev
             return
         if verified is False:
             # Still failing its check after the last retry. Before, the step was marked
@@ -14659,7 +14668,7 @@ def workflow_capability_guard(node, route_entry, approved: bool) -> str:
 
 
 async def _execute_workflow_resume_raw(brain, slug, task_id, node_id, code, tools=None,
-                                       session_id=""):
+                                       session_id="", mode=None):
     """Duyệt xong thì chạy tiếp workflow đang dừng. Yield event như /workflows/run."""
     graph = load_workflow_graph(brain, slug)
     if graph is None:
@@ -14671,7 +14680,7 @@ async def _execute_workflow_resume_raw(brain, slug, task_id, node_id, code, tool
                                                          "This task was not found or cannot be resumed.")}
         return
     canary = _get_workflow_canary(brain)
-    mk, agent_sysprompt, log_run, learn = _workflow_agent_helpers(brain, tools)
+    mk, agent_sysprompt, log_run, learn = _workflow_agent_helpers(brain, tools, mode)
     queue: asyncio.Queue = asyncio.Queue()
 
     async def sink(event):
@@ -14728,14 +14737,14 @@ async def _execute_workflow_resume_raw(brain, slug, task_id, node_id, code, tool
 
 
 async def execute_workflow_resume(brain, slug, task_id, node_id, code, tools=None,
-                                  session_id="", source="other"):
+                                  session_id="", source="other", mode=None):
     """Chạy tiếp lần đang chờ duyệt, ghi vào ĐÚNG bản ghi lịch sử đang `waiting`."""
     import workflow_runs
     cu = workflow_runs.get_store().tim_theo_task(task_id)
     wf_file = _workflows_dir(brain) / f"{slug}.md"
     meta, _ = _read_md(wf_file) if wf_file.exists() else ({}, "")
     async for ev in _ghi_lich_su(
-            _execute_workflow_resume_raw(brain, slug, task_id, node_id, code, tools, session_id),
+            _execute_workflow_resume_raw(brain, slug, task_id, node_id, code, tools, session_id, mode),
             brain=_brain_key(brain), slug=slug, name=meta.get("name", slug), input=(cu or {}).get("input", ""),
             source=source, session_id=session_id or (cu or {}).get("session_id", ""),
             run_id=(cu or {}).get("id")):
@@ -15659,6 +15668,7 @@ tasks_feature = tasks_mod.register(app, tasks_mod.TasksDeps(
     brain_root=_brain_root,
     atomic_write_text=_atomic_write_text,
     execute_workflow=execute_workflow,
+    execute_workflow_resume=execute_workflow_resume,   # 17/11/2026: an approval answered on the Tasks page runs on
     workflows_dir=_workflows_dir,
     build_system_prompt=_background_system_prompt,   # 2026-11-15: Settings pin or the task's language, not vi
     aux_model=_aux_model,
@@ -23772,6 +23782,10 @@ async def sessions_message_pin(session_id: str, message_id: int, request: Reques
 # lặng lẽ giữa lượt thì không.
 PHIEN_TS_MAX_FILE = 200        # trần một cuộc, đủ cho cuộc dài nhất mà không đổ ra vô hạn
 PHIEN_TS_MAX_LINK = 200
+# 2026-11-19 (owner: "phần file với link trong nhóm cần phân trang"): the team's archive asks one kind a page at a time
+# (`kind`, `q`, `offset`, `limit`), so it reaches every file and link, not only the newest 200 of the plain call.
+ASSET_KINDS = ("image", "file", "link")
+ASSET_PAGE_MAX = 100
 
 
 def _ts_trong_brain(broot: Path, duong: Path):
@@ -23790,8 +23804,13 @@ def _ts_trong_brain(broot: Path, duong: Path):
 
 
 @app.get("/sessions/{session_id}/assets")
-def sessions_assets(session_id: str, brain: str = Query("")):
+def sessions_assets(session_id: str, brain: str = Query(""), kind: str = Query(""), q: str = Query(""),
+                    offset: int = Query(0), limit: int = Query(20)):
     """File Naota đã tạo và link đã nhắc trong CUỘC TRÒ CHUYỆN này.
+
+    Without `kind`: the newest 200 files and 200 links, as before, plus `counts` (images, files, links) that are the true
+    totals even when a list is cut. With `kind` = image | file | link: one page of that kind, newest first, filtered by
+    every word of `q` (no accents, any case, in the name, label, path, url or description): `items`, `total`, `offset`.
 
     Ứng viên file có hai nguồn, và luật giữ khác nhau vì độ tin cậy khác nhau:
 
@@ -23802,10 +23821,49 @@ def sessions_assets(session_id: str, brain: str = Query("")):
       trong lời giải thích trông y hệt đường dẫn thật, nên nó phải tự chứng minh bằng cách
       tồn tại.
     """
+    got = _session_asset_lists(session_id, brain)
+    if got is None:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    b, ra_file, ra_link = got
+    if kind:
+        if kind not in ASSET_KINDS:
+            return JSONResponse({"ok": False, "error": localefmt.chu("Loại không hợp lệ", "Unknown kind")}, status_code=400)
+        rows = ra_link if kind == "link" else [f for f in ra_file if bool(f.get("image")) == (kind == "image")]
+        rows = _assets_matching(rows, q)
+        rows.sort(key=lambda x: -(x.get("ts") or 0))     # stable: the same time keeps the order of the plain list
+        lim = max(1, min(int(limit or 0), ASSET_PAGE_MAX))
+        off = max(0, int(offset or 0))
+        return {"ok": True, "brain": b, "kind": kind, "total": len(rows), "offset": off, "limit": lim,
+                "items": rows[off:off + lim]}
+    images = sum(1 for f in ra_file if f.get("image"))
+    return {"ok": True, "brain": b,
+            "files": ra_file[:PHIEN_TS_MAX_FILE],
+            "links": ra_link[:PHIEN_TS_MAX_LINK],
+            "counts": {"images": images, "files": len(ra_file) - images, "links": len(ra_link)}}
+
+
+def _assets_matching(rows: list, query: str) -> list:
+    """The rows whose name, label, path, url or description holds every word of `query` (no accents, any case)."""
+    words = [w for w in sessions.SessionStore.fold_text(query or "").split() if w]
+    if not words:
+        return list(rows)
+    fold = sessions.SessionStore.fold_text
+    out = []
+    for r in rows:
+        hay = fold(" ".join(str(r.get(k) or "") for k in ("name", "label", "brain_path", "url", "description")))
+        if all(w in hay for w in words):
+            out.append(r)
+    return out
+
+
+def _session_asset_lists(session_id: str, brain: str = ""):
+    """(brain, files, links) of one conversation, every row (no cap), or None when there is no such conversation.
+
+    Files: the ones the owner attached first, then the ones found in the messages, newest first. Links the same."""
     store = get_store()
     sess = store.get_session(session_id)
     if not sess:
-        return JSONResponse({"error": "not found"}, status_code=404)
+        return None
     b = (brain or sess.get("brain") or "brain").strip() or "brain"
     broot = Path(_brain_root(b)).resolve()
     ceil = _files_root(b)
@@ -23862,9 +23920,7 @@ def sessions_assets(session_id: str, brain: str = Query("")):
     ra_link = tay_link + [l for l in ra_link if l["url"] not in url_tay]
     for f in ra_file:
         f.pop("_that", None)
-    return {"ok": True, "brain": b,
-            "files": ra_file[:PHIEN_TS_MAX_FILE],
-            "links": ra_link[:PHIEN_TS_MAX_LINK]}
+    return b, ra_file, ra_link
 
 
 def _cuoc_tai_lieu_tay(session_id: str, sess: dict):
@@ -25587,6 +25643,25 @@ def _het_luot_ap_dao(raw: str) -> bool:
     chung một bộ nhận dạng (tasks.py không import được main).
     """
     return limit_learner.subscription_dominates(raw or "")
+
+
+def _step_subscription_limit(out: str, loi: str, provider: str) -> dict:
+    """The reset point of a workflow step that stopped on an exhausted plan, for the Kanban queue. {} = not that.
+
+    The step's `error` event carries only the translated sentence, which the queue's own parser cannot
+    read, so a `wf:` job retried at once and burnt its three attempts in seconds instead of waiting for the reset.
+    Same detection as `_loi_het_luot_cua_buoc`, so both agree on what counts as an exhausted plan."""
+    hint = _NHA_SANG_ENGINE.get(str(provider or "").strip(), "")
+    for raw, must_dominate in ((out, True), (loi, False)):
+        if must_dominate and not _het_luot_ap_dao(raw or ""):
+            continue
+        _msg, lim = _subscription_limit_event(raw or "", hint)
+        if lim:
+            return {"engine": str(getattr(lim, "engine", "") or hint),
+                    "reset_epoch": float(getattr(lim, "reset_epoch", 0) or 0),
+                    "reset_text": str(getattr(lim, "reset_text", "") or ""),
+                    "scope": str(getattr(lim, "scope", "") or "")}
+    return {}
 
 
 def _loi_het_luot_cua_buoc(out: str, loi: str, provider: str, agent_name: str) -> str:

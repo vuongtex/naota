@@ -6,6 +6,25 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.53.0] - 2026-11-20
+### Thêm mới
+- **Nhờ Naota đặt lịch chạy script ngay trong chat.** Ví dụ "mỗi phút chạy check_shop.py": job chạy thẳng script, không gọi model nên rẻ, và chạy được mỗi phút.
+- **Việc "Chờ bạn" của nhóm giờ trả lời được, không chỉ Thử lại.** Bấm **Trả lời** cạnh Thử lại: chọn "Làm tiếp" để thành viên làm lại bước đó kèm câu trả lời của bạn, hoặc "Hỏi lại" để hỏi rõ trước, việc vẫn chờ bạn.
+- Câu trả lời và câu hỏi đều hiện trong khung chat của nhóm, có trích lý do việc dừng ở trên, nên đọc lại vẫn biết đang trả lời chuyện gì.
+- **Tab Thông tin của team gọn lại như Zalo.** Ảnh, File, Link mỗi mục chỉ hiện vài cái mới nhất, kèm nút **Xem tất cả**.
+- **Kho lưu trữ:** bấm Xem tất cả là mở ngay trong bảng bên, có ba tab Ảnh, File, Link, ô tìm không cần dấu, xếp theo ngày và phân trang 20 mục một trang.
+- Mỗi file có ô màu ghi đuôi file, dung lượng, và báo **File không còn** khi file đã bị xoá hay dời đi. Team có hơn 200 file giờ xem được hết.
+### Sửa lỗi
+- **Danh sách model Codex nhận đủ bản mới hơn đã cài.** Naota so phiên bản Codex trên `PATH` với bản cài trong thư mục người dùng để không bỏ sót model mới.
+- **Duyệt một mốc của quy trình ở trang Nhiệm vụ thì quy trình chạy tiếp, không hỏi duyệt lại.** Trước đây mỗi lần trả lời, quy trình chạy lại từ bước đầu nên lại dừng đúng mốc cũ. Giờ trả lời "Duyệt", "ok" hay "đồng ý" là chạy tiếp từ mốc đó. Câu yêu cầu sửa vẫn cho quy trình làm lại kèm lời sửa như cũ.
+- **Việc chạy quy trình trên trang Nhiệm vụ biết đợi gói mở lại.** Trước đây bước nào vấp gói thuê bao hết lượt là việc thử lại ngay, đốt hết 3 lần thử trong vài giây rồi kẹt. Giờ việc tự hẹn chạy lại đúng giờ gói mở và không tính vào số lần thử.
+- **Naota không còn bị kẹt cảnh mất kết nối vì một bản chạy thừa giữ cổng.** Trên Mac, bản launchd quản lý giờ tự tắt bản Naota chạy lạc rồi tiếp quản; bản thừa khác thì thoát ngay, không chạy phần khởi động.
+- **Cập nhật trên Mac luôn đổi ca qua launchd**, kể cả khi lệnh kiểm tra của launchd lỗi, nên không còn sinh ra bản chạy ngoài launchd.
+- **Naota Store không còn trống trơn khi máy chưa đặt mật khẩu.** Cài gói cần đăng nhập thật, nên trước đây Store bị chặn mà không nói vì sao. Giờ trang nói rõ cần đặt mật khẩu và có nút Đặt mật khẩu dẫn thẳng tới trang Tài khoản.
+### Cải thiện
+- **Kết quả của lịch được lưu đủ, không còn cắt ở 2.000 ký tự.** Lần chạy sau vẫn chỉ đọc phần đầu cho gọn, nhưng giờ biết rõ là đã bị cắt.
+- **Lịch lặp bị lỡ lượt thì trang Nhiệm vụ ghi "lỡ N lần".** Trước đây khi một lượt chạy trễ hay chạy lâu, các lượt kế bị bỏ qua mà không ai biết.
+
 ## [1.52.0] - 2026-11-20
 ### Thêm mới
 - **Đăng video lên Trang có ảnh bìa.** Công cụ đăng video nhận thêm ảnh .jpg/.png làm thumbnail mặc định, và có chế độ đăng dạng Reels. Kết quả ghi rõ ảnh bìa đã gắn hay chưa.

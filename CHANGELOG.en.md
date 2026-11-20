@@ -4,6 +4,25 @@
 
 NAOTA release history. Newest first.
 
+## [1.53.0] - 2026-11-20
+### Added
+- **Ask Naota in chat to run a script on a schedule.** For example "run check_shop.py every minute": the job runs the script directly with no model, so it is cheap and can run every minute.
+- **A team job that waits for you can be answered, not only retried.** Press **Reply** next to Retry: "Go on" has the member do the step again with your answer, "Ask back" asks first and the job keeps waiting.
+- Both the answer and the question show in the team chat under a quote of why the job stopped, so it reads clearly later.
+- **A team's Info tab is short again, like Zalo.** Pictures, Files and Links each show only the newest few, with a **See all** button.
+- **Storage view:** See all opens right in the side panel, with Pictures, Files and Links tabs, a search box that ignores accents, rows grouped by day and 20 per page.
+- Each file shows a coloured tile with its extension, its size, and **File is gone** when it was deleted or moved. Teams with more than 200 files can now see all of them.
+### Fixed
+- **Codex model lists include newer installed versions.** Naota compares the Codex CLI on `PATH` with the version installed in the user directory so newer models are not missed.
+- **Approving a workflow step on the Tasks page runs the workflow on, with no second approval request.** Each answer used to start the workflow again from step one, so it stopped at the same step again. Now "Approve", "ok" or "yes" carries on from that step. A change request still makes the workflow redo the work with it, as before.
+- **Workflow jobs on the Tasks page wait for the plan to reset.** A step that hit an exhausted subscription used to retry at once, spend all three attempts in seconds and get stuck. The job now waits until the plan resets, and the wait does not count as an attempt.
+- **Naota no longer gets stuck dropping connections because a stray copy holds its port.** On a Mac the copy launchd manages now stops a stray Naota and takes over; any other extra copy exits at once, before its startup runs.
+- **Updates on a Mac always restart through launchd**, even when the launchd check fails, so they no longer leave a copy running outside launchd.
+- **Naota Store is no longer blank when no password is set.** Installing a pack needs a real sign-in, so the Store was shut with no reason given. It now says a password is needed, with a Set a password button that opens the Account page.
+### Improved
+- **A scheduled job keeps its whole result, no longer cut at 2,000 characters.** The next run still reads only the start, but now knows it was cut.
+- **A repeating job that skipped runs shows "N missed" on the Tasks page.** Before, when one run was late or long, the next ones were skipped and nobody knew.
+
 ## [1.52.0] - 2026-11-20
 ### Added
 - **Page videos post with a cover image.** The video tool takes a .jpg/.png thumbnail and can post as a Reel. The result says plainly whether the cover was set.
