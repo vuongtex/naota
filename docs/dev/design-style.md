@@ -121,6 +121,10 @@ Chủ thử trên iPhone, iPad và app thêm vào màn hình chính, thường g
   chat và thẻ lớn bo 24px.
 - **Khoảng cách đều,** không có gì dính sát vào chữ ("margin các thứ đang dính hết vào nhau", 05/11).
 - **Hàng tóm tắt chỉ hiện con số;** chi tiết mở trong popup. Danh sách dài thì mỗi trang 20 mục, có ô tìm.
+- **Ảnh, file, link của một cuộc chat làm như Zalo** (19/11: "phần file với link trong nhóm cần phân trang ... zalo nó
+  làm xem tất cả này xong ấn vào thì nó vào kho lưu trữ"): bảng Thông tin chỉ hiện vài mục mới nhất (6 ảnh, 3 file,
+  3 link) và nút "Xem tất cả"; bấm vào mở "Kho lưu trữ" ngay trong bảng đó, có nút quay lại, tab Ảnh/File/Link kèm số,
+  ô tìm, xếp theo ngày (ảnh theo tháng), phân trang. Mẫu ở tab Thông tin của trang Nhóm (`teams.js`, `assetsHtml`).
 - **Sửa một đoạn chữ thì mở khung rộng, không dùng `prompt()` của trình duyệt** (19/11: "popup làm lại khi sửa để mở
   rộng ra dễ sửa"). Dùng chung `NaotaTextEdit.open(...)` (`dashboard/text-edit-dialog.js`): ô chữ tự giãn, đếm ký tự,
   lựa chọn dạng chip, Ctrl+Enter lưu; điện thoại là bảng kéo lên. Danh sách dài thì nút Thêm đứng cạnh ô tìm ở trên
@@ -151,6 +155,10 @@ Chủ thử trên iPhone, iPad và app thêm vào màn hình chính, thường g
 - **Nút nguy hiểm** (ngắt, xoá, chạy lại) đứng riêng, ở cuối, màu đỏ, không đặt sát nút hay bấm như nút Chép.
 - **Gợi ý nhỏ thì làm nhỏ:** mũi tên gợi ý chỉ là ">" nhỏ ngay sau chữ, không làm thành nút tròn (13/11).
 - **Thao tác trên tin nhắn** nằm thành một hàng dưới bong bóng. Thả cảm xúc kiểu Zalo ở góc bong bóng.
+- **Thẻ nào chờ bạn cũng trả lời được, không chỉ có nút cố định** (17/11 thẻ duyệt, 19/11 việc nhóm dừng giữa chừng: "phải
+  tương tác phản hồi và trao đổi lại được"). Cạnh nút quyết định có nút **Trả lời** mở ô gõ ngay trên thẻ: chọn kiểu trả
+  lời (làm tiếp, hỏi lại...), gợi ý bấm nhanh, Ctrl+Enter gửi, Esc đóng. Câu trả lời hiện vào khung chat, trích lý do ở
+  trên. Dùng chung khung `.tm-ap-rp` của thẻ duyệt.
 
 ## 7. Câu chữ trên màn hình
 

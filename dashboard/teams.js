@@ -925,18 +925,85 @@
       (o.meta ? '<div class="tm-jb-meta">' + o.meta + "</div>" : "") + (o.below || "") + "</div>";
   }
 
+  // ───────────── reply box of a "Waiting for you" job (19/11/2026) ─────────────
+  // Owner: "một số việc chờ như này không hỏi lại được cũng không tương tác được để làm rõ yêu cầu", "nó chỉ có nút thử
+  // lại thôi mà thử lại không được thì chỉ có ấn X để tắt thôi, phải tương tác phản hồi và trao đổi lại được". A job that
+  // stopped on a step gets a Reply button next to Retry. Answer: the words go to the chat and the member does the step
+  // again with them (POST .../answer). Ask: a chat message to that member, quoting why it stopped; the job keeps waiting.
+  var ANSWER_KINDS = ["failed", "no_progress", "interrupted", "auto_retry"];
+  var JOB_REPLY = { id: "", mode: "answer", draft: "", cid: "" };
+  var JR_MODES = [
+    { id: "answer", icon: "play", key: "teams.jr.mode_answer", ph: "teams.jr.ph_answer", send: "teams.jr.send_answer",
+      sugs: ["teams.jr.sug_skip", "teams.jr.sug_current", "teams.jr.sug_simpler"] },
+    { id: "ask", icon: "circle-help", key: "teams.jr.mode_ask", ph: "teams.jr.ph_ask", send: "teams.jr.send_ask",
+      sugs: ["teams.jr.sug_need", "teams.jr.sug_where", "teams.jr.sug_other"] }];
+
+  function canAnswer(t) { return ANSWER_KINDS.indexOf(t.block_kind || "failed") >= 0; }
+
+  // The member whose step stopped the job: the last failed or interrupted step ("" when none is listed).
+  function stuckAgent(t) {
+    var steps = t.steps || [];
+    for (var i = steps.length - 1; i >= 0; i--) {
+      if (steps[i].status === "failed" || steps[i].status === "interrupted") return steps[i].agent_key || "";
+    }
+    return "";
+  }
+
+  function jobReplyButtonHtml(t, open) {
+    return '<button type="button" class="ws-btn tm-jr-open' + (open ? " tm-ap-reply-on" : "") + '" data-jr-open="' + esc(t.id) +
+      '" aria-expanded="' + (open ? "true" : "false") + '">' + ic("reply") + "<span>" + esc(tw("teams.jr.reply")) + "</span></button>";
+  }
+
+  function jobReplyHtml(t, ui, members) {
+    var mode = JR_MODES.filter(function (x) { return x.id === ui.mode; })[0] || JR_MODES[0];
+    var who = memberOf(members, stuckAgent(t));
+    var seg = JR_MODES.map(function (x) {
+      return '<button type="button" role="radio" class="tm-ap-seg-b" aria-checked="' + (x.id === mode.id ? "true" : "false") +
+        '" data-jr-mode="' + x.id + '">' + ic(x.icon) + "<span>" + esc(tw(x.key)) + "</span></button>";
+    }).join("");
+    var sugs = mode.sugs.map(function (k) {
+      return '<button type="button" class="tm-ap-sug" data-jr-sug="' + esc(k) + '">' + esc(tw(k)) + "</button>";
+    }).join("");
+    var ph = tw(mode.ph, { name: who ? (who.name || who.slug) : tw("teams.jr.member") });
+    return '<div class="tm-ap-rp tm-jr-rp" data-jr-rp="' + esc(t.id) + '"><div class="tm-ap-seg tm-jr-seg" role="radiogroup" aria-label="' +
+      esc(tw("teams.jr.reply")) + '">' + seg + '</div><textarea class="tm-jr-ta" rows="3" placeholder="' + esc(ph) + '" aria-label="' +
+      esc(ph) + '"></textarea><div class="tm-ap-sugs">' + sugs + '</div><div class="tm-ap-rp-foot"><button type="button" ' +
+      'class="ws-btn tm-ap-cancel" data-jr-open="">' + esc(tw("teams.cancel")) + '</button><button type="button" class="ws-btn tm-ap-send" ' +
+      'data-jr-send="' + mode.id + '" data-jr-task="' + esc(t.id) + '">' + ic("send") + "<span>" + esc(tw(mode.send)) + "</span></button></div></div>";
+  }
+
+  // What Send posts. Both carry the reason quoted above the words, so the chat shows what was answered. Answer: the job's
+  // answer route (the step runs again). Ask: a plain chat message to the member whose step stopped (the leader when
+  // that member left), the job keeps waiting.
+  function jobReplyPayload(t, mode, words, members, cid) {
+    var Q = quoteApi();
+    var reason = String(t.block_reason || tw(BLOCK_KEY[t.block_kind || "failed"] || BLOCK_KEY.failed)).replace(/\s+/g, " ").slice(0, 400);
+    var quote = tw("teams.jr.quote", { title: t.title || "" }) + ": " + reason;
+    var text = Q ? Q.ghep(quote, words) : quote + "\n\n" + words;
+    if (mode === "ask") {
+      var key = stuckAgent(t), mem = key ? memberOf(members, key) : null;
+      return { mode: "ask", path: "/messages", body: { text: text, as_job: false, client_msg_id: cid,
+        mentions: mem && (!mem.status || mem.status === "active") ? [key] : [] } };
+    }
+    return { mode: "answer", path: "/tasks/" + encodeURIComponent(t.id) + "/answer",
+      body: { answer: words, text: text, client_msg_id: cid } };
+  }
+
   function blockedCardHtml(t, view) {
     view = view || {};
     var kind = t.block_kind || "failed";
     var open = jobOpen(t, view, false);
     // review: criteria can be set on a stopped job too (acceptance_failed re-checks without redoing the work).
     var checking = kind === "acceptance_review" || kind === "acceptance_checking";
+    var answerable = canAnswer(t);
+    var replying = answerable && view.reply && view.reply.id === t.id;
     return jobCardHtml(t.title, { cls: "tm-jb-ask", lead: stateIcon("ask"), titleAttr: 'data-view-task="' + esc(t.id) + '"',
       icons: (checking ? "" : jobIcon("clipboard-check", 'data-acc-edit="' + esc(t.id) + '"', tw("teams.acc.set"))) +
         jobIcon("x", 'data-cancel="' + esc(t.id) + '"', tw("teams.jb.cancel"), "tm-jb-bad"),
       meta: (view.leaderKey ? faceName(view.members, view.leaderKey) : "") + jobFoldHtml(t, open),
       below: '<div class="tm-jb-why">' + esc(t.block_reason || tw(BLOCK_KEY[kind] || BLOCK_KEY.failed)) + '</div><div class="tm-jb-go">' +
-        blockedButtonHtml(t) + "</div>" + (open ? jobStepsHtml(t.steps, view.members) : "") });
+        (answerable ? jobReplyButtonHtml(t, replying) : "") + blockedButtonHtml(t) + "</div>" +
+        (replying ? jobReplyHtml(t, view.reply, view.members) : "") + (open ? jobStepsHtml(t.steps, view.members) : "") });
   }
 
   function runningCardHtml(t, view) {
@@ -1170,7 +1237,7 @@
       '<button type="button" class="tm-sr-title" data-view-task="' + esc(t.id) + '">' + esc(t.title) + "</button>" +
       jobIcon("x", 'data-cancel="' + esc(t.id) + '"', tw("teams.jb.cancel"), "tm-jb-bad") + "</div>" +
       '<div class="tm-sr-why">' + esc(t.block_reason || tw(BLOCK_KEY[kind] || BLOCK_KEY.failed)) + "</div>" +
-      '<div class="tm-sr-go">' + blockedButtonHtml(t) + "</div></li>";
+      '<div class="tm-sr-go">' + (canAnswer(t) ? jobReplyButtonHtml(t, false) : "") + blockedButtonHtml(t) + "</div></li>";
   }
 
   function stripRunRow(t, members) {
@@ -1271,8 +1338,9 @@
     return Math.min(Math.max(0, Number(page) || 0), pages - 1);
   }
 
-  function pagerHtml(key, page, total) {
-    var pages = Math.ceil(total / JOBS_PER_PAGE);
+  // `per`: rows a page (the archive of files and links pages by 20; jobs by five).
+  function pagerHtml(key, page, total, per) {
+    var pages = Math.ceil(total / (per || JOBS_PER_PAGE));
     if (pages < 2) return "";
     var arrow = function (icon, label, dir, off) {
       return '<button type="button" class="tm-jb-ic" data-job-page="' + key + '" data-dir="' + dir + '" aria-label="' + esc(label) +
@@ -3248,7 +3316,7 @@
   function jobsView() {
     return { openFin: S.openFin, archOpen: S.archOpen, members: S.team ? S.team.members : [], accEdit: S.accEdit,
       leaderKey: S.team ? S.team.leader_key : "", fold: S.jobFold, finPage: S.finPage, archPage: S.archPage,
-      archQuery: S.archQuery, details: S.jobDetails, fullReport: S.fullReport };
+      archQuery: S.archQuery, details: S.jobDetails, fullReport: S.fullReport, reply: JOB_REPLY };
   }
 
   // The Archive is listed without results (it can hold hundreds of jobs): one job's report is read when it is opened.
@@ -3398,8 +3466,12 @@
     if (side.hidden) { side.innerHTML = ""; return; }
     var keep = side.querySelector(".tm-side-body");
     var top = keep ? keep.scrollTop : 0;
+    // A forced redraw while typing in the archive search: the box comes back with the cursor where it was.
+    var typing = typeof document !== "undefined" && document.activeElement && side.contains(document.activeElement) &&
+      document.activeElement.classList.contains("tm-as-q") ? document.activeElement.selectionStart : -1;
     var tabs = sideTabsHtml(S.tab, S.queue);
-    var body = S.tab === "info" ? infoTabHtml(S.team) : S.tab === "jobs" ? queueHtml(S.queue, jobsView())
+    var body = S.tab === "info" ? (S.assets ? assetsHtml(S.assets, (S.info && S.info.counts) || {}) : infoTabHtml(S.team))
+      : S.tab === "jobs" ? queueHtml(S.queue, jobsView())
       : teamTabHtml(S.team, S.agents, { openMember: S.openMember, advOpen: S.advOpen, turns: S.turns, mandateEdit: S.mandateEdit });
     side.innerHTML = '<div class="tm-bar tm-side-bar"><div class="tm-tabs" role="tablist">' + tabs + "</div>" +
       '<button type="button" class="ws-btn tm-icon tm-close" aria-label="' + esc(tw("teams.close")) + '" title="' +
@@ -3407,6 +3479,8 @@
       esc(tw(TAB_KEY[S.tab])) + '">' + body + "</div>";
     var nb = side.querySelector(".tm-side-body");
     if (nb && keep) nb.scrollTop = top;
+    var qbox = typing >= 0 ? side.querySelector(".tm-as-q") : null;
+    if (qbox) { try { qbox.focus({ preventScroll: true }); qbox.setSelectionRange(typing, typing); } catch (e) { /* old browser */ } }
     attachSideResize(side);
     if (window.NaotaPulse) {
       Array.prototype.forEach.call(side.querySelectorAll(".tm-pulse[data-pulse-slug]"), function (el) {
@@ -3417,6 +3491,7 @@
       });
     }
     if (window.NaotaAgentJudge && window.NaotaAgentJudge.hydrate) window.NaotaAgentJudge.hydrate(side);
+    jrRestore(false);
   }
 
   function drawAll(stick) {
@@ -3457,6 +3532,7 @@
 
   function closeSide() {
     S.side = false;
+    S.assets = null;
     rememberSide(false);
     drawSide(true);
     drawHead();
@@ -3691,7 +3767,7 @@
     S.tabAuto = S.side;
     if (S.side) S.tab = defaultTab(null, listed && listed.counts);
     S.picker = null; S.draft = null; S.picked = []; S.retrying = {};
-    S.replyTo = null; S.plusOpen = false; S.renamingHead = false; forgetAtts(S.atts); S.atts = []; S.folder = null; S.repos = []; S.ghIcon = null; S.info = null; S.infoFind = null;
+    S.replyTo = null; S.plusOpen = false; S.renamingHead = false; forgetAtts(S.atts); S.atts = []; S.folder = null; S.repos = []; S.ghIcon = null; S.info = null; S.infoFind = null; S.assets = null;
     S.typing = []; S.pinned = []; S.pinsOpen = false; S.unclamped = {}; S.listCache = null; S.outbox = []; stopReveal();
     closeFolderPanel();
     closeGithubPanel();
@@ -4125,8 +4201,10 @@
     return fetch("/sessions/" + q(sid) + "/assets?brain=" + q(brain()), { credentials: "same-origin" })
       .then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (d) {
         if (sessionId() !== sid) return;
-        S.info = { files: (d && d.files) || [], links: (d && d.links) || [], err: d && d.ok === false ? (d.error || "") : "" };
-        if (S.side && S.tab === "info") drawSide(true);
+        S.info = { files: (d && d.files) || [], links: (d && d.links) || [], counts: (d && d.counts) || null,
+          err: d && d.ok === false ? (d.error || "") : "" };
+        // The archive open: its page is read again (a file sent or removed shows there too), the search box is kept.
+        if (S.side && S.tab === "info") { if (S.assets) loadAssets(); else drawSide(true); }
       }).catch(function () { S.info = { files: [], links: [], err: tw("teams.err_network") }; if (S.side && S.tab === "info") drawSide(true); });
   }
 
@@ -4254,6 +4332,253 @@
     return send(text.trim());
   }
 
+  // ───────────── Short lists on Info, the rest in the archive ─────────────
+  // Owner: "phần file với link trong nhóm cần phân trang ... zalo nó làm xem tất cả này xong ấn vào thì nó vào kho lưu
+  // trữ". Info shows the newest few of each kind and a "See all" button; the archive (Kho lưu trữ) opens in the same
+  // panel with three tabs, a search box, the rows grouped by day and a pager. It reads one page at a time from the
+  // server (GET /sessions/{id}/assets?kind=...), so it reaches every file, not only the 200 newest the panel receives.
+  var PREVIEW = { image: 6, file: 3, link: 3 };
+  var ASSET_PER_PAGE = { image: 24, file: 20, link: 20 };
+  var ASSET_KINDS = ["image", "file", "link"];
+  var ASSET_TAB_KEY = { image: "teams.storage_tab_images", file: "teams.storage_tab_files", link: "teams.storage_tab_links" };
+  var ASSET_EMPTY_KEY = { image: "teams.info_no_images", file: "teams.info_no_files", link: "teams.info_no_links" };
+  // The coloured tile of a file, by what kind of file it is (the tile shows the extension, as in Zalo).
+  var FILE_TYPES = { pdf: "pdf", doc: "doc", docx: "doc", txt: "doc", md: "doc", rtf: "doc", odt: "doc", pages: "doc",
+    xls: "sheet", xlsx: "sheet", csv: "sheet", ods: "sheet", numbers: "sheet", ppt: "slide", pptx: "slide", key: "slide",
+    zip: "zip", rar: "zip", "7z": "zip", tar: "zip", gz: "zip", mp3: "media", wav: "media", m4a: "media", ogg: "media",
+    flac: "media", mp4: "media", mov: "media", webm: "media", mkv: "media", html: "code", htm: "code", js: "code", ts: "code",
+    py: "code", json: "code", css: "code", sh: "code", yml: "code", yaml: "code", xml: "code" };
+
+  function fileExt(name) {
+    var m = /\.([a-z0-9]{1,5})$/i.exec(String(name || ""));
+    return m ? m[1].toLowerCase() : "";
+  }
+  function uiLang() {
+    return (typeof document !== "undefined" && document.documentElement && document.documentElement.lang) || "vi";
+  }
+  // "95,7 KB", "1,8 MB": the decimal mark of the screen's language.
+  function sizeText(n) {
+    n = Number(n) || 0;
+    if (n <= 0) return "";
+    var units = ["B", "KB", "MB", "GB"], i = 0;
+    while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+    var num;
+    try { num = n.toLocaleString(uiLang(), { maximumFractionDigits: i ? 1 : 0 }); } catch (e) { num = String(Math.round(n * 10) / 10); }
+    return num + " " + units[i];
+  }
+  // The heading of a day in the archive: Today, Yesterday, "Ngày 5 tháng 10", the year only when it is not this one.
+  function dayLabel(sec) {
+    if (!sec) return tw("teams.storage_undated");
+    var d = new Date(Number(sec) * 1000), n = new Date(), y = new Date(n.getFullYear(), n.getMonth(), n.getDate() - 1);
+    if (d.toDateString() === n.toDateString()) return tw("teams.storage_today");
+    if (d.toDateString() === y.toDateString()) return tw("teams.storage_yesterday");
+    // The month: its number in Vietnamese ("tháng 10"), its short name elsewhere ("Oct 5").
+    var m = String(d.getMonth() + 1);
+    if (!/^vi/i.test(uiLang())) { try { m = d.toLocaleDateString(uiLang(), { month: "short" }); } catch (e) { /* keep the number */ } }
+    return tw(d.getFullYear() === n.getFullYear() ? "teams.storage_day" : "teams.storage_day_year", { d: d.getDate(), m: m, y: d.getFullYear() });
+  }
+  // The heading of a month (pictures): "Tháng 11", "Tháng 10, 2025"; "November", "October 2025".
+  function monthLabel(sec) {
+    if (!sec) return tw("teams.storage_undated");
+    var d = new Date(Number(sec) * 1000), m = String(d.getMonth() + 1);
+    if (!/^vi/i.test(uiLang())) { try { m = d.toLocaleDateString(uiLang(), { month: "long" }); } catch (e) { /* keep the number */ } }
+    return tw(d.getFullYear() === new Date().getFullYear() ? "teams.storage_month" : "teams.storage_month_year", { m: m, y: d.getFullYear() });
+  }
+  // Rows of one page, cut into days (files, links) or months (pictures: a day rarely holds a full row of them), newest
+  // first as the server sends them.
+  function byDay(items, months) {
+    var out = [], cur = null;
+    (items || []).forEach(function (x) {
+      var d = x.ts ? new Date(Number(x.ts) * 1000) : null;
+      var key = !d ? "" : months ? d.getFullYear() + "-" + d.getMonth() : d.toDateString();
+      if (!cur || cur.key !== key) { cur = { key: key, label: months ? monthLabel(x.ts) : dayLabel(x.ts), items: [] }; out.push(cur); }
+      cur.items.push(x);
+    });
+    return out;
+  }
+  // A link with no name: what follows "https://" and "www.", so two pages of one site are told apart.
+  function prettyUrl(url) {
+    return String(url || "").replace(/^[a-z][a-z0-9+.-]*:\/\//i, "").replace(/^www\./i, "").replace(/\/$/, "");
+  }
+  function newestFirst(list) {
+    return (list || []).slice().sort(function (a, b) { return (Number(b.ts) || 0) - (Number(a.ts) || 0); });
+  }
+  function hostOf(url) {
+    var m = /^[a-z][a-z0-9+.-]*:\/\/([^/?#]+)/i.exec(String(url || ""));
+    return m ? m[1].replace(/^www\./i, "") : "";
+  }
+
+  // One file row, the same on Info and in the archive: a tile with the extension, the name, a line with the size (and
+  // the day on Info), the description, then the pencil and the X of a document attached to the team.
+  function fileRowHtml(f, withDay) {
+    var where = f.brain_path || f.path;
+    var ext = fileExt(f.name || f.label || where);
+    var tile = f.dir ? '<span class="tm-as-type" data-ft="dir">' + ic("folder") + "</span>"
+      : '<span class="tm-as-type" data-ft="' + (FILE_TYPES[ext] || "other") + '"' + (ext.length > 3 ? ' data-long="1"' : "") + ">" +
+        esc((ext || "?").toUpperCase()) + "</span>";
+    var meta = [];
+    if (f.size) meta.push(esc(sizeText(f.size)));
+    if (f.exists === false) meta.push('<span class="tm-as-gone">' + ic("circle-alert") + esc(tw("teams.storage_gone")) + "</span>");
+    if (withDay && f.ts) meta.push(esc(shortWhen(f.ts)));
+    // a folder document opens on the Files page; there is no raw file to serve for it. It is a <button>: the
+    // page's one click handler only looks at buttons.
+    var name = f.dir ? '<button type="button" class="tm-info-dir tm-as-name" data-info-open-dir="' + esc(where) + '" title="' + esc(where) +
+      '"><span>' + esc(f.label || f.name) + "</span></button>"
+      : '<a class="tm-as-name" href="' + esc(rawUrl(where)) + '" target="_blank" rel="noopener" title="' + esc(where) + '"><span>' +
+        esc(f.label || f.name) + "</span></a>";
+    return '<li class="tm-as-row">' + tile + '<span class="tm-as-main">' + name +
+      (meta.length ? '<span class="tm-as-meta">' + meta.join('<span class="tm-as-dot">·</span>') + "</span>" : "") + descLine(f) + "</span>" + descBtn(f, "file") +
+      (f.manual && f.id ? '<button type="button" class="tm-chip-x" data-info-del-file="' + esc(f.id) + '" aria-label="' +
+        esc(tw("teams.info_remove")) + '" title="' + esc(tw("teams.info_remove")) + '">' + ic("x") + "</button>" : "") + "</li>";
+  }
+
+  // A link row: its name (or the address without "https://"), then the site when it has a name, and the day on Info.
+  function linkRowHtml(l, withDay) {
+    var host = hostOf(l.url);
+    var meta = [];
+    if (host && l.label) meta.push(esc(host));
+    if (withDay && l.ts) meta.push(esc(shortWhen(l.ts)));
+    return '<li class="tm-as-row"><span class="tm-as-type" data-ft="link">' + ic("globe") + '</span><span class="tm-as-main">' +
+      '<a class="tm-as-name" href="' + esc(l.url) + '" target="_blank" rel="noopener" title="' + esc(l.url) + '"><span>' +
+      esc(l.label || prettyUrl(l.url)) + "</span></a>" +
+      (meta.length ? '<span class="tm-as-meta">' + meta.join('<span class="tm-as-dot">·</span>') + "</span>" : "") +
+      descLine(l) + "</span>" + descBtn(l, "link") +
+      (l.manual && l.id ? '<button type="button" class="tm-chip-x" data-info-del-link="' + esc(l.id) + '" aria-label="' +
+        esc(tw("teams.info_remove")) + '" title="' + esc(tw("teams.info_remove")) + '">' + ic("x") + "</button>" : "") + "</li>";
+  }
+
+  function imageTileHtml(f) {
+    var src = rawUrl(f.brain_path || f.path);
+    return '<a class="nt-img-link" href="' + esc(src) + '" data-img-ten="' + esc(f.name) + '" target="_blank" rel="noopener" title="' +
+      esc(f.name) + '"><img src="' + esc(src) + '" alt="" loading="lazy" onerror="ntImgGone(this)"></a>';
+  }
+
+  // "See all" under a short list on Info: only when the list holds more than it shows.
+  function seeAllHtml(kind, total) {
+    if (total <= PREVIEW[kind]) return "";
+    return '<button type="button" class="ws-btn tm-info-all" data-as-open="' + kind + '">' + esc(tw("teams.storage_see_all")) + "</button>";
+  }
+
+  // The archive: a back row, the three tabs with their totals, the search box and the pager, then one page by day.
+  function assetsHtml(A, counts) {
+    counts = counts || {};
+    var tabs = ASSET_KINDS.map(function (k) {
+      var n = k === "image" ? counts.images : k === "file" ? counts.files : counts.links;
+      return '<button type="button" class="tm-tab" role="tab" data-as-kind="' + k + '" aria-selected="' + (A.kind === k ? "true" : "false") +
+        '"><span>' + esc(tw(ASSET_TAB_KEY[k])) + "</span>" + (n ? '<span class="tm-tab-n">' + n + "</span>" : "") + "</button>";
+    }).join("");
+    var ph = tw(A.kind === "image" ? "teams.storage_search_images" : A.kind === "link" ? "teams.storage_search_links" : "teams.storage_search_files");
+    return '<div class="tm-as"><div class="tm-as-head">' +
+      '<button type="button" class="tm-as-back" data-as-back="1" aria-label="' + esc(tw("teams.storage_back")) + '" title="' +
+      esc(tw("teams.storage_back")) + '">' + ic("chevron-left") + "<span>" + esc(tw("teams.storage_title")) + "</span></button>" +
+      '<div class="tm-as-tabs" role="tablist">' + tabs + "</div>" +
+      '<div class="tm-as-tools"><label class="tm-jb-search tm-as-search">' + ic("search") + '<input type="search" class="tm-as-q" value="' +
+      esc(A.q || "") + '" placeholder="' + esc(ph) + '" aria-label="' + esc(ph) + '" enterkeyhint="search"></label>' +
+      '<span class="tm-as-pg">' + assetsPagerHtml(A) + "</span></div></div>" +
+      // data-lb-scope: a picture opens the viewer with every picture of this page, across the days.
+      '<div class="tm-as-body" data-lb-scope="1">' + assetsBodyHtml(A) + "</div></div>";
+  }
+
+  function assetsPagerHtml(A) {
+    return A.total ? pagerHtml("assets", A.page || 0, A.total, ASSET_PER_PAGE[A.kind]) : "";
+  }
+
+  function assetsBodyHtml(A) {
+    if (A.state === "error") return '<p class="tm-sub">' + esc(A.err || tw("teams.err_network")) + "</p>";
+    if (!A.items) return '<p class="tm-sub pg-loading">' + esc(tw("common.loading")) + "</p>";
+    if (!A.items.length) return '<p class="tm-sub tm-as-empty">' + esc(tw(String(A.q || "").trim() ? "teams.storage_no_match" : ASSET_EMPTY_KEY[A.kind])) + "</p>";
+    return byDay(A.items, A.kind === "image").map(function (g) {
+      var rows = A.kind === "image" ? '<div class="tm-as-imgs">' + g.items.map(imageTileHtml).join("") + "</div>"
+        : '<ul class="tm-info-list tm-as-list">' + g.items.map(function (x) { return A.kind === "link" ? linkRowHtml(x) : fileRowHtml(x); }).join("") + "</ul>";
+      return '<section class="tm-as-day"><h5>' + esc(g.label) + "</h5>" + rows + "</section>";
+    }).join("");
+  }
+
+  // Open the archive on a tab (from "See all"), or move to another tab: page one, search kept per open.
+  function openAssets(kind) {
+    if (ASSET_KINDS.indexOf(kind) < 0) kind = "file";
+    var body = S.el && S.el.querySelector(".tm-side-body");
+    var keep = S.assets ? S.assets.infoTop : (body ? body.scrollTop : 0);
+    S.assets = { kind: kind, q: S.assets ? S.assets.q : "", page: 0, items: null, total: 0, state: "loading", seq: 0, infoTop: keep };
+    drawSide(true);
+    var nb = S.el && S.el.querySelector(".tm-side-body");
+    if (nb) nb.scrollTop = 0;
+    loadAssets();
+  }
+
+  function closeAssets() {
+    var top = S.assets ? S.assets.infoTop : 0;
+    S.assets = null;
+    clearTimeout(assetsTimer);
+    drawSide(true);
+    var nb = S.el && S.el.querySelector(".tm-side-body");
+    if (nb) nb.scrollTop = top || 0;
+    var back = S.el && S.el.querySelector(".tm-info-all");
+    if (back && typeof back.focus === "function") { try { back.focus({ preventScroll: true }); } catch (e) { /* old browser */ } }
+  }
+
+  var assetsTimer = null;
+  function loadAssets() {
+    var A = S.assets, sid = sessionId();
+    if (!A || !sid) return Promise.resolve();
+    var seq = A.seq = (A.seq || 0) + 1;
+    var per = ASSET_PER_PAGE[A.kind];
+    var url = "/sessions/" + q(sid) + "/assets?brain=" + q(brain()) + "&kind=" + q(A.kind) + "&q=" + q(String(A.q || "").trim()) +
+      "&offset=" + ((A.page || 0) * per) + "&limit=" + per;
+    return fetch(url, { credentials: "same-origin" }).then(function (r) { return r.json().catch(function () { return {}; }); })
+      .then(function (d) {
+        if (S.assets !== A || A.seq !== seq || sessionId() !== sid) return;
+        if (!d || d.ok === false || !Array.isArray(d.items)) { A.state = "error"; A.err = (d && d.error) || ""; drawAssets(); return; }
+        // Rows removed while on the last page: go back to the page that now is the last one.
+        if (!d.items.length && A.page > 0 && d.total > 0) { A.page = Math.ceil(d.total / per) - 1; return loadAssets(); }
+        A.items = d.items; A.total = d.total || 0; A.state = "done"; A.err = "";
+        drawAssets();
+      }).catch(function () {
+        if (S.assets !== A || A.seq !== seq) return;
+        A.state = "error"; A.err = tw("teams.err_network"); drawAssets();
+      });
+  }
+
+  // Redraw the rows, the pager and the totals in place: the search box is left alone, so typing keeps its focus and, on a
+  // phone, its keyboard.
+  function drawAssets() {
+    var A = S.assets, side = S.el && S.el.querySelector(".tm-side");
+    var box = side && side.querySelector(".tm-as");
+    if (!A || !box || !(S.side && S.tab === "info")) { if (S.side && S.tab === "info") drawSide(true); return; }
+    box.querySelector(".tm-as-body").innerHTML = assetsBodyHtml(A);
+    box.querySelector(".tm-as-pg").innerHTML = assetsPagerHtml(A);
+    var c = (S.info && S.info.counts) || {};
+    Array.prototype.forEach.call(box.querySelectorAll("[data-as-kind]"), function (b) {
+      var k = b.getAttribute("data-as-kind"), n = k === "image" ? c.images : k === "file" ? c.files : c.links;
+      if (k === A.kind && !String(A.q || "").trim()) n = A.total;      // the page just read is the newest number
+      var span = b.querySelector(".tm-tab-n");
+      if (n && !span) b.insertAdjacentHTML("beforeend", '<span class="tm-tab-n">' + n + "</span>");
+      else if (span && n) span.textContent = n;
+      else if (span) span.parentNode.removeChild(span);
+    });
+  }
+
+  function assetsSearch(text) {
+    var A = S.assets;
+    if (!A) return;
+    A.q = text; A.page = 0;
+    clearTimeout(assetsTimer);
+    assetsTimer = setTimeout(loadAssets, 280);
+  }
+
+  function assetsPage(dir) {
+    var A = S.assets;
+    if (!A) return;
+    var pages = Math.max(1, Math.ceil((A.total || 0) / ASSET_PER_PAGE[A.kind]));
+    var next = Math.min(Math.max(0, (A.page || 0) + dir), pages - 1);
+    if (next === A.page) return;
+    A.page = next;
+    loadAssets().then(function () {
+      var nb = S.el && S.el.querySelector(".tm-side-body");
+      if (nb) nb.scrollTop = 0;
+    });
+  }
+
   // The info panel: who is in the team, the working folder, pictures, files and links shared in it.
   function infoTabHtml(t) {
     if (!t) return "";
@@ -4284,43 +4609,30 @@
       }).join("") + '<button type="button" class="ws-btn" data-gh-open="1">' + esc(tw("teams.change")) + "</button>"
       : '<button type="button" class="ws-btn" data-gh-open="1">' + ghLogo() + " " + esc(tw("teams.gh_attach")) + "</button>") + "</section>";
     if (!I) return h + '<p class="tm-sub pg-loading">' + esc(tw("common.loading")) + "</p>";
-    var imgs = I.files.filter(function (f) { return f.image; });
-    var docs = I.files.filter(function (f) { return !f.image; });
-    if (imgs.length) {
-      h += '<section class="tm-info-sec"><h4>' + esc(tw("teams.info_images", { n: imgs.length })) + '</h4><div class="tm-info-imgs">' +
-        imgs.slice(0, 12).map(function (f) {
-          return '<a class="nt-img-link" href="' + esc(rawUrl(f.brain_path || f.path)) + '" data-img-ten="' + esc(f.name) +
-            '" target="_blank" rel="noopener" title="' + esc(f.name) + '"><img src="' +
-            esc(rawUrl(f.brain_path || f.path)) + '" alt="" loading="lazy" onerror="ntImgGone(this)"></a>';
-        }).join("") + "</div></section>";
+    var imgs = newestFirst(I.files.filter(function (f) { return f.image; }));
+    var docs = newestFirst(I.files.filter(function (f) { return !f.image; }));
+    var links = newestFirst(I.links);
+    // The true totals (the server sends only the newest 200 of each list); an older server without them: the lengths.
+    var c = I.counts || { images: imgs.length, files: docs.length, links: links.length };
+    if (c.images) {
+      h += '<section class="tm-info-sec"><h4>' + esc(tw("teams.info_images", { n: c.images })) + '</h4><div class="tm-info-imgs">' +
+        imgs.slice(0, PREVIEW.image).map(imageTileHtml).join("") + "</div>" + seeAllHtml("image", c.images) + "</section>";
     }
     // who can read files and where links come from sit in the (i) by each heading; the empty line stays short.
-    h += '<section class="tm-info-sec"><div class="tm-info-sechead"><h4>' + esc(tw("teams.info_files", { n: docs.length })) + infoBtn() + "</h4>" +
+    h += '<section class="tm-info-sec"><div class="tm-info-sechead"><h4>' + esc(tw("teams.info_files", { n: c.files })) + infoBtn() + "</h4>" +
       '<button type="button" class="ws-btn" data-info-add-file="1">' + ic("plus") + " " + esc(tw("teams.info_add_file")) + "</button></div>" +
       infoBody(esc(tw("teams.info_files_help"))) +
       '<div class="tm-info-addlink"><input type="search" class="tm-info-fsearch" value="' + esc((S.infoFind && S.infoFind.q) || "") +
       '" placeholder="' + esc(tw("teams.pick.doc_search_ph")) + '" aria-label="' + esc(tw("teams.pick.doc_search_ph")) + '"></div>' +
       '<div class="tm-info-fresults">' + infoFindRows() + "</div>" +
-      (docs.length ? '<ul class="tm-info-list">' + docs.map(function (f) {
-        // 2026-11-12: a folder document opens on the Files page; there is no raw file to serve for it.
-        // It is a <button>: the page's one click handler only looks at buttons.
-        return "<li>" + (f.dir ? '<button type="button" class="tm-info-dir" data-info-open-dir="' + esc(f.brain_path || f.path) + '" title="' +
-          esc(f.brain_path || f.path) + '">' + ic("folder") + "<span>" + esc(f.label || f.name) + "</span></button>"
-          : '<a href="' + esc(rawUrl(f.brain_path || f.path)) + '" target="_blank" rel="noopener">' + ic("file-text") + "<span>" +
-          esc(f.label || f.name) + "</span></a>") + descLine(f) + descBtn(f, "file") +
-          (f.manual && f.id ? '<button type="button" class="tm-chip-x" data-info-del-file="' + esc(f.id) +
-          '" aria-label="' + esc(tw("teams.info_remove")) + '" title="' + esc(tw("teams.info_remove")) + '">' + ic("x") + "</button>" : "") + "</li>";
-      }).join("") + "</ul>" : '<p class="tm-sub">' + esc(tw("teams.info_no_files")) + "</p>") + "</section>";
-    h += '<section class="tm-info-sec"><h4>' + esc(tw("teams.info_links", { n: I.links.length })) + infoBtn() + "</h4>" +
+      (docs.length ? '<ul class="tm-info-list tm-as-list">' + docs.slice(0, PREVIEW.file).map(function (f) { return fileRowHtml(f, true); }).join("") +
+        "</ul>" + seeAllHtml("file", c.files) : '<p class="tm-sub">' + esc(tw("teams.info_no_files")) + "</p>") + "</section>";
+    h += '<section class="tm-info-sec"><h4>' + esc(tw("teams.info_links", { n: c.links })) + infoBtn() + "</h4>" +
       infoBody(esc(tw("teams.info_links_help"))) +
       '<div class="tm-info-addlink"><input type="url" class="tm-info-link" placeholder="' + esc(tw("teams.info_link_ph")) + '">' +
       '<button type="button" class="ws-btn" data-info-add-link="1">' + esc(tw("teams.info_add")) + "</button></div>" +
-      (I.links.length ? '<ul class="tm-info-list">' + I.links.map(function (l) {
-        return '<li><a href="' + esc(l.url) + '" target="_blank" rel="noopener">' + ic("link") + "<span>" + esc(l.label || l.url) + "</span></a>" +
-          descLine(l) + descBtn(l, "link") +
-          (l.manual && l.id ? '<button type="button" class="tm-chip-x" data-info-del-link="' + esc(l.id) + '" aria-label="' +
-            esc(tw("teams.info_remove")) + '" title="' + esc(tw("teams.info_remove")) + '">' + ic("x") + "</button>" : "") + "</li>";
-      }).join("") + "</ul>" : '<p class="tm-sub">' + esc(tw("teams.info_no_links")) + "</p>") + "</section>";
+      (links.length ? '<ul class="tm-info-list tm-as-list">' + links.slice(0, PREVIEW.link).map(function (l) { return linkRowHtml(l, true); }).join("") +
+        "</ul>" + seeAllHtml("link", c.links) : '<p class="tm-sub">' + esc(tw("teams.info_no_links")) + "</p>") + "</section>";
     if (I.err) h += '<p class="tm-sub">' + esc(I.err) + "</p>";
     return h;
   }
@@ -4408,6 +4720,62 @@
       if (S.activeId !== forTeam) return;
       if (r.code !== 200) { fail(r); return; }
       AP_REPLY.id = ""; AP_REPLY.draft = ""; AP_REPLY.quote = -1; AP_REPLY.mode = "ask"; AP_REPLY.cid = "";
+      loadMsgs(false).then(function () { drawMsgs(true); });
+      loadQueue();
+    }).catch(function () { btn.disabled = false; setNote(tw("teams.err_network")); });   // retry sends the same client id
+  }
+
+  // ───────────── reply box of a "Waiting for you" job (19/11/2026), browser part ─────────────
+
+  function jrBox() {
+    return JOB_REPLY.id && S.el ? S.el.querySelector('.tm-jr-rp[data-jr-rp="' + JOB_REPLY.id + '"]') : null;
+  }
+  function jrKeepDraft() {
+    var ta = jrBox() && jrBox().querySelector(".tm-jr-ta");
+    if (ta) JOB_REPLY.draft = ta.value;
+  }
+  function jrRestore(focus) {
+    var ta = jrBox() && jrBox().querySelector(".tm-jr-ta");
+    if (!ta) return;
+    if (!ta.value && JOB_REPLY.draft) ta.value = JOB_REPLY.draft;
+    if (focus && !(typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches && !ta.value)) {
+      try { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } catch (e) {}
+    }
+  }
+
+  // Open the reply box of job `id`; the same id again, or "", closes it. From the pill above the composer the Jobs tab
+  // opens with the box ready.
+  function jrOpen(id, btn) {
+    var fromStrip = !!(btn && btn.closest && btn.closest(".tm-jobs"));
+    var next = id && (fromStrip || id !== JOB_REPLY.id) ? id : "";
+    if (next !== JOB_REPLY.id) { JOB_REPLY.draft = ""; JOB_REPLY.cid = ""; JOB_REPLY.mode = "answer"; }
+    else jrKeepDraft();
+    JOB_REPLY.id = next;
+    if (next && !(S.side && S.tab === "jobs")) openSide("jobs", btn);
+    else drawSide(true);
+    jrRestore(!!next);
+  }
+
+  function blockedJob(id) {
+    return ((S.queue && S.queue.blocked) || []).filter(function (x) { return x.id === id; })[0] || null;
+  }
+
+  function jrSend(btn, d) {
+    var ta = jrBox() && jrBox().querySelector(".tm-jr-ta");
+    var words = ta ? ta.value.trim() : "";
+    if (!words) { if (ta) ta.focus(); setNote(tw("teams.ap.need_words")); return; }
+    var job = blockedJob(d.jrTask);
+    if (!job || !S.team) return;
+    var p = jobReplyPayload(job, d.jrSend, words, S.team.members, JOB_REPLY.cid || (JOB_REPLY.cid = newClientId()));
+    var forTeam = S.activeId;
+    btn.disabled = true;
+    return call("POST", teamUrl(p.path), p.body).then(function (r) {
+      btn.disabled = false;
+      if (S.activeId !== forTeam) return;
+      if (r.code !== 200) { fail(r); return; }
+      JOB_REPLY.id = ""; JOB_REPLY.draft = ""; JOB_REPLY.cid = ""; JOB_REPLY.mode = "answer";
+      setNote(tw(p.mode === "ask" ? "teams.jr.asked" : "teams.jr.answered"));
+      drawSide(true);
       loadMsgs(false).then(function () { drawMsgs(true); });
       loadQueue();
     }).catch(function () { btn.disabled = false; setNote(tw("teams.err_network")); });   // retry sends the same client id
@@ -5142,7 +5510,7 @@
     if (t && t.dataset && t.dataset.strip) { setStrip(!S.stripOpen); return; }
     // A job's title or "Open the Jobs tab" in the pill's details: the details close AFTER this press is handled. Drawn
     // again right away, the pressed button left the page and the press was dropped below (`S.el.contains(t)`).
-    if (S.stripOpen && t && t.dataset && (t.dataset.openJobs || t.dataset.viewTask) && inside(".tm-jobs")) {
+    if (S.stripOpen && t && t.dataset && (t.dataset.openJobs || t.dataset.viewTask || t.dataset.jrOpen) && inside(".tm-jobs")) {
       S.stripOpen = false;
       setTimeout(drawJobs, 0);
     }
@@ -5187,6 +5555,7 @@
       drawSide(true); return;
     }
     if (d.jobFold) { S.jobFold[d.jobFold] = d.open !== "1"; drawSide(true); return; }
+    if (d.jobPage === "assets") return assetsPage(Number(d.dir));
     if (d.jobPage) {
       var inArch = d.jobPage === "arch";
       var paged = inArch ? filterJobs((S.queue || {}).archived || [], S.archQuery) : (S.queue || {}).finished || [];
@@ -5254,6 +5623,9 @@
       if (ra && ra.file && !ra.busy) { startUpload(ra); drawComposer(); }
       return;
     }
+    if (d.asOpen) return openAssets(d.asOpen);
+    if (d.asBack) return closeAssets();
+    if (d.asKind) { if (!S.assets || S.assets.kind !== d.asKind) openAssets(d.asKind); return; }
     if (d.infoAddFile) return pickFiles(addTeamFiles);
     if (d.infoPick !== undefined) return infoPick(Number(d.infoPick));
     if (d.infoOpenDir) { if (typeof window.NaotaOpenFiles === "function") window.NaotaOpenFiles(d.infoOpenDir); return; }
@@ -5350,6 +5722,8 @@
     if (d.openTeam) return openSide("team", t);
     if (t.classList.contains("tm-close")) return closeSide();
     if (d.tab) {
+      // 19/11/2026: the Info tab pressed from the archive (or after it) opens on Info itself.
+      if (d.tab === "info") S.assets = null;
       S.tab = d.tab; S.tabAuto = false; drawSide(true); drawHead();
       if (d.tab === "team") loadAgents().then(function () { if (S.side && S.tab === "team") drawSide(); });
       // 18/11/2026: a team that opened on Jobs never read its files and links, so Info showed "Loading..." for good.
@@ -5535,6 +5909,14 @@
         loadMsgs(false); loadQueue();
       }).catch(function () { t.disabled = false; setNote(tw("teams.err_network")); });
     }
+    if (d.jrOpen !== undefined) return jrOpen(d.jrOpen, t);
+    if (d.jrMode) { jrKeepDraft(); if (JOB_REPLY.mode !== d.jrMode) JOB_REPLY.cid = ""; JOB_REPLY.mode = d.jrMode; drawSide(true); jrRestore(true); return; }
+    if (d.jrSug) {
+      var jta = jrBox() && jrBox().querySelector(".tm-jr-ta");
+      if (jta) { jta.value = (jta.value.trim() ? jta.value.trim() + " " : "") + tw(d.jrSug); JOB_REPLY.draft = jta.value; jta.focus(); }
+      return;
+    }
+    if (d.jrSend) return jrSend(t, d);
     if (d.amend) {
       var at = S.taskTitles[d.amend] || d.amend;
       var text = typeof prompt === "function" ? prompt(tw("teams.amend_prompt", { title: at })) : "";
@@ -5827,6 +6209,16 @@
   }
 
   function onKey(e) {
+    // Reply box of a "Waiting for you" job (19/11/2026): Ctrl/Cmd+Enter sends, Escape closes, like the approval card.
+    if (e.target.classList && e.target.classList.contains("tm-jr-ta")) {
+      if (e.key === "Escape") { e.preventDefault(); jrOpen(""); return; }
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        var jb = jrBox() && jrBox().querySelector("[data-jr-send]");
+        if (jb && !jb.disabled) jb.click();
+      }
+      return;
+    }
     // Reply box of an approval card: Ctrl/Cmd+Enter sends, Escape closes (17/11/2026).
     if (e.target.classList && e.target.classList.contains("tm-ap-ta")) {
       if (e.key === "Escape") { e.preventDefault(); apOpen("", -1); return; }
@@ -5850,6 +6242,15 @@
       return;
     }
     if (e.key === "Escape" && S.pickSt) { closePicker(); return; }
+    // The archive search: Enter looks now instead of after the pause; Escape empties the box, then leaves the archive.
+    if (e.target.classList && e.target.classList.contains("tm-as-q") && S.assets) {
+      if (e.key === "Enter") { e.preventDefault(); clearTimeout(assetsTimer); S.assets.q = e.target.value; S.assets.page = 0; loadAssets(); return; }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        if (e.target.value) { e.target.value = ""; assetsSearch(""); } else closeAssets();
+        return;
+      }
+    }
     if (e.target.classList && e.target.classList.contains("tm-input") && sugKey(e)) return;
     if (e.target.classList && e.target.classList.contains("tm-input") && teamSuggest && teamSuggest.onKeydown(e)) return;
     // Enter in the link box adds the link; in the file search it does nothing (it must never press Create).
@@ -5894,6 +6295,7 @@
 
   function onInput(e) {
     if (e.target.classList.contains("tm-ap-ta")) { AP_REPLY.draft = e.target.value; return; }
+    if (e.target.classList.contains("tm-jr-ta")) { JOB_REPLY.draft = e.target.value; return; }
     if (e.target.classList.contains("tm-jb-q")) { S.archQuery = e.target.value; S.archPage = 0; drawArchive(); return; }
     if (S.pickSt && e.target.classList.contains("tmp-search-input")) {
       S.pickSt.query = e.target.value;
@@ -5905,6 +6307,7 @@
     if (S.pickSt && e.target.classList.contains("tmp-doc-search")) { pickDocSearch(e.target.value); return; }
     if (S.pickSt && e.target.classList.contains("tmp-link-input")) { S.pickSt.linkDraft = e.target.value; return; }
     if (e.target.classList.contains("tm-info-fsearch")) { infoFind(e.target.value); return; }
+    if (e.target.classList.contains("tm-as-q")) { assetsSearch(e.target.value); return; }
     if (e.target.classList.contains("tm-input")) {
       S.pending = S.pending && (S.pending.typed || S.pending.text) === e.target.value.trim() ? S.pending : null;
       grow(e.target);
@@ -6237,7 +6640,9 @@
     searchResultsHtml: searchResultsHtml, replyStatusHtml: replyStatusHtml, headLine: headLine,
     typingHtml: typingHtml, pinsHtml: pinsHtml, markMentions: markMentions, replyRefHtml: replyRefHtml,
     allTags: allTags, filterTeams: filterTeams, tagBarHtml: tagBarHtml, tagMenuRows: tagMenuRows, tagPickRows: tagPickRows,
-    lastWorkedTeam: lastWorkedTeam, TAG_NONE: TAG_NONE, unreadHtml: unreadHtml };
+    lastWorkedTeam: lastWorkedTeam, TAG_NONE: TAG_NONE, unreadHtml: unreadHtml, jobReplyPayload: jobReplyPayload, canAnswer: canAnswer,
+    fileRowHtml: fileRowHtml, linkRowHtml: linkRowHtml, assetsHtml: assetsHtml, assetsBodyHtml: assetsBodyHtml, seeAllHtml: seeAllHtml,
+    byDay: byDay, dayLabel: dayLabel, monthLabel: monthLabel, prettyUrl: prettyUrl, sizeText: sizeText, PREVIEW: PREVIEW, ASSET_PER_PAGE: ASSET_PER_PAGE };
   if (typeof window !== "undefined") window.NaotaTeams = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })();
