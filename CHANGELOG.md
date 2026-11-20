@@ -6,6 +6,30 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.51.0] - 2026-11-20
+### Thêm mới
+- **Khung chat vẽ được công thức toán.** Công thức viết dạng `$...$`, `$$...$$`, `\(...\)` hoặc `\[...\]` giờ hiện thành phân số, căn, mũ như trong sách thay vì nguyên mã. Thư viện KaTeX chỉ tải lần đầu có công thức; mất mạng thì vẫn thấy mã gốc. Số tiền kiểu "$5 và $10" không bị nhận nhầm.
+- **Link mở thẳng một việc.** Địa chỉ dạng `#task=<mã>` mở trang Nhiệm vụ rồi mở đúng việc đó: việc của bạn (`m:`), nhắc hẹn (`r:`) hoặc việc Naota làm (`k:`). Trang ngoài như bảng điều hành tự làm có thể dẫn thẳng tới một việc thay vì chỉ tới trang Nhiệm vụ.
+### Sửa lỗi
+- **Gọi `naota_team` không còn báo "không tồn tại" khi hub bật chế độ lazy.** Khi có nhiều công cụ, hub giấu bớt sau ô tìm kiếm, nhưng trợ lý quen gọi thẳng tên nên bị báo lỗi. Giờ gọi thẳng tên vẫn chạy đúng công cụ, vẫn qua cùng lớp quyền. Lối tắt huỷ lịch nhắc cũng chạy lại được khi lazy bật.
+- **/goal và /plan gõ ở cuối hay giữa câu giờ chạy được.** Trước đây chỉ ăn khi đứng đầu tin, gõ "...làm luôn giúp anh /goal" thì Naota chỉ chat thường. Phần chữ còn lại thành nội dung của mục tiêu.
+- **Skill, agent, workflow vừa cài giữa cuộc trò chuyện gọi được ngay bằng "/" ở giữa câu.** Trang nạp lại danh sách trước khi gửi nếu gặp tên lạ, không còn coi là chữ thường.
+- **Gõ tên agent hay workflow không cần tiền tố.** "/seo-pro" mở thẳng agent seo-pro, như "/agent-seo-pro".
+- **Dấu câu ngay sau lệnh không làm hụt lệnh.** "/viet-email," hay "/goal." vẫn được nhận.
+- **Phóng to ảnh trong chat không còn dạt sang trái.** Bấm vào ảnh để xem cỡ thật, ảnh nhỏ hơn màn hình giờ nằm giữa, ảnh lớn hơn thì mở đúng chỗ vừa bấm.
+### Cải thiện
+- **Chuông thông báo gọn hẳn.** Câu trả lời của trò chuyện, trợ lý và team không còn đẩy lên chuông. Thay vào đó là **chấm đỏ** ở mục Trò chuyện, Trợ lý, Team trên menu, như chấm đỏ đang có ở từng cuộc chat.
+- **Việc chạy theo lịch không còn kêu mỗi lần chạy.** Kết quả vẫn về đúng khung chat hoặc Telegram, chuông chỉ kêu khi việc lỗi hẳn, hoặc khi chính lần chạy thấy có chuyện anh cần ra tay.
+- **Tiêu đề thông báo dễ đọc hơn.** Mỗi lần chạy tự viết một dòng tiêu đề ngắn nói kết quả, không còn kiểu "Em kiểm tra..." và không lặp lại tiêu đề ở dòng dưới.
+- **Hội thoại chưa đọc lên đầu danh sách.** Các cuộc có chấm đỏ giờ gom thành nhóm **Chưa đọc** ngay dưới nhóm Đã ghim, kể cả cuộc cũ nằm tận trang sau. Đọc xong thì cuộc đó về lại đúng chỗ theo ngày.
+- **Gõ thêm lúc Naota đang làm, nút Dừng tự đổi thành nút Gửi** ngay tại chỗ, đỡ tốn chỗ. Xoá hết chữ trong ô thì nút Dừng quay lại.
+- **Tab Đã học và Tài liệu chia trang, mỗi trang 20 mục.** Danh sách dài có ô tìm (gõ không dấu vẫn ra) và nút Thêm đứng ngay trên đầu, khỏi phải cuộn hết danh sách.
+- **Ghi chú Đã học dễ nhìn hơn.** Lọc nhanh theo Sự thật, Quyết định, Thuật ngữ; mỗi loại một màu; ghi chú của bạn có vạch cam bên trái.
+- **Sửa ghi chú, bài học, mô tả tài liệu trong một khung rộng.** Thay cho ô nhập một dòng của trình duyệt: chữ hiện trọn, có đếm ký tự, đổi được loại ghi chú, Ctrl+Enter để lưu. Trên điện thoại khung kéo từ dưới lên.
+- **Naota tìm đúng tool hơn hẳn khi có nhiều nguồn.** Câu hỏi đời thường như "doanh thu hôm nay trên POS", "lịch sử tin nhắn Zalo", "chi phí Google Ads" giờ ra đúng tool, kể cả khi mô tả tool viết tiếng Anh. Trên bộ 55 câu thử thật, tỉ lệ tìm trúng từ 20 lên 55.
+- **Nêu tên nguồn là ra danh sách tool của nguồn đó**, và nhiều tài khoản cùng loại (ba shop POS, hai Zalo) được gộp một dòng, không còn chiếm chỗ của tool khác.
+- **Gọi tool thiếu tiền tố hay gõ sai tên vẫn chạy** nếu chỉ có một tool khớp, nhiều tool khớp thì Naota nêu tên để chọn. Kết quả tìm cũng ngắn hơn để vẫn tiết kiệm token.
+
 ## [1.50.0] - 2026-11-19
 ### Thêm mới
 - **Bot đọc được file nhân viên gửi cho khách trên Zalo OA và Fanpage.** Báo giá PDF, Word, Excel hay ảnh nhân viên gửi từ app OA hoặc hộp thư Trang giờ hiện trong Hộp thư (nhãn Nhân viên), và bot biết nội dung để trả lời khi khách hỏi lại. Ảnh được một bộ não đã kết nối có mắt đọc hộ.

@@ -71,7 +71,9 @@ body.in-console .hud-actions { display: none; }
   letter-spacing: 0.5px; color: var(--text); white-space: nowrap; filter: none;
 }
 .rail-item {
-  position: relative; background: transparent; border: 0; cursor: pointer; text-decoration: none;
+  /* width 100%: on a phone the rail's item list is a block, where a <button> shrinks to its text; the row must span
+     the drawer like on a computer so the unread dot lines up on the right edge. */
+  position: relative; width: 100%; background: transparent; border: 0; cursor: pointer; text-decoration: none;
   color: var(--text2); border-radius: 9px; padding: 6px 10px;
   display: flex; flex-direction: row; align-items: center; gap: 10px;
   transition: color var(--rail-anim), background var(--rail-anim);
@@ -82,6 +84,9 @@ body.in-console .hud-actions { display: none; }
   font-family: var(--font-ui); font-size: 14px; letter-spacing: 0.1px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+/* Red dot on Chat, Partners and Team when something there is unread (rail-unread.js), at the end of the row, the same
+   red as the unread dot on a chat in the history. */
+.rail-dot { flex: none; width: 8px; height: 8px; margin-left: auto; border-radius: 50%; background: var(--red); }
 /* Chấm "Mới" trên mục Cập nhật khi máy chủ báo có bản mới. Thu gọn thanh bên thì chỉ còn chấm tròn. */
 .rail-item .rail-new {
   margin-left: auto; flex: 0 0 auto; font-size: 9.5px; font-weight: 700; line-height: 1; padding: 2px 5px;
@@ -582,6 +587,7 @@ button.ord-mi:hover, button.ord-mi:focus-visible { background: var(--bg3); }
   .rail.collapsed .rail-item { justify-content: center; padding: 9px 0; gap: 0; }
   .rail.collapsed .rail-item .rail-lbl { display: none; }       /* giấu chữ, chỉ còn icon */
   .rail.collapsed .rail-brand { justify-content: center; padding: 0; }
+  .rail.collapsed .rail-item .rail-dot { position: absolute; top: 6px; right: 12px; margin: 0; }
   .rail.collapsed .rail-brand-text { display: none; }           /* thu gọn: chỉ còn dấu ấn, chữ không vừa */
   /* Thu gọn: ô tài khoản chỉ còn ảnh tròn, nằm trên nút thu/mở. */
   .rail.collapsed .rail-foot { flex-direction: column; justify-content: center; }
@@ -4908,3 +4914,17 @@ button.tm-quote-src:hover, button.tm-quote-src:focus-visible { border-color: var
   border-radius: 12px; cursor: pointer; }
 .tm-wm .tm-radio:has(input:checked) { border-color: var(--accent); background: var(--accent-wash); }
 .tm-wm .tm-radio input { margin: 3px 0 0; flex: none; }
+
+/* 2026-11-19 (owner: "tạo team với nhập team ở trên 1 hàng thôi đừng xuống dòng 2 hàng... nếu kéo về thu nhỏ quá thì chỉ
+   hiện icon thôi"): the team list bar never wraps and a label never breaks inside its button. When the two labels do not
+   fit, teams.js (fitListBar) adds .tm-chi-icon and both buttons keep only their icons. The folded strip (.tm-mini) shows
+   Import as an icon too, under Create. */
+.tm-list-bar { flex-wrap: nowrap; }
+.tm-list-bar .ws-btn { white-space: nowrap; flex: none; }
+.tm-list-bar.tm-chi-icon .tm-new, .tm-list-bar.tm-chi-icon .tm-import { font-size: 0; gap: 0; padding: 8px; }
+.tm-list-bar.tm-chi-icon .ws-btn svg, .tm-list-bar.tm-chi-icon .ws-btn .ic { width: 18px; height: 18px; }
+@media (min-width: 1061px) {
+  .tm-page.tm-mini .tm-list-bar { flex-direction: column; gap: 6px; }
+  .tm-page.tm-mini .tm-new, .tm-page.tm-mini .tm-import { font-size: 0; gap: 0; padding: 8px; margin-left: 0; }
+  .tm-page.tm-mini .tm-import svg, .tm-page.tm-mini .tm-import .ic { width: 18px; height: 18px; }
+}
