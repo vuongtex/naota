@@ -20,7 +20,8 @@ function check(name, cond, extra) {
   if (!cond) fails++;
 }
 
-const now = Date.now() / 1000;
+// Noon today: "0.1 day ago" must stay today whatever hour the test runs (at 1 a.m. it fell into yesterday).
+const now = new Date(new Date().setHours(12, 0, 0, 0)).getTime() / 1000;
 const DAY = 86400;
 
 // ---- Info: a short list, "See all" only when there is more ----
