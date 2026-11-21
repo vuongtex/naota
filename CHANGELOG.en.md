@@ -5,8 +5,24 @@
 NAOTA release history. Newest first.
 
 ## [1.54.0] - 2026-11-21
+### Added
+- **Leave a Zalo group from the "..." menu of the Conversations page.** The chat history stays in Naota, under the Hidden filter.
+- **Block is offered on every channel.** Messenger and Zalo block on the platform; other channels block in Naota: the bot goes quiet, the chat is hidden and new messages do not bring it back.
+- **Unblock** for a blocked chat, which restores its previous reply mode.
+### Fixed
+- **Telegram bot chats (and every other bot channel) show again in the history of the partner the bot uses.** A bot whose record held another spelling of the same brain (a full path from an older version, a trailing slash, or a brain folder that moved) answered as usual, but its chats never reached the partner's History column. Naota now matches the brain the chats are actually stored in, and a partner name with Vietnamese accents matches even when its file was made on macOS.
+- **The chat folder's red dot shows only for a chat that has finished and is unread.** A chat still working shows its spinner and no longer lights the folder, the "Ungrouped" row, its own row or the side menu. The chat open on screen is not counted either. The dot appears once a run ends and you have not looked at it.
+- **Reopening a chat no longer shows an old copy silently.** When the server is slow or fails, the chat says it is showing the copy kept on this device, with a Retry button, instead of passing the old messages off as current.
+- **A chat that never finishes loading now says so.** After a few seconds Naota says the chat is taking long and offers Retry.
+- **One message that fails to draw no longer hides the ones after it.** It shows as plain text, the rest of the chat is complete, and the error is logged on the Health page.
+- **Self-learned profiles no longer say "shop owner".** A profile now calls the person in the chat the subject and describes them, for example how they are addressed and how they refer to themselves, which fits bots that are not used for business too. Existing profiles change at their next update.
+- **Connecting a second Zalo account no longer cuts the first one off.** Two reports on 19 and 20/11/2026: one bot per account in two brains, and right after the second account's QR was scanned the first bot's card read "Another session of this account keeps taking the Zalo connection" and the bot missed most messages, with no Zalo Web open anywhere.
+- **Scanning the QR with an account that is already connected is refused right away**, instead of adding a second connection. The message names the connection that holds that account. To connect another account, open the Zalo app signed in as it and scan again.
+- **The personal Zalo bot reads link cards.** A link someone sent (shown by Zalo as a card with a title and a picture) was filed as "other", so the bot skipped it, even when the sender tagged the bot. A link card is now read as a text message with its title, description and link.
+- **The inbox and the history keep the link.** A link card no longer shows only the page's description: the link itself is there too, also for messages brought back from the history.
 ### Improved
-- In progress: porting bản nguồn 0.606.1 tới 0.610.1 (chat, hộp thư).
+- **"Ungrouped" gets a red dot too.** A chat in no project with an unread reply now puts a red dot on Ungrouped in the project picker, just like a project. Reading it or moving it into a project clears the dot.
+- **Mark the open chat as unread.** The "..." menu of the chat you are reading now has this option too. The red dot shows at once and stays until you open another chat and come back, so unfinished work is easy to flag for later.
 
 ## [1.53.0] - 2026-11-20
 ### Added

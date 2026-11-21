@@ -7,8 +7,24 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
 ## [1.54.0] - 2026-11-21
+### Thêm mới
+- **Rời nhóm Zalo ngay ở menu "..." của trang Hội thoại.** Lịch sử chat vẫn giữ trong Naota, ở bộ lọc Đã ẩn.
+- **Nút Chặn có ở mọi kênh.** Messenger và Zalo chặn thật trên nền tảng; kênh khác chặn trong Naota: bot im, chat ẩn đi, tin mới không làm nó hiện lại.
+- **Thêm Bỏ chặn** cho cuộc chat đã chặn, trả lại đúng chế độ trả lời trước đó.
+### Sửa lỗi
+- **Hội thoại của bot Telegram (và mọi kênh bot khác) hiện lại trong lịch sử của cộng sự nối với bot.** Bot nào được lưu brain theo một cách viết khác của cùng brain đó (đường dẫn đầy đủ từ bản cũ, có dấu `/` ở cuối, hay thư mục brain đã dời chỗ) vẫn trả lời bình thường, nhưng cuộc chat của nó không bao giờ lên cột Lịch sử của cộng sự. Giờ Naota so theo brain mà hội thoại thực sự được lưu, và tên cộng sự có dấu tiếng Việt cũng khớp dù file tạo trên macOS.
+- **Chấm đỏ ở thư mục hội thoại chỉ hiện khi chat đã xong mà chưa đọc.** Chat còn đang chạy hiện vòng xoay chứ không làm sáng chấm đỏ ở thư mục, ở dòng "Chưa xếp nhóm", ở chính dòng chat và ở menu bên trái. Chat đang mở trên màn hình cũng không bị tính. Lượt chạy xong mà chưa được xem thì chấm đỏ mới hiện.
+- **Mở lại hội thoại không còn lặng lẽ hiện bản cũ.** Máy chủ trả lời chậm hoặc lỗi thì khung chat báo rõ đang hiện bản lưu trên máy, kèm nút Thử lại, thay vì để tin cũ nằm đó như thể đã mới nhất.
+- **Hội thoại tải mãi không mở được nay có lời báo.** Sau vài giây chờ, Naota nói cuộc trò chuyện đang tải lâu và cho bấm Thử lại.
+- **Một tin hiển thị lỗi không còn làm mất các tin sau nó.** Tin đó hiện dạng chữ thường, các tin còn lại vẫn đủ, và lỗi được ghi vào trang Sức khoẻ để dễ tìm nguyên nhân.
+- **Hồ sơ tự học không còn ghi "chủ cửa hàng".** Hồ sơ giờ gọi người đang chat là "đối tượng" và lấy họ làm chủ thể, ví dụ "đối tượng được gọi là anh Việt, đối tượng xưng anh", hợp cả khi bot không dùng cho kinh doanh. Hồ sơ cũ đổi theo ở lần cập nhật kế tiếp.
+- **Kết nối nick Zalo thứ hai không còn làm nick thứ nhất mất kết nối.** Hai người báo ngày 19 và 20/11/2026: mỗi nick một bot ở hai brain, vừa quét QR nick thứ hai thì thẻ bot của nick thứ nhất báo "Một phiên khác của cùng nick đang giành kết nối Zalo" và bot lỡ phần lớn tin, dù không ai mở Zalo Web.
+- **Quét QR bằng nick đã kết nối thì Naota báo ngay, không tạo kết nối thứ hai.** Câu báo nêu tên kết nối đang giữ nick đó. Muốn nối nick khác, mở app Zalo bằng nick đó rồi quét lại.
+- **Bot Zalo cá nhân đọc được tin dạng thẻ link.** Trước đây một link người khác gửi (Zalo hiện thành thẻ có tiêu đề và ảnh) bị xếp vào loại "khác" nên bot bỏ qua, kể cả khi người gửi tag bot. Giờ thẻ link được đọc như tin chữ, gồm tiêu đề, mô tả và địa chỉ link.
+- **Hộp thư và lịch sử giữ lại địa chỉ link.** Tin thẻ link không còn chỉ hiện dòng mô tả của trang mà có cả link để bấm, kể cả tin nhập lại từ lịch sử.
 ### Cải thiện
-- Đang làm: lấy bản nguồn 0.606.1 tới 0.610.1 (chat, hộp thư).
+- **"Chưa xếp nhóm" cũng có chấm đỏ.** Cuộc chat chưa thuộc dự án nào mà có câu trả lời chưa đọc thì mục Chưa xếp nhóm trong ô chọn dự án hiện chấm đỏ, giống các dự án. Đọc xong hoặc xếp cuộc đó vào một dự án thì chấm tự tắt.
+- **Đánh dấu chưa đọc được cả hội thoại đang mở.** Menu "..." của hội thoại đang xem giờ cũng có nút này. Bấm xong chấm đỏ hiện ngay và giữ nguyên, tới khi bạn mở hội thoại khác rồi quay lại, nên dễ đánh dấu những việc chưa xong để quay lại sau.
 
 ## [1.53.0] - 2026-11-20
 ### Thêm mới
