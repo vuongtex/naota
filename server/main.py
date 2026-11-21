@@ -79,6 +79,7 @@ _write_update_state = update_state.write_state
 _record_boot_version = update_state.record_boot_version
 _update_outcome = update_state.update_outcome
 import git_brain
+import backup_github   # brain backup on the signed-in GitHub account (20/11/2026)
 import engine
 import vision_input
 import borrowed_eyes   # mắt mượn: bộ não khác xem hộ ảnh khi model của bot không xem được
@@ -8061,10 +8062,12 @@ def _do_backup(brain: str = "") -> dict:
     Cập nhật last_backup/last_status/last_report."""
     cfg = cfgmod.read_settings()
     b = cfg.get("backup", {}) or {}
-    if not (b.get("repo_url") and b.get("token")):
-        return {"ok": False, "error": localefmt.chu("Chưa cấu hình repository URL + token", "Repository URL and token are not configured yet")}
+    tok = backup_github.effective_token(b)
+    if not (b.get("repo_url") and tok):
+        return {"ok": False, "error": localefmt.chu("Chưa chọn repository để đồng bộ. Kết nối GitHub rồi chọn một repository riêng tư.",
+                                                    "No repository to sync with yet. Connect GitHub, then pick a private repository.")}
     mirror = str(cfgmod.STATE_DIR / "brains-backup")   # repo mirror riêng (tránh nested git từng brain)
-    res = git_brain.sync_brains(BRAINS_DIR, mirror, b["repo_url"], b["token"], b.get("branch") or "main",
+    res = git_brain.sync_brains(BRAINS_DIR, mirror, b["repo_url"], tok, b.get("branch") or "main",
                                 trash_dir=str(cfgmod.STATE_DIR / "brain-trash"),
                                 protected_names={_default_brain_dir().name},
                                 sync_images=bool(b.get("sync_images")))
@@ -8112,6 +8115,10 @@ def backup_status(brain: str = Query("brain")):
         "interval_hours": b.get("interval_hours", 6),
         "sync_images": bool(b.get("sync_images")),
         "token_set": bool(b.get("token")),
+        # Where the sync token comes from: "github" (the Connections page sign-in), "token" (pasted here) or "".
+        "use_github": bool(b.get("use_github")),
+        "token_source": backup_github.token_source(b),
+        "ready": backup_github.ready(b),
         "last_backup": b.get("last_backup", 0.0),
         "last_status": b.get("last_status", ""),
         "last_report": b.get("last_report") or {},
@@ -8133,6 +8140,7 @@ async def backup_config(
         b["repo_url"] = repo_url.strip()
     if token:                     # chỉ ghi khi có token MỚI (tránh xoá bằng chuỗi che ••••)
         b["token"] = token.strip()
+        b["use_github"] = False   # a token pasted here is chosen on purpose: it wins over the GitHub connection
     if branch:
         b["branch"] = branch.strip() or "main"
     if enabled is not None:
@@ -8153,12 +8161,42 @@ async def backup_test():
     """Kiểm tra token + repo hợp lệ (git ls-remote) trước khi bật auto."""
     cfg = cfgmod.read_settings()
     b = cfg.get("backup", {}) or {}
-    return await asyncio.to_thread(git_brain.remote_reachable, b.get("repo_url", ""), b.get("token", ""))
+    return await asyncio.to_thread(git_brain.remote_reachable, b.get("repo_url", ""), backup_github.effective_token(b))
 
 
 @app.post("/backup/now")
 async def backup_now(brain: str = Form("brain")):
     return await asyncio.to_thread(_do_backup, brain)
+
+
+async def _backup_link_call(fn, *args):
+    """Run a backup_github step off the event loop; its errors are localized and safe to show."""
+    try:
+        out = await asyncio.to_thread(fn, *args)
+    except backup_github.BackupLinkError as e:
+        return JSONResponse({"ok": False, "error": str(e)}, status_code=400)
+    return {"ok": True, "items": out} if isinstance(out, list) else {"ok": True, **out}
+
+
+@app.get("/backup/github/repos")
+async def backup_github_repos():
+    """Private repos of the connected GitHub account, for the one-tap backup picker."""
+    return await _backup_link_call(backup_github.repos)
+
+
+@app.post("/backup/github/link")
+async def backup_github_link(full_name: str = Form("")):
+    return await _backup_link_call(backup_github.link, full_name)
+
+
+@app.post("/backup/github/create")
+async def backup_github_create(name: str = Form("")):
+    return await _backup_link_call(backup_github.create, name)
+
+
+@app.post("/backup/github/unlink")
+async def backup_github_unlink():
+    return await _backup_link_call(backup_github.unlink)
 
 
 _OR_MODELS_CACHE = {"data": None, "ts": 0.0}
@@ -9736,7 +9774,7 @@ def _eager_brain_sync() -> None:
     6-hour round, so the other machines learn it before they can undo it. Background and best effort."""
     try:
         _b = cfgmod.read_settings().get("backup", {}) or {}
-        if _b.get("enabled") and _b.get("repo_url") and _b.get("token") and git_brain.has_git():
+        if _b.get("enabled") and backup_github.ready(_b) and git_brain.has_git():
             _t = asyncio.create_task(asyncio.to_thread(_do_backup))
             _DELETE_SYNC_TASKS.add(_t)
             _t.add_done_callback(_DELETE_SYNC_TASKS.discard)
@@ -11680,6 +11718,68 @@ async def files_open_local(request: Request, path: str = Form(...), brain: str =
         return JSONResponse({"error": localefmt.chu("Không mở được file: ", "Could not open the file: ") + str(e)},
                             status_code=500)
     return {"ok": True, "action": action, "path": str(target)}
+
+
+# ---- Forgot the current password: Account page help (owner request 2026-11-20) ----
+# The dashboard needs the current password before it changes one, so the way back starts on the machine itself. On a
+# desktop install the Account page reveals the reset script in Explorer / Finder; everywhere else it shows the steps.
+_RESET_SCRIPTS = {"windows": "reset-auth.bat", "mac": "reset-auth.command"}
+
+
+def _reset_kind() -> str:
+    if os.path.exists("/.dockerenv"):
+        return "docker"
+    if sys.platform.startswith("win"):
+        return "windows"
+    if sys.platform == "darwin":
+        return "mac"
+    return "linux"
+
+
+def _reset_script(kind: str):
+    """The reset script for this install, or None when it cannot do the job: not a desktop install, the file is
+    missing, or settings.json lives somewhere the script does not look (it reads <repo>/server unless told)."""
+    name = _RESET_SCRIPTS.get(kind)
+    if not name:
+        return None
+    root = Path(__file__).resolve().parent.parent
+    script = root / name
+    try:
+        same_state = Path(cfgmod.SETTINGS_PATH).resolve() == (root / "server" / "settings.json").resolve()
+    except Exception:  # noqa: BLE001
+        same_state = False
+    return script if script.is_file() and same_state else None
+
+
+@app.get("/auth/reset-help")
+async def auth_reset_help(request: Request):
+    """What the Account page offers under "Forgot your current password?": `can_open` = a button that reveals the
+    reset script on this computer, otherwise the steps for `kind` (docker, linux, or a desktop seen from afar)."""
+    kind = _reset_kind()
+    script = _reset_script(kind)
+    return {"kind": kind, "file": _RESET_SCRIPTS.get(kind, ""),
+            "can_open": bool(script) and _local_open_here(request) and local_open.can_launch()}
+
+
+@app.post("/auth/reset-help/open")
+async def auth_reset_help_open(request: Request):
+    """Show the reset script selected in Explorer / Finder. Only REVEALS it: running it stays a deliberate double
+    click on the machine, so an unattended signed-in browser cannot change the password without the current one."""
+    if not _local_open_here(request):
+        return JSONResponse({"error": localefmt.chu(
+            "Chỉ mở được khi bạn dùng Naota ngay trên máy đang chạy nó.",
+            "This only works when you use Naota on the computer that runs it.")}, status_code=403)
+    script = _reset_script(_reset_kind())
+    if not script:
+        return JSONResponse({"error": localefmt.chu("Không tìm thấy file đặt lại mật khẩu trên máy này.",
+                                                    "The password reset file is not on this computer.")},
+                            status_code=404)
+    try:
+        local_open.launch("reveal", script)
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse({"error": localefmt.chu("Không mở được thư mục: ", "Could not open the folder: ") + str(e)},
+                            status_code=500)
+    return {"ok": True, "file": script.name, "folder": str(script.parent)}
 
 
 # ---- CHIA SẺ CÔNG KHAI một file (nút Chia sẻ trong trình sửa) ----
@@ -17429,7 +17529,7 @@ async def _start_scheduler():
                 # 4) Đồng bộ GitHub tự động (2 CHIỀU): đủ interval → kéo về + hoà nhập + đẩy lên
                 try:
                     bcfg = cfgmod.read_settings().get("backup", {}) or {}
-                    if bcfg.get("enabled") and bcfg.get("repo_url") and bcfg.get("token") and git_brain.has_git():
+                    if bcfg.get("enabled") and backup_github.ready(bcfg) and git_brain.has_git():
                         interval = max(1, int(bcfg.get("interval_hours", 6))) * 3600
                         if time.time() - float(bcfg.get("last_backup", 0)) >= interval:
                             await asyncio.to_thread(_do_backup)   # 1 lần: toàn bộ thư mục brains, 2 chiều
@@ -23382,8 +23482,18 @@ async def _gate_bao(sid: str, brain: str, body: str, label: str, dedup: str) -> 
     return bool(item) and not item.get("dropped")
 
 
+def _gate_base_url() -> str:
+    """Naota Gate: this Naota's public https address for the Naota Sync install command, or "" when unknown (the tool
+    then asks the outside AI, which knows the URL it connected to). Order: the domain set in Settings, DOMAIN_NAME,
+    the link the login page found by itself (routes/domain.py)."""
+    import routes.domain as _domain
+    d = _domain._norm_domain((cfgmod.read_settings().get("domain") or {}).get("custom") or "") \
+        or _domain._norm_domain(os.getenv("DOMAIN_NAME", ""))
+    return f"https://{d}" if d else str(_domain._AUTO.get("url") or "")
+
+
 chat_bridge.gan(lambda ws: _chat_socket(ws), lambda: _CHAT_RUNTIME, _gate_luu_luot,
-                models=_gate_models, model_cua=_gate_chat_model, bao=_gate_bao,
+                models=_gate_models, model_cua=_gate_chat_model, bao=_gate_bao, base_url=_gate_base_url,
                 # `_pin_chat_model` sits with the /sessions routes further down: looked up when called.
                 ghim=lambda sid, prov, model: _pin_chat_model(sid, prov, model))
 
@@ -31215,6 +31325,24 @@ async def chat_job_status(job_id: str, request: Request):
         return JSONResponse({"ok": False, "error": localefmt.chu("Không có job này", "No such job")},
                             status_code=404)
     return {"ok": True, **view}
+
+
+@app.post("/chat/external")
+async def chat_external(payload: dict = Body(...)):
+    """Save finished turns of the owner's own Claude Code or Codex session into Naota (owner, 20/11/2026).
+
+    Called by `tools/naota-sync/naota_sync.py`, the Claude Code Stop hook and Codex `notify` program, with an API
+    token (scope `chat` is enough). Body: {"source": "claude-code"|"codex", "session": id, "project": folder name,
+    "turns": [{"id", "user", "assistant"}]}, or {"check": true} to test the URL and token without saving anything.
+    Runs no Naota turn: see `chat_bridge.log_transcript`. 409 when the owner is chatting in that conversation right
+    now (the hook keeps the turns and sends them next time)."""
+    if payload.get("check"):
+        return {"ok": True, "sources": sorted(chat_bridge.TRANSCRIPT_SOURCES)}
+    out = await chat_bridge.log_transcript(payload.get("source") or "", payload.get("session") or "",
+                                           payload.get("turns"), str(payload.get("project") or ""))
+    if out.get("ok"):
+        return out
+    return JSONResponse(out, status_code=409 if out.get("busy") else 400)
 
 
 @app.post("/telegram/send-file")

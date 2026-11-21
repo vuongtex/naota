@@ -410,6 +410,7 @@
       if (!r || r.ok === false) { msg.textContent = (r && r.error) || tw("gh.err_net"); return; }
       M.close();
       loadCard();
+      announceConnected();
     }
     var si = form.querySelector('[data-f="signin"]');
     if (si) si.onclick = function () { signIn(); };
@@ -470,6 +471,7 @@
         return;
       }
       loadCard();
+      announceConnected();
       if (r.installs === 0) { pickRepos(r); return; }
       M.close();
       return;
@@ -483,9 +485,18 @@
       '<div class="lv-meta">' + esc(tw("gh.pick_repos_how")) + "</div>" +
       '<div class="lv-form-act"><a class="s-btn" target="_blank" rel="noopener" href="' + esc(st.install_url || "") + '">' + esc(tw("gh.pick_repos")) + "</a>" +
       '<button class="s-btn-ghost" type="button" data-f="done">' + esc(tw("gh.done")) + "</button></div></div>", 560);
-    m.querySelector('[data-f="done"]').onclick = function () { M.close(); loadCard(); };
+    m.querySelector('[data-f="done"]').onclick = function () { M.close(); loadCard(); announceConnected(); };
   }
   function mount(el) { cardHost = el || null; if (cardHost) loadCard(); }
+  // Other screens that ride on the connection (the brain backup box, backup-link.js) hear about a new sign-in.
+  function announceConnected() {
+    try { window.dispatchEvent(new CustomEvent("naota:github-connected")); } catch (e) {}
+  }
+  // The same Connect dialog as the Connections page card, opened from elsewhere (backup-link.js).
+  async function connect() {
+    var st = await api("/github/status");
+    openForm(st && st.ok !== false ? st : {});
+  }
 
   // ============================================================
   // 2 and 3. Repos of the open conversation: + menu panel and chip
@@ -986,6 +997,6 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 
   // `logo`: the GitHub mark, so other chat screens (Teams) show the same logo as the main chat.
-  window.NaotaGithubRepos = { mount: mount, claimPending: claimPending, refresh: refresh, decorate: decorate, openDetail: openDetail,
+  window.NaotaGithubRepos = { mount: mount, connect: connect, claimPending: claimPending, refresh: refresh, decorate: decorate, openDetail: openDetail,
     current: function () { return attached.slice(); }, logo: LOGO };
 })();

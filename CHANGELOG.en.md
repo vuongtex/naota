@@ -4,6 +4,29 @@
 
 NAOTA release history. Newest first.
 
+## [1.56.0] - 2026-11-21
+### Added
+- **Connect Asana.** The Connections page has an Asana card on the official V2 MCP: Naota finds and reads tasks, projects and due dates, creates and updates tasks, and adds comments. Sign in from the dashboard; works on a VPS too.
+- You create an Asana MCP app once (about 5 minutes); the card walks you through it. It starts at Read-only.
+- **Two-way brain sync links through the signed-in GitHub account.** On the Self-learning page, press Connect GitHub, then Create a private repo or Pick an existing one. No token to make, no URL to paste.
+- **Linking syncs right away and turns automatic sync on.** A second machine that picks the same repo pulls the brain down.
+- **A pasted token keeps working as before,** with a button to move onto the signed-in account so the token never runs out.
+- **The Account page has a "Forgot your current password?" line** right under Change password. On Windows and Mac it opens the install folder with the reset file selected, so a double-click is all it takes. On a VPS, Docker or Hostinger it shows the reset steps.
+- **Mac gets `reset-auth.command`**, doing what `reset-auth.bat` does on Windows: clear the old password so you can set a new one.
+- **Claude Code and Codex sessions are saved into Naota automatically.** Each finished turn, your prompt and the agent's final answer, appears in History as "From Claude Code: ..." or "From Codex: ...", and feeds self-learning.
+- **Setup is one "yes".** Connect Claude Code or Codex to Naota Gate and it asks whether to turn on Naota Sync; say yes and it installs itself on that machine, no command to type and no token to copy.
+- **No quota spent, nothing lost.** Naota runs no model for it, API keys are masked before saving, and turns wait and resend when Naota is off. Its token can only save chats, nothing else.
+### Fixed
+- **Asking Naota to fix Naota's own code no longer ends in "cannot write to vuongtex/naota" on a user's install.** Every install used to clone the official repo, edit it for a whole turn and only fail at the push. Now an install without write access clones and edits nothing: Naota writes the bug report and suggested fix and hands you a link to a prefilled issue for the developer. Read it, press Submit, no token or extra access needed.
+- **Facebook cookie cards load pages again.** When a page is opened with a card from the Cookies page, Naota now sends the navigation headers a real browser sends (`Sec-Fetch-*`, `Accept`, `Upgrade-Insecure-Requests`). Before, Facebook answered 400 before it even read the cookies, so a live sign-in still showed "last load failed".
+- **The reset file no longer reopens the first-run wizard** (models, channels and API keys stay), and on a Mac the old password no longer comes back at the next start.
+### Improved
+- The Auto and Sync images switches take effect at once, no Save needed.
+- **The Plugins page is rebuilt in the Tasks page style.** A left column filters by status and source, All is one list sorted by name, and your own tools and Naota Store tools carry a tag.
+- **Each row shows only the name, one line of description, the permission in plain words and a switch.** Tap a row for its commands, version and Remove. Remove asks first on the page and can be undone.
+- **One "Add a tool" button gathers the three ways in:** Naota Store, asking Naota in chat, and a .zip file. The "Install from .zip" button still stands on its own beside it.
+- **The browser and the offline listener moved to "Software on this machine"**, and their Remove button is no longer solid colored. On a phone the left column becomes a row of chips with a round + in the corner.
+
 ## [1.55.0] - 2026-11-21
 ### Improved
 - **Messenger bots know which ad a customer came from.** A click-to-Messenger ad, an m.me link with a ref, or the chat box on a website: the bot sees the ad title or the link's ref, even when the customer reopens an old chat from an ad and types afterwards.
