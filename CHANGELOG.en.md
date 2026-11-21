@@ -4,6 +4,25 @@
 
 NAOTA release history. Newest first.
 
+## [1.55.0] - 2026-11-21
+### Improved
+- **Messenger bots know which ad a customer came from.** A click-to-Messenger ad, an m.me link with a ref, or the chat box on a website: the bot sees the ad title or the link's ref, even when the customer reopens an old chat from an ad and types afterwards.
+- **The bot watches videos customers send** (a few frames, plus the speech when a speech-to-text key is set) instead of only receiving a link it cannot open.
+- **Stickers and the like button (👍) are understood as reactions**, no longer downloaded and described as a photo. On Instagram, the bot knows when a customer replies to the account's story or mentions it in theirs.
+- **When Messenger rate limits or has a temporary send failure, the bot waits and sends again** instead of losing the answer.
+- **Slack bots answer in the right thread.** Before, if someone wrote in another thread of the same channel while the bot was answering, the answer could land in that other thread. Every answer now goes back to the thread of its question.
+- **Customers continuing an old thread are still answered after Naota restarts**, instead of being treated as people talking to each other.
+- **The inbox shows Slack channel names** (for example #sales), and the bot reports being added to or removed from a channel, like Telegram. Text such as `a < b`, `@Kim` and links now reaches Naota exactly as typed.
+- **When Slack rate limits, the bot waits and sends again** instead of losing the rest of the answer. Apps made from the older guide keep working; for channel names, paste the new manifest and reinstall the app (docs/en/29-slack-whatsapp.md).
+- **In Telegram groups with topics, the bot answers in the topic the question was asked in** instead of piling everything into General. In a group the answer also quotes the message it answers, so a busy group can tell who it is for.
+- **When a customer sends several photos at once, the bot answers once** and looks at the whole set, instead of answering in two or three separate turns.
+- **The bot watches videos customers send** (a few frames, plus the speech when a speech-to-text key is set). Locations, contacts, stickers and polls also reach the bot; before, they were ignored.
+- **When Telegram rate limits, the bot waits and sends again**, long answers split at paragraph breaks, and videos the bot sends play right in the chat.
+- **WhatsApp bots read catalog orders.** Before, when a customer sent their cart the bot ignored the whole order. It now sees each product, the quantity, the total and the note. Shared contacts, WhatsApp Flow forms, and a location's name and address also reach the bot.
+- **The bot knows which ad the customer came from** (click-to-WhatsApp ads) and which catalog product they are asking about, so it can answer to the point.
+- **A paused bot, or one you have taken over, no longer shows the customer "typing..." and then says nothing.** The indicator only appears when the bot is really answering.
+- **When WhatsApp rate limits, the bot waits and sends again**, videos go out playable in the chat, and an image too large for WhatsApp goes as a document instead of failing.
+
 ## [1.54.0] - 2026-11-21
 ### Added
 - **Leave a Zalo group from the "..." menu of the Conversations page.** The chat history stays in Naota, under the Hidden filter.

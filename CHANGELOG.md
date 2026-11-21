@@ -6,6 +6,25 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.55.0] - 2026-11-21
+### Cải thiện
+- **Bot Messenger biết khách tới từ quảng cáo nào.** Khách bấm quảng cáo "Gửi tin nhắn", link m.me có mã, hay khung chat trên website: bot thấy tên quảng cáo hoặc mã link, kể cả khi khách mở lại một cuộc chat cũ từ quảng cáo rồi mới gõ.
+- **Bot xem được video khách gửi** (cắt vài khung hình, nghe cả lời nói nếu có key chuyển giọng nói), thay vì chỉ nhận một đường link không mở được.
+- **Sticker và nút thích (👍) được hiểu đúng là cảm xúc**, bot không còn tải về rồi tả lại như một bức ảnh. Trên Instagram, khách trả lời story hay nhắc tài khoản trong story thì bot biết.
+- **Messenger giới hạn tần suất hoặc tạm lỗi gửi thì bot chờ rồi gửi lại**, không mất câu trả lời.
+- **Bot Slack trả lời đúng thread.** Trước đây, đang trả lời câu hỏi ở thread này mà có người nhắn ở thread khác cùng kênh thì câu trả lời có thể rơi nhầm sang thread kia. Giờ mỗi câu trả lời luôn về đúng thread của câu hỏi.
+- **Khách nhắn tiếp trong thread cũ vẫn được trả lời sau khi Naota khởi động lại**, không bị coi là người khác nói chuyện với nhau.
+- **Hộp thư hiện tên kênh Slack** (ví dụ #sales), và bot báo ngay khi được thêm vào hoặc bị gỡ khỏi một kênh, giống Telegram. Chữ khách gõ như `a < b`, `@Kim`, đường link giờ tới Naota đúng như khách gõ.
+- **Slack đang giới hạn tần suất thì bot chờ rồi gửi lại**, không mất nửa câu trả lời. App tạo theo hướng dẫn cũ vẫn chạy; muốn có tên kênh thì dán lại manifest mới và cài lại app (docs/29-slack-whatsapp.md).
+- **Nhóm Telegram có chủ đề (topic): bot trả lời đúng chủ đề người ta hỏi**, thay vì dồn hết về mục General. Trong nhóm, câu trả lời còn trích đúng tin được hỏi, nên đông người vẫn biết bot đang trả lời ai.
+- **Khách gửi nhiều ảnh một lúc thì bot trả lời một lần**, xem đủ cả bộ ảnh, không còn trả lời tách thành hai ba lượt.
+- **Bot xem được video khách gửi** (cắt vài khung hình, nghe cả lời nói nếu có key chuyển giọng nói). Vị trí, danh bạ, sticker và bình chọn khách gửi cũng tới được bot, trước đây bị bỏ qua.
+- **Telegram giới hạn tần suất thì bot chờ rồi gửi lại**, câu trả lời dài được chia đúng chỗ xuống đoạn, video bot gửi đi xem được ngay trong chat.
+- **Bot WhatsApp đọc được đơn đặt hàng từ catalog.** Trước đây khách bấm gửi giỏ hàng thì bot bỏ qua cả đơn. Giờ bot thấy từng sản phẩm, số lượng, tổng tiền và lời nhắn kèm theo. Danh bạ khách gửi, biểu mẫu WhatsApp Flow, tên và địa chỉ của vị trí cũng tới được bot.
+- **Bot biết khách tới từ quảng cáo nào** (quảng cáo bấm vào nhắn WhatsApp) và khách đang hỏi sản phẩm nào trong catalog, để trả lời đúng ý.
+- **Bot đang tạm dừng hoặc bạn đang tiếp quản thì khách không còn thấy "đang soạn tin..." rồi im luôn.** Dòng đó chỉ hiện khi bot thật sự trả lời.
+- **WhatsApp giới hạn tần suất thì bot chờ rồi gửi lại**, video gửi đi xem được ngay trong chat, ảnh quá cỡ tự gửi thành tài liệu thay vì báo lỗi.
+
 ## [1.54.0] - 2026-11-21
 ### Thêm mới
 - **Rời nhóm Zalo ngay ở menu "..." của trang Hội thoại.** Lịch sử chat vẫn giữ trong Naota, ở bộ lọc Đã ẩn.
