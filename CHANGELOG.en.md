@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.54.0] - 2026-11-21
+### Improved
+- In progress: porting bản nguồn 0.606.1 tới 0.610.1 (chat, hộp thư).
+
 ## [1.53.0] - 2026-11-20
 ### Added
 - **Ask Naota in chat to run a script on a schedule.** For example "run check_shop.py every minute": the job runs the script directly with no model, so it is cheap and can run every minute.
