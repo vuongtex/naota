@@ -8568,7 +8568,7 @@
   "trong": null
  },
  {
-  "order": 858,
+  "order": 860,
   "type": "APIRoute",
   "path": "/office/live",
   "name": "office_live",
@@ -8578,7 +8578,7 @@
   "trong": null
  },
  {
-  "order": 859,
+  "order": 861,
   "type": "APIRoute",
   "path": "/batch",
   "name": "batch_reads",
