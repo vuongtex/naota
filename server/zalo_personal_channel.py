@@ -372,6 +372,56 @@ def _chu_danh_thiep(card: dict) -> str:
     ten = card.get("name") or localefmt.chu("không rõ tên", "no name")
     sdt = card.get("phone") or localefmt.chu("không hiện số", "number hidden")
     return localefmt.chu(f"[Danh thiếp] {ten}, SĐT {sdt}", f"[Contact card] {ten}, phone {sdt}")
+# A link card (Zalo `chat.recommended`, what the Zalo app sends when someone types a link) is read as a text message:
+# its title, the page's description and the link. Field report 20/11/2026: it was filed as "other", which the bot never
+# answers, so a link posted in a group went unseen even when it tagged the bot, and the inbox kept only the page's
+# description ("Try out Artifacts created by Claude users"), never the link itself.
+#
+# Where the parts are (naota-zalo `normalizeMessage`): `text` is the page's description (or the title, or the link,
+# whichever comes first), `attachment.url` is the link and `attachment.description` is Zalo's `content.title`. An
+# older MCP may hand over the raw `content` object instead, in `content` or in `text`. A card that carries no http(s)
+# link (a shared contact uses the same message type) stays what it was.
+LINK_CARD_TYPES = ("chat.recommended", "chat.link")
+_HTTP_LINK = re.compile(r"https?://[^\s<>\"']+", re.I)
+
+
+def _http_link(*values: Any) -> str:
+    for v in values:
+        m = _HTTP_LINK.search(str(v or ""))
+        if m:
+            return m.group(0).rstrip(".,;:!?)]}")
+    return ""
+
+
+def link_card(msg: dict) -> Optional[dict]:
+    """`{"url", "title", "description"}` of a link card message, or None when `msg` is not one."""
+    if not isinstance(msg, dict):
+        return None
+    att = msg.get("attachment") if isinstance(msg.get("attachment"), dict) else {}
+    kind = str(_lay(msg, "type", "msgType", "message_type", mac_dinh="") or "").lower()
+    if kind not in LINK_CARD_TYPES and str(att.get("type") or "").lower() not in LINK_CARD_TYPES:
+        return None
+    raw_text = msg.get("text")
+    content = next((c for c in (msg.get("content"), raw_text) if isinstance(c, dict)), {})
+    if "user" in str(content.get("action") or "").lower():
+        return None         # a shared contact ("recommened.user"), not a page
+    plain = raw_text if isinstance(raw_text, str) else ""
+    url = _http_link(att.get("url"), content.get("href"), msg.get("url"), plain, content.get("title"))
+    if not url:
+        return None
+    title = str(att.get("description") or content.get("title") or "").strip()
+    description = str(content.get("description") or content.get("desc") or plain or "").strip()
+    return {"url": url, "title": title, "description": description}
+
+
+def link_card_text(card: dict) -> str:
+    """The card as the text the inbox and the bot read: title, description, link, one per line, none repeated."""
+    lines: List[str] = []
+    for part in (card.get("title"), card.get("description"), card.get("url")):
+        part = str(part or "").strip()
+        if part and part.lower() not in "\n".join(lines).lower():
+            lines.append(part)
+    return "\n".join(lines)
 
 
 def _link_anh(msg: dict) -> str:
@@ -493,16 +543,19 @@ def chuan_hoa_tin(conn: dict, msg: dict, ten: Dict[str, dict]) -> Optional[dict]
     sender_name = str(_lay(msg, "senderName", "sender_name", "fromName", "dName", mac_dinh="") or "").strip()
     if not sender_name and not nhom:
         sender_name = str(th.get("name") or "")
-    loai = _loai_tin(msg)
+    card = link_card(msg)
+    loai = "text" if card else _loai_tin(msg)
     from zalo_attachments import normalize as normalize_attachment
     text = _lay(msg, "text", "content", "msg", "message", mac_dinh="")
-    if isinstance(text, dict):
+    if card:
+        text = link_card_text(card)
+    elif isinstance(text, dict):
         text = _lay(text, "text", "title", "description", "href", mac_dinh="")
     text = strip_mention_markup(str(text or ""))
-    card = _danh_thiep(msg)
-    if card is not None:
+    danh_thiep = _danh_thiep(msg)
+    if danh_thiep is not None:
         # As plain text, so the merged turn keeps it and the bot sees the number (an "other" message is dropped there).
-        loai, text = "text", _chu_danh_thiep(card)
+        loai, text = "text", _chu_danh_thiep(danh_thiep)
     if loai != "text" and not text.strip():
         # The account's own photo (isSelf, from the owner's phone) is not "the customer sent".
         text = (f"[{conversations.KENH_NHAN[KENH]}: gửi {loai}]" if _la_cua_minh(msg)
@@ -540,6 +593,7 @@ def chuan_hoa_tin(conn: dict, msg: dict, ten: Dict[str, dict]) -> Optional[dict]
         "metadata": dict({k: msg.get(k) for k in ("replyTo", "mentions", "mediaUrl", "url", "fileName", "cliMsgId")
                           if msg.get(k) not in (None, "")},
                          **({"reaction": reaction} if reaction is not None else {}),
+                         **({"link_card": card} if card else {}),
                          **({"chua_ro_loai": True} if _chua_ro_loai(msg, ten) else {}),
                          **({"member_join": vao_nhom} if vao_nhom is not None else {}),
                          **({"join_request": xin_vao} if xin_vao is not None else {}),
@@ -2015,7 +2069,8 @@ def _is_link_echo(conn_id: str, thread: str, ev: dict, msg: Any = None, blind: b
     """True, and the record used up, when this own message is the echo of a link card the bot sent.
 
     Matched by the link appearing in the message's text or in its attachment link. With `blind`, a non-text message
-    without a readable link also counts when a card went out in this chat within LINK_ECHO_BLIND seconds."""
+    (or a link card, which is read as text) without a matching link also counts when a card went out in this chat
+    within LINK_ECHO_BLIND seconds."""
     key = (str(conn_id), str(thread))
     now = time.time()
     ds = [x for x in _LINK_ECHOES.get(key, []) if now - x[0] < ECHO_TTL]
@@ -2026,7 +2081,8 @@ def _is_link_echo(conn_id: str, thread: str, ev: dict, msg: Any = None, blind: b
     seen = " ".join(str(v or "") for v in (ev.get("text"), att.get("url"),
                                             msg.get("url") if isinstance(msg, dict) else "")).lower()
     hit = next((i for i, (_ts, url) in enumerate(ds) if url and url in seen), None)
-    if hit is None and blind and str(ev.get("message_type") or "text") != "text":
+    if hit is None and blind and (str(ev.get("message_type") or "text") != "text"
+                                  or (ev.get("metadata") or {}).get("link_card")):
         hit = next((i for i, (ts, _url) in enumerate(ds) if now - ts < LINK_ECHO_BLIND), None)
     if hit is None:
         _LINK_ECHOES[key] = ds

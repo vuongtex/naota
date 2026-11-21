@@ -23568,7 +23568,14 @@ def _agent_history_channels(brain, channel) -> list:
     chatbot. Kênh của phiên bot là `bot:<slug hoặc id>` (xem `_tg_answer`).
 
     The owner's chats from the admin channels and the CLI join too. Naota Core's history holds the plain ones (Naota Core
-    is who answers there); an agent's holds the ones routed to it, stored as `<channel>@<slug>` (`_owner_store_channel`)."""
+    is who answers there); an agent's holds the ones routed to it, stored as `<channel>@<slug>` (`_owner_store_channel`).
+
+    A bot is matched by the brain its chats are STORED under (`_brain_key`, what `_tg_answer` writes), not by the raw
+    string in the bot record. A bot saved with another spelling of the same brain (an absolute path from an older version
+    or a moved brain folder) answered fine but its chats never reached the agent's history. The agent slug is compared
+    in NFC too, so a slug from a macOS file name still matches."""
+    import unicodedata
+
     ch = str(channel or "").strip()
     if not ch.startswith("agent:"):
         return []
@@ -23577,13 +23584,14 @@ def _agent_history_channels(brain, channel) -> list:
         return list(OWNER_TURN_CHANNELS)
     keys = {str(k) for k in (_brain_keys(brain) or [])}
     out = [f"{c}@{slug}" for c in OWNER_TURN_CHANNELS]
+    nfc = lambda s: unicodedata.normalize("NFC", str(s or ""))  # noqa: E731
     try:
         for b in chatbot_store.list_bots():
             a = b.get("agent") or {}
-            if str(a.get("slug")) != slug:
+            if nfc(a.get("slug")) != nfc(slug):
                 continue
-            # Phiên của bot được lưu với brain CỦA BOT (xem `_tg_answer`), nên so brain đó.
-            if keys and str(b.get("brain")) not in keys:
+            # Phiên của bot được lưu với brain CỦA BOT (xem `_tg_answer`), nên so brain đó, theo đúng khoá kho đã ghi.
+            if keys and str(b.get("brain")) not in keys and _brain_key(b.get("brain")) not in keys:
                 continue
             kenh = "bot:" + str(b.get("slug") or b.get("id"))
             if kenh not in out:
@@ -23655,12 +23663,19 @@ def sessions_search(q: str = Query(...), brain: str = Query(None), limit: int = 
                                           also_channels=_agent_history_channels(brain, channel) if bots else [])}
 
 
+def _unread_skip(skip: str) -> list:
+    """`skip` query of the unread counts: comma-separated chat ids the dashboard sees running or has open on screen.
+    Owner 2026-11-20: a dot means a chat that has finished and is not read yet."""
+    return [x for x in (skip or "").split(",") if x.strip()]
+
+
 @app.get("/sessions/unread-summary")
-def sessions_unread_summary(brain: str = Query(None)):
+def sessions_unread_summary(brain: str = Query(None), skip: str = Query("")):
     """How many chats have a reply the owner has not read, per rail entry (owner, 2026-11-19: "answers of partners,
     chats and teams need no notification, a red dot on the menu is enough"). `chat`: chats of the Chat page;
-    `workspace`: chats with a partner or a workflow (Partners page). Teams count on their own (`GET /teams/unread`)."""
-    return {"ok": True, **get_store().unread_summary(_brain_keys(brain))}
+    `workspace`: chats with a partner or a workflow (Partners page). Teams count on their own (`GET /teams/unread`).
+    `skip`: chats still running or open on screen, not counted (_unread_skip)."""
+    return {"ok": True, **get_store().unread_summary(_brain_keys(brain), skip=_unread_skip(skip))}
 
 
 @app.get("/sessions/{session_id}")
@@ -24326,8 +24341,13 @@ def sessions_set_project(session_id: str, project_id: str = Form(""),
 # Project = nhóm hội thoại người dùng tự gom. Xoá project chỉ GỠ NHÃN, không xoá hội thoại.
 # ============================================================
 @app.get("/projects")
-def projects_list(brain: str = Query(None)):
-    return {"projects": get_store().list_projects(brain=brain)}
+def projects_list(brain: str = Query(None), skip: str = Query("")):
+    """`ungrouped_unread`: unread chats in no project, the dot on "Chưa xếp nhóm" (2026-11-20). `skip`: chats still
+    running or open on screen, left out of every unread count (_unread_skip)."""
+    store = get_store()
+    ids = _unread_skip(skip)
+    return {"projects": store.list_projects(brain=brain, skip=ids),
+            "ungrouped_unread": store.count_unread(brain=_brain_keys(brain), project="none", skip=ids)}
 
 
 @app.post("/projects")
