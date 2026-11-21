@@ -120,9 +120,9 @@ for ten, kenh in lech.items():
     check(f"bot lưu brain mặc định bằng cách viết khác ({ten}) vẫn vào lịch sử Agent", kenh in k4, k4)
 check("brain riêng THẬT vẫn không lẫn vào", "bot:" + chatbot_store.get_bot(b3)["slug"] not in k4, k4)
 import unicodedata  # noqa: E402
-bn, en = chatbot_store.create_bot({"name": "Bot Vu", "agent_slug": unicodedata.normalize("NFD", "naota-vũ"),
+bn, en = chatbot_store.create_bot({"name": "Bot Hong", "agent_slug": unicodedata.normalize("NFD", "tro-ly-hồng"),
                                     "brain": "brain"})
-kn = main._agent_history_channels("brain", "agent:" + unicodedata.normalize("NFC", "naota-vũ"))
+kn = main._agent_history_channels("brain", "agent:" + unicodedata.normalize("NFC", "tro-ly-hồng"))
 check("tên Agent có dấu: NFD (tên file macOS) và NFC vẫn khớp", bn and "bot:" + chatbot_store.get_bot(bn)["slug"] in kn,
       (en, kn))
 

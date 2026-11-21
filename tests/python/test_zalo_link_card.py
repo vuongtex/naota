@@ -205,8 +205,9 @@ contact = {"id": "c3", "threadId": "g1", "threadType": "group", "senderId": "u50
            "content": {"title": "Minh", "description": "", "href": "https://s120.ava.zdn.vn/a.jpg",
                        "action": "recommened.user"}}
 ev = zc.chuan_hoa_tin(CONN, contact, GROUP)
+# NAOTA reads a shared contact as its own text ("[Danh thiếp] ..."), never as a link card.
 check("a shared contact (same message type) is not taken for a link card",
-      ev and ev["message_type"] == "other" and "link_card" not in ev["metadata"], ev)
+      ev and "link_card" not in ev["metadata"] and ev["text"].startswith("[Danh thiếp]"), ev)
 
 no_link = {"id": "c4", "threadId": "g1", "threadType": "group", "senderId": "u50", "type": "chat.recommended",
            "text": DESC}
