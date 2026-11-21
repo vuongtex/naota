@@ -40,8 +40,8 @@
   <!-- Biến --ic-* cho icon dùng trong content: của CSS. Phải đứng TRƯỚC style.css
        vì style.css tham chiếu các biến này. -->
   <link rel="stylesheet" href="/static/vendor/lucide-icons.css?v=1">
-  <link rel="stylesheet" href="/static/style.css?v=190">
-  <link rel="stylesheet" href="/static/console.css?v=174">
+  <link rel="stylesheet" href="/static/style.css?v=191">
+  <link rel="stylesheet" href="/static/console.css?v=175">
   <!-- Áp tông đã lưu TRƯỚC khi vẽ để không nháy tối rồi mới đổi sang sáng.
        Giá trị cũ "dim" (tông tối-nhạt, gỡ) quy về tối; theme.js sẽ ghi đè lại.
        Chưa chọn gì thì SÁNG (NAOTA 1.0.0). Chế độ "auto" (chỉ khi người dùng tự chọn) tính theo khung giờ "HH:MM-HH:MM", cùng quy tắc với
@@ -958,8 +958,9 @@
         <div class="auth-err" id="authErr"></div>
         <div class="auth-help"><span id="authForgot" data-i18n="auth.forgot">Quên mật khẩu?</span></div>
         <div class="auth-reset" id="authResetInfo" style="display:none">
-          <span data-i18n="auth.reset1">Mở file</span> <code>server/settings.json</code><span data-i18n="auth.reset2">, xóa khối</span> <code>"auth"</code> <span data-i18n="auth.reset3">(hoặc đặt rỗng), rồi chạy</span>
-          <code>stop-naota.bat</code> → <code>start-naota.vbs</code>. <span data-i18n="auth.reset4">Mở lại sẽ về bộ cài đặt để tạo tài khoản mới.</span>
+          <span data-i18n="auth.reset1">Trên máy tính chạy Naota, mở thư mục cài Naota rồi bấm đúp</span> <code>reset-auth.bat</code>
+          <span data-i18n="auth.reset2">(Mac:</span> <code>reset-auth.command</code><span data-i18n="auth.reset3">).</span>
+          <span data-i18n="auth.reset4">Mật khẩu cũ bị xoá, mở lại Naota rồi vào Tài khoản đặt mật khẩu mới.</span>
           <div class="auth-reset-srv" data-i18n="auth.reset_server">Chạy trên máy chủ (Docker, Hostinger): đổi NAOTA_ADMIN_PASSWORD trong Environment rồi Redeploy. Naota đặt lại mật khẩu theo giá trị mới, 2FA giữ nguyên.</div>
         </div>
       </div>
@@ -1223,7 +1224,9 @@
   <script src="/static/model-picker.js?v=23"></script>
   <script src="/static/composer-plus.js?v=4"></script>
   <script src="/static/composer-folder.js?v=4"></script>
-  <script src="/static/github-connect.js?v=9"></script>
+  <script src="/static/github-connect.js?v=10"></script>
+  <!-- Brain backup on the signed-in GitHub account: the top of the sync box on the Self-learning page. -->
+  <script src="/static/backup-link.js?v=1"></script>
   <script src="/static/branding.js?v=12"></script>
   <script src="/static/quick-settings.js?v=11"></script>
   <script src="/static/remote-access.js?v=2"></script>
@@ -1278,7 +1281,7 @@
   <script src="/static/login-vault.js?v=2"></script>
   <script src="/static/messenger-connect.js?v=5"></script>
   <script src="/static/voice-catalog.js?v=1"></script>
-  <script src="/static/console.js?v=236"></script>
+  <script src="/static/console.js?v=237"></script>
   <script src="/static/mobile-chat.js?v=24"></script>
   <script src="/static/brain-view.js?v=1"></script>
   <script src="/static/push.js?v=4"></script>
