@@ -491,7 +491,9 @@ def _token_ok(request, path: str) -> bool:
     raw = _bearer(request)
     if not raw:
         return False
-    ip = request.client.host if request.client else ""
+    # The real caller, through Cloudflare and local proxies: per edge address, one stranger guessing tokens
+    # banned every caller that came through the same Cloudflare edge.
+    ip = security_log.client_ip(request)
     if cfgmod.token_ip_banned(ip):
         return False
     entry = cfgmod.verify_api_token(raw, path)
@@ -1860,6 +1862,8 @@ def _env_bat(ten: str) -> bool:
 @app.get("/auth/status")
 async def auth_status(request: Request):
     cfg = cfgmod.read_settings()
+    if not cfgmod.auth_enabled(cfg) and cfgmod.restore_admin_from_env():
+        cfg = cfgmod.read_settings()
     enabled = cfgmod.auth_enabled(cfg)
     require = cfgmod.require_login()
     has_session = cfgmod.valid_session(request.cookies.get("naota_session", ""))
@@ -1867,6 +1871,9 @@ async def auth_status(request: Request):
     authed = has_session or (not enabled and not require)
     return {"needs_setup": not enabled, "auth_required": enabled or require,
             "require_login": require, "authed": authed,
+            # The password is gone but an owner had one: the account form is shut here (see auth_setup), so the
+            # dashboard shows the sign-in page with the way back instead of a form that would only refuse.
+            "setup_locked": (not enabled) and cfgmod.setup_locked(cfg) and not _on_this_machine(request),
             # 2FA lộ ra ở đây là CỐ Ý và không phải rò rỉ: màn đăng nhập cần biết có hỏi ô mã
             # hay không, mà việc "tài khoản này có 2FA" thì kẻ tấn công cũng biết ngay sau lần
             # nhập mật khẩu đầu tiên. Số mã khôi phục còn lại thì chỉ trả khi ĐÃ đăng nhập.
@@ -1886,8 +1893,27 @@ async def auth_status(request: Request):
 async def auth_setup(request: Request, username: str = Form(...), password: str = Form(...),
                      setup_token: str = Form("")):
     cfg = cfgmod.read_settings()
+    if not cfgmod.auth_enabled(cfg) and cfgmod.restore_admin_from_env():
+        cfg = cfgmod.read_settings()
     if cfgmod.auth_enabled(cfg):
         return JSONResponse({"ok": False, "error": localefmt.chu("Đã có tài khoản - hãy đăng nhập.", "An account already exists - please sign in.")}, status_code=400)
+    # Seen in use (twice): the owner's password vanished from settings.json, and with no
+    # password this form looked like a first install to anyone, so a stranger's phone created a new account through
+    # Cloudflare. Once an owner account has existed, only the machine itself (a browser on it, no tunnel or proxy in
+    # between) may create the next one, or any device for a day after the owner ran tools/reset_auth.py.
+    # NAOTA_ADMIN_PASSWORD, when set, already brought the account back just above.
+    if cfgmod.setup_locked(cfg) and not _on_this_machine(request):
+        _sec(request, "setup_blocked", user=(username or "").strip()[:80],
+             detail="no password on file but an owner account existed; the form only opens on the machine itself")
+        return JSONResponse({"ok": False, "setup_locked": True, "error": localefmt.chu(
+            "Máy này đã có chủ nhưng mật khẩu đang bị mất, nên không tạo tài khoản mới từ đây được. Chủ máy lấy "
+            "lại quyền bằng một trong hai cách: đặt NAOTA_ADMIN_PASSWORD (Environment của VPS hoặc tệp .env) rồi "
+            "khởi động lại Naota, hoặc chạy python tools/reset_auth.py trên máy chủ rồi đặt mật khẩu mới trong "
+            "vòng 24 giờ.",
+            "This Naota already has an owner but the password is missing, so a new account cannot be created from "
+            "here. The owner gets back in either way: set NAOTA_ADMIN_PASSWORD (the VPS Environment or the .env "
+            "file) and restart Naota, or run python tools/reset_auth.py on the server and set a new password "
+            "within 24 hours.")}, status_code=403)
     # MÃ THIẾT LẬP đã bỏ: lần đầu chỉ cần tên + mật khẩu, bảo
     # vệ tiếp theo là 2FA. `setup_token` vẫn nhận nhưng bỏ qua, để client cũ còn gửi không lỗi.
     # Máy cài bằng install.sh có admin sẵn từ .env nên màn này không bao giờ hiện ra ở đó.
@@ -1899,6 +1925,7 @@ async def auth_setup(request: Request, username: str = Form(...), password: str 
     cfg["auth"] = {**cfgmod.kept_totp(cfg), "username": username.strip() or "admin",
                    "password_hash": h, "salt": salt}
     cfgmod.write_settings(cfg)
+    cfgmod.clear_setup_reopen()
     _sec(request, "setup", user=username.strip() or "admin")
     return _session_cookie(JSONResponse({"ok": True}), _new_login_session(request, username.strip() or "admin", "setup"),
                            request)
@@ -1935,11 +1962,15 @@ async def auth_login(request: Request, username: str = Form(...), password: str 
     Thứ tự kiểm CÓ CHỦ Ý: mật khẩu trước, mã sau. Đảo lại là biến ô mã thành một máy dò xem
     tài khoản nào đã bật 2FA, cho người còn chưa biết mật khẩu.
     """
-    ip = request.client.host if request.client else "?"
+    # Per visitor, read through Cloudflare and local proxies: per edge address, one stranger guessing
+    # passwords through a Cloudflare edge locked out the owner coming through the same edge.
+    ip = security_log.client_ip(request) or "?"
     if _login_locked(ip):
         _sec(request, "login_locked", user=username)
         return JSONResponse({"ok": False, "error": localefmt.chu("Quá nhiều lần sai - thử lại sau ít phút.", "Too many failed attempts - try again in a few minutes.")}, status_code=429)
     cfg = cfgmod.read_settings()
+    if not cfgmod.auth_enabled(cfg) and cfgmod.restore_admin_from_env():
+        cfg = cfgmod.read_settings()
     if not cfgmod.auth_enabled(cfg):
         return {"ok": True, "note": localefmt.chu("auth chưa bật", "auth is not enabled")}
     if not cfgmod.username_matches(username, cfg) or not cfgmod.verify_password(password, cfg):
@@ -2254,6 +2285,18 @@ def _direct_local_request(request: Request) -> bool:
 _LOOPBACK_HOSTS = ("127.0.0.1", "localhost", "::1")
 
 
+def _on_this_machine(request: Request) -> bool:
+    """A browser on the machine running Naota: loopback, no tunnel or proxy hop, and a loopback Host (a page that
+    rebinds its own name to 127.0.0.1 carries its own name). Cross-site posts are already refused by _csrf_guard."""
+    if not _direct_local_request(request):
+        return False
+    try:
+        host = web_security.host_only(request.headers.get("host") or "")
+    except Exception:  # noqa: BLE001
+        return False
+    return host.strip("[]") in _LOOPBACK_HOSTS
+
+
 def _local_tool_call(request: Request) -> bool:
     """A login-exempt call from a tool on this machine (naota_schedule, an engine's curl), never from a web page.
 
@@ -2295,7 +2338,7 @@ async def auth_disable(request: Request, password: str = Form(""), code: str = F
             "mở dashboard ngay trên máy cá nhân chạy Naota.",
             "Login cannot be turned off on a server reachable from outside (VPS, Docker, tunnel). "
             "It can only be turned off from the personal machine running Naota.")}, status_code=403)
-    ip = request.client.host if request.client else "?"
+    ip = security_log.client_ip(request) or "?"
     if _login_locked(ip):
         return JSONResponse({"ok": False, "error": localefmt.chu("Quá nhiều lần sai - thử lại sau ít phút.", "Too many failed attempts - try again in a few minutes.")}, status_code=429)
     cfg = cfgmod.read_settings()
@@ -2326,7 +2369,10 @@ async def auth_disable(request: Request, password: str = Form(""), code: str = F
     a.update(username="", password_hash="", salt="")
     a.pop("env_applied", None)
     cfg["auth"] = a
-    cfgmod.write_settings(cfg)
+    # The one save that clears the account on purpose (config._keep_owner_account refuses every other one), and the
+    # owner chose it: the next account form is a first one again (config.owner_known).
+    cfgmod.write_settings(cfg, clear_account=True)
+    cfgmod.release_owner()
     cfgmod.clear_sessions()
     _sec(request, "login_disabled")
     return {"ok": True}
@@ -14995,6 +15041,14 @@ _SECURITY_ALERT_TEXT = {
     "env_2fa_reset": ("2FA được gỡ bằng NAOTA_RESET_2FA", "2FA removed with NAOTA_RESET_2FA"),
     "auth_changed_outside": ("CẢNH BÁO: file cài đặt bị sửa tài khoản từ BÊN NGOÀI Naota. Mọi phiên đã bị đăng xuất.",
                              "WARNING: the account in the settings file was changed OUTSIDE Naota. Every session was signed out."),
+    "setup_blocked": ("CẢNH BÁO: có người thử tạo tài khoản mới khi mật khẩu của chủ đang bị mất. Naota đã chặn.",
+                      "WARNING: someone tried to create a new account while the owner's password was missing. Naota refused."),
+    "account_clear_blocked": ("CẢNH BÁO: một lần lưu cài đặt định xoá mật khẩu của chủ. Naota đã giữ lại mật khẩu.",
+                              "WARNING: a settings save tried to erase the owner's password. Naota kept the password."),
+    "github_connected": ("GitHub vừa được kết nối vào Naota", "GitHub was just connected to Naota"),
+    "github_changed": ("Tài khoản GitHub của Naota vừa bị đổi sang tài khoản khác",
+                       "The GitHub account of Naota was just switched to another account"),
+    "github_disconnected": ("GitHub vừa bị ngắt khỏi Naota", "GitHub was just disconnected from Naota"),
 }
 
 
