@@ -8,7 +8,7 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 ## [1.60.0] - 2026-11-22
 ### Cải thiện
-- **Linh vật theo logo NAOTA**: đang viết.
+- **Linh vật mang dáng logo NAOTA**: ngôi sao cam của bản cũ thành ô vuông bo góc màu vàng NAOTA, ở trang Việc cần làm, con linh vật nép mép màn hình và thẻ Tặng sao. Máy đang để ngôi sao mặc định tự đổi sang hình mới sau khi cập nhật; ai đã tự chọn hình hay màu khác thì giữ nguyên. Ngôi sao vẫn còn trong Cài đặt > Linh vật nếu muốn chọn lại.
 
 ## [1.59.0] - 2026-11-22
 ### Thêm mới

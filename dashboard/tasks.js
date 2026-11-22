@@ -1484,8 +1484,9 @@
   }
 
   // ---------- habits: list head, mascot, checkbox, streak card ----------
-  // The mascot is Naota's own star (dashboard/pet.js): all feeling sits in the eyes, no mouth.
-  var PET_STAR = "M145 81 Q160 59.4 175 81 L177.9 85.1 Q195.8 110.7 225.8 119.9 L230.6 121.3 Q255.7 128.9 239.8 149.8 L236.8 153.8 Q217.9 178.8 218.5 210.1 L218.6 215.1 Q219.1 241.4 194.3 232.8 L189.6 231.1 Q160 220.8 130.4 231.1 L125.7 232.8 Q100.9 241.4 101.4 215.1 L101.5 210.1 Q102.1 178.8 83.2 153.8 L80.2 149.8 Q64.3 128.9 89.4 121.3 L94.2 119.9 Q124.2 110.7 142.1 85.1 Z";
+  // The mascot is Naota's own (dashboard/pet.js): the rounded square of the NAOTA logo in NAOTA yellow. All feeling
+  // sits in the eyes, no mouth.
+  var PET_BODY = "M111 85 H209 Q235 85 235 111 V209 Q235 235 209 235 H111 Q85 235 85 209 V111 Q85 85 111 85 Z", PET_FILL = "#fccb1d";
   var PET_EYES = {
     neutral: '<ellipse rx="7.2" ry="17.5"/>', curious: '<ellipse cy="-2" rx="8.4" ry="21"/>', excited: '<ellipse cy="-1" rx="9.2" ry="22.5"/>',
     happy: '<path class="pl" d="M-9 6 Q0 -7 9 6"/>', sleepy: '<path class="pl" d="M-9 6 H9"/>',
@@ -1495,15 +1496,15 @@
     love: '<path d="M0 11 C-15 0 -13 -13 -5.5 -13 C-2 -13 0 -10 0 -7.5 C0 -10 2 -13 5.5 -13 C13 -13 15 0 0 11 Z"/>',
     gang: ['<path class="pl" d="M-8 -9 L6 0 L-8 9"/>', '<path class="pl" d="M8 -9 L-6 0 L8 9"/>']
   };
-  // Naota's own star, small and still ("Naota" in the add form shows the star, not an avatar).
+  // Naota's own mascot, small and still ("Naota" in the add form shows the mascot, not an avatar).
   function jmini() {
-    return '<svg class="nv-jmini" viewBox="56 50 208 200" aria-hidden="true"><path d="' + PET_STAR + '" fill="#fd6100"/><g fill="#201e1e"><ellipse cx="145" cy="156" rx="9" ry="20"/><ellipse cx="175" cy="156" rx="9" ry="20"/></g></svg>';
+    return '<svg class="nv-jmini" viewBox="56 50 208 200" aria-hidden="true"><path d="' + PET_BODY + '" fill="' + PET_FILL + '"/><g fill="#201e1e"><ellipse cx="145" cy="156" rx="9" ry="20"/><ellipse cx="175" cy="156" rx="9" ry="20"/></g></svg>';
   }
   function jstar(mood) {
     var e = PET_EYES[mood] || PET_EYES.neutral, L = typeof e === "string" ? e : e[0], R = typeof e === "string" ? e : e[1];
     // Eyes centred on the star, with a light glance (4px) toward the bubble when they are open; lines stay centred.
     var flat = /sleepy|love/.test(mood), dx = flat || mood === "suspicious" ? 0 : 4, dy = flat ? 6 : mood === "suspicious" ? 1 : -4;
-    return '<svg class="nv-star m-' + mood + '" viewBox="56 50 208 200" aria-hidden="true"><path d="' + PET_STAR + '" fill="#fd6100"/><g class="je"><g transform="translate(' + (145 + dx) + " " + (160 + dy) + ')">' + L + '</g><g transform="translate(' + (175 + dx) + " " + (160 + dy) + ')">' + R + "</g></g>"
+    return '<svg class="nv-star m-' + mood + '" viewBox="56 50 208 200" aria-hidden="true"><path d="' + PET_BODY + '" fill="' + PET_FILL + '"/><g class="je"><g transform="translate(' + (145 + dx) + " " + (160 + dy) + ')">' + L + '</g><g transform="translate(' + (175 + dx) + " " + (160 + dy) + ')">' + R + "</g></g>"
       // Sleepy: a small "z Z" drifting up over the head.
       + (mood === "sleepy" ? '<g class="zz"><text class="z1" x="206" y="100">z</text><text class="z2" x="226" y="72">Z</text></g>' : "") + "</svg>";
   }

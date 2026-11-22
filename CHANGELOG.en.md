@@ -6,7 +6,7 @@ NAOTA release history. Newest first.
 
 ## [1.60.0] - 2026-11-22
 ### Improved
-- **The mascot follows the NAOTA logo**: in progress.
+- **The mascot takes the NAOTA logo shape**: the old orange star becomes a rounded square in NAOTA yellow on the Tasks page, the mascot at the screen edge and the Give a star card. A device still on the default star switches after the update; anyone who picked another shape or colour keeps it. The star is still in Settings > Mascot.
 
 ## [1.59.0] - 2026-11-22
 ### Added
