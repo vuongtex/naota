@@ -27,8 +27,6 @@ Naota को किसी भी सामान्य ऐप की तरह �
 irm https://raw.githubusercontent.com/vuongtex/naota/main/packaging/windows/get-naota.ps1 | iex
 ```
 
-इंस्टॉलर आपके कंप्यूटर में क्या बदलते हैं, उन्हें कौन साइन करता है और Naota क्या और कहाँ भेजता है: [Code signing policy](../../../docs/code-signing-policy.md) · [Privacy policy](../../../PRIVACY.md) (अंग्रेज़ी में)।
-
 अगर आपने फ़ाइल पहले ही ब्राउज़र से डाउनलोड कर ली है और वह ब्लॉक हो गई है:
 - Edge या Chrome "Naota-Setup.exe isn't commonly downloaded" दिखाता है और फ़ाइल सेव नहीं करता: Downloads बॉक्स में उस लाइन पर माउस ले जाएँ, तीन बिंदुओं पर क्लिक करें, **Keep** चुनें, फिर **Show more** और **Keep anyway** दबाएँ।
 - Windows में "Windows protected your PC" दिखे तो **More info** और फिर **Run anyway** दबाएँ।

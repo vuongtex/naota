@@ -27,8 +27,6 @@
 irm https://raw.githubusercontent.com/vuongtex/naota/main/packaging/windows/get-naota.ps1 | iex
 ```
 
-Что установщики меняют на компьютере, кто их подписывает и что Naota отправляет и куда: [Code signing policy](../../../docs/code-signing-policy.md) · [Privacy policy](../../../PRIVACY.md) (на английском).
-
 Если вы уже скачали файл браузером и его заблокировали:
 - Edge или Chrome пишет "Naota-Setup.exe isn't commonly downloaded" и не сохраняет файл: в окне Downloads наведите курсор на эту строку, нажмите на три точки, выберите **Keep**, затем **Show more** и **Keep anyway**.
 - Windows пишет "Windows protected your PC": нажмите **More info**, затем **Run anyway**.

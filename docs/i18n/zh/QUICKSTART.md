@@ -27,8 +27,6 @@
 irm https://raw.githubusercontent.com/vuongtex/naota/main/packaging/windows/get-naota.ps1 | iex
 ```
 
-安装程序会在你的电脑上改动什么、由谁签名、Naota 会把什么发送到哪里：[Code signing policy](../../../docs/code-signing-policy.md) · [Privacy policy](../../../PRIVACY.md)（英文）。
-
 如果你已经用浏览器下载了文件并被拦截：
 - Edge 或 Chrome 提示 “Naota-Setup.exe isn't commonly downloaded” 且不保存文件：在下载框里把鼠标移到那一行，点三个点，选 **Keep**，再点 **Show more** 和 **Keep anyway**。
 - Windows 显示 “Windows protected your PC”：点 **More info**，再点 **Run anyway**。

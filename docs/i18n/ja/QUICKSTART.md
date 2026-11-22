@@ -27,8 +27,6 @@ Naota を普通のアプリのようにインストールできます。ファ�
 irm https://raw.githubusercontent.com/vuongtex/naota/main/packaging/windows/get-naota.ps1 | iex
 ```
 
-インストーラーがパソコンで何を変更するか、誰が署名するか、Naota が何をどこへ送るかは、[Code signing policy](../../../docs/code-signing-policy.md) · [Privacy policy](../../../PRIVACY.md)（英語）をご覧ください。
-
 すでにブラウザーでファイルをダウンロードしてブロックされた場合:
 - Edge や Chrome で「Naota-Setup.exe isn't commonly downloaded」と表示されファイルが保存されないとき: ダウンロード欄でその行にマウスを合わせ、3 点メニューをクリックして **Keep** を選び、続けて **Show more**、**Keep anyway** を押します。
 - Windows で「Windows protected your PC」と出たら、**More info** を押してから **Run anyway** を押します。

@@ -27,8 +27,6 @@ Mengklik ikon membuka Naota di jendelanya sendiri (tanpa bilah alamat), Naota be
 irm https://raw.githubusercontent.com/vuongtex/naota/main/packaging/windows/get-naota.ps1 | iex
 ```
 
-Apa yang diubah penginstal di komputer Anda, siapa yang menandatanganinya, dan apa yang dikirim Naota ke mana: [Code signing policy](../../../docs/code-signing-policy.md) · [Privacy policy](../../../PRIVACY.md) (dalam bahasa Inggris).
-
 Jika Anda sudah mengunduh file lewat browser dan diblokir:
 - Edge atau Chrome menampilkan "Naota-Setup.exe isn't commonly downloaded" dan tidak menyimpan file: di kotak Downloads, arahkan kursor ke baris itu, klik tiga titik, pilih **Keep**, lalu **Show more** dan **Keep anyway**.
 - Windows menampilkan "Windows protected your PC": klik **More info**, lalu **Run anyway**.

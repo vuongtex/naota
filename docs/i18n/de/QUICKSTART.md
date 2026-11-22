@@ -27,8 +27,6 @@ Ein Klick auf das Symbol öffnet Naota in einem eigenen Fenster (ohne Adressleis
 irm https://raw.githubusercontent.com/vuongtex/naota/main/packaging/windows/get-naota.ps1 | iex
 ```
 
-Was die Installer auf deinem Computer ändern, wer sie signiert und was Naota wohin sendet: [Code signing policy](../../../docs/code-signing-policy.md) · [Privacy policy](../../../PRIVACY.md) (auf Englisch).
-
 Wenn du die Datei schon mit dem Browser heruntergeladen hast und sie blockiert wurde:
 - Edge oder Chrome meldet "Naota-Setup.exe isn't commonly downloaded" und speichert die Datei nicht: Fahre im Downloads-Feld mit der Maus über diese Zeile, klicke auf die drei Punkte, wähle **Keep**, dann **Show more** und **Keep anyway**.
 - Windows zeigt "Windows protected your PC": klicke auf **More info** und dann auf **Run anyway**.

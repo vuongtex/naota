@@ -27,8 +27,6 @@ Al hacer clic en el icono, Naota se abre en su propia ventana (sin barra de dire
 irm https://raw.githubusercontent.com/vuongtex/naota/main/packaging/windows/get-naota.ps1 | iex
 ```
 
-Qué cambian los instaladores en tu equipo, quién los firma y qué envía Naota y adónde: [Code signing policy](../../../docs/code-signing-policy.md) · [Privacy policy](../../../PRIVACY.md) (en inglés).
-
 Si ya descargaste el archivo con el navegador y se bloqueó:
 - Edge o Chrome dice "Naota-Setup.exe isn't commonly downloaded" y no guarda el archivo: en el cuadro de Descargas, pasa el ratón por esa línea, haz clic en los tres puntos, elige **Keep**, luego **Show more** y **Keep anyway**.
 - Windows muestra "Windows protected your PC": pulsa **More info** y luego **Run anyway**.
