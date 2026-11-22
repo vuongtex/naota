@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.60.0] - 2026-11-22
+### Improved
+- **The mascot follows the NAOTA logo**: in progress.
+
 ## [1.59.0] - 2026-11-22
 ### Added
 - **Naota can click and fill forms with a stored cookie** (needs the Playwright connection). Each card on the Cookies page has its own switch, and older cookies stay read-only until you turn it on. Customer chatbots never get the signed-in browser.
