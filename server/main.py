@@ -16183,12 +16183,16 @@ task_stats_feature = task_stats.register(app, task_stats.TaskStatsDeps(
 
 # login vault (login_vault.py). The owner's sign-in cookies, encrypted, reused by naota_login and by
 # page watches. Its routes need a real dashboard session: an API token can neither read nor add a sign-in.
+# A sign-in can also go into the Playwright browser (browser_login.py); switching one off or deleting
+# it takes it out of that browser again.
+import browser_login  # noqa: E402
 import login_vault  # noqa: E402
 
 login_vault.register(app, login_vault.LoginVaultDeps(
     state_dir=lambda: cfgmod.STATE_DIR,
     has_session=lambda r: cfgmod.valid_session(r.cookies.get("naota_session", "")),
     fetch=web_watch.fetch,
+    forget_browser=browser_login.forget,
 ))
 
 
