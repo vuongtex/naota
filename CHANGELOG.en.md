@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.61.0] - 2026-11-23
+### Improved
+- In progress: porting bản nguồn 0.625.0 tới 0.627.0 (đọc chép trên điện thoại, đăng nhập ChatGPT và Claude bền hơn).
+
 ## [1.60.0] - 2026-11-22
 ### Improved
 - **The mascot takes the NAOTA logo shape**: the old orange star becomes a rounded square in NAOTA yellow on the Tasks page, the mascot at the screen edge and the Give a star card. A device still on the default star switches after the update; anyone who picked another shape or colour keeps it. The star is still in Settings > Mascot.
