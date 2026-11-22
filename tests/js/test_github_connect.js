@@ -20,7 +20,7 @@ check("chip text: first repo name only, +N for the rest", gh.chipText(["acme/app
 check("chip text: long names are cut", gh.chipText(["acme/a-very-long-repository-name"], 10).length === 10);
 check("chip text: nothing attached means no chip", gh.chipText([], 18) === "");
 {
-  // 21/11/2026: the list no longer toggles a set and sends it whole; see tests/js/test_github_repo_picker.js.
+  // The list no longer toggles a set and sends it whole; see tests/js/test_github_repo_picker.js.
   let v = gh.splitRows([{ full_name: "a/x" }, { full_name: "a/y" }], ["a/y"], "");
   check("chosen repos come first", v.all.map(r => r.full_name).join() === "a/y,a/x" && v.selected.length === 1);
   v = gh.splitRows([{ full_name: "a/x" }], ["a/z"], "");
@@ -101,7 +101,7 @@ check("no em dash in the module", js.indexOf("\u2014") === -1 && js.indexOf("\u2
 {
   const rv = js.slice(js.indexOf("function repoList(box, o)"), js.indexOf("// Several repos: pick the repo first"));
   check("the repo list has no Attach button any more", !rv.includes("data-apply") && !rv.includes("gh.apply_"));
-  // 21/11/2026: a tap adds ONE repo and an X removes ONE, each its own request (test_github_repo_picker.js runs them).
+  // A tap adds ONE repo and an X removes ONE, each its own request (test_github_repo_picker.js runs them).
   check("a tap on a repo adds it to the chat right away", /run\(shown\[\+b\.getAttribute\("data-gh-i"\)\], "add", false\)/.test(rv));
   check("only one change is in flight; later ones wait their turn", /chain = chain\.then\(function \(\) \{/.test(rv));
   check("a refused change says why", /err\.textContent = \(d && d\.error\) \|\| tw\("gh\.err_net"\)/.test(rv));
@@ -198,7 +198,7 @@ check("no em dash in the module", js.indexOf("\u2014") === -1 && js.indexOf("\u2
   check("git step texts have no em or en dash", gitKeys.every(k => !/[\u2013\u2014]/.test(vi[k] + en[k])));
 }
 
-// Owner, 21/11/2026: "sắp xếp lại khung giống của Claude". The repo chip sits in the row under the composer card
+// The repo chip sits in the row under the composer card
 // (#cpCtx), after a pinned folder; with both pinned a phone shows both as icons only (.is-two).
 {
   const rc = js.slice(js.indexOf("function renderChip()"), js.indexOf("var chipIcon = null;"));

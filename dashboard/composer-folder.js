@@ -69,7 +69,7 @@
   function announce() {
     try { window.dispatchEvent(new CustomEvent("naota:pinned-folder-changed", { detail: { sid: sid(), folder: folder } })); } catch (e) {}
   }
-  // The row under the composer card (#cpCtx, owner 21/11/2026), first in it, before the GitHub repos. It hides while
+  // The row under the composer card (#cpCtx), first in it, before the GitHub repos. It hides while
   // empty, and with a folder AND repos pinned a phone shows both as icons only (.is-two; same rule in github-connect.js).
   function syncCtx(host) {
     host.hidden = !host.children.length;
@@ -80,7 +80,7 @@
     if (!host) return;
     var chip = document.getElementById("pinChip");
     if (!folder) { if (chip) chip.remove(); syncCtx(host); return; }
-    // 21/11/2026 (owner: "cho anh nút x rõ ràng khi ghim ở khung chat"): the chip is a group, as the repo chip next
+    //: the chip is a group, as the repo chip next
     // to it (github-connect.js). The name opens the panel; the X at its far end unpins, one tap instead of three.
     if (!chip) {
       chip = document.createElement("span");
@@ -99,7 +99,7 @@
     chip.classList.toggle("cp-pin-gone", folder.exists === false);
     chip.title = folder.path + (folder.exists === false ? "\n" + tw("cp.pin_gone") : "") + (inBrain ? "" : "\n" + tw("cp.pin_outside")) +
       (extras.length ? "\n" + tw("cp.pin_extra", { names: extras.join(", ") }) : "");
-    // Extra folders bound before 0.158.0 still reach the prompt: show them as +N instead of hiding them.
+    // Extra folders bound earlier still reach the prompt: show them as +N instead of hiding them.
     chip.innerHTML = '<button type="button" class="cp-pin-open" aria-label="' + esc(tw("cp.pin_folder") + ": " + folder.name) + '">' +
       icon() + "<span>" + esc(chipLabel(folder.name, narrow() ? 28 : 44)) + "</span>" +
       (extras.length ? '<span class="cp-pin-more">+' + extras.length + "</span>" : "") + "</button>" +

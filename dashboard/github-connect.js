@@ -522,9 +522,9 @@
   function announce() {
     try { window.dispatchEvent(new CustomEvent("naota:github-repos-changed", { detail: { sid: sid(), repos: attached } })); } catch (e) {}
   }
-  // The chip lives in the row under the composer card (#cpCtx), after the pinned folder (owner, 21/11/2026: "sắp xếp
-  // lại khung giống của Claude"); it used to squeeze the model and Effort chips in the card's button row.
-  // Owner, 21/11/2026: "cho anh nút x rõ ràng khi ghim ở khung chat". The chip is a group now: the name opens the
+  // The chip lives in the row under the composer card (#cpCtx), after the pinned folder;
+  // it used to squeeze the model and Effort chips in the card's button row.
+  // The chip is a group now: the name opens the
   // panel, the status icon opens the detail, and an X at its far end takes the repos off the chat.
   function renderChip() {
     var host = document.getElementById("cpCtx");
@@ -582,7 +582,7 @@
     });
   }
   // Same rule in composer-folder.js: the row hides while empty, and with folder AND repos pinned a phone shows both as
-  // icons only (.is-two, owner 21/11/2026), so a name is never cut to "ja...".
+  // icons only (.is-two), so a name is never cut to "ja...".
   function syncCtx(host) {
     host.hidden = !host.children.length;
     host.classList.toggle("is-two", host.children.length > 1);
@@ -748,7 +748,7 @@
       : '<button type="button" class="cp-mi gh-more-conn" data-gh-conn="1">' + PLUS + '<span class="cp-mi-lbl">' + esc(tw("gh.connect_more")) + "</span></button>";
   }
   // ONE repo list for every picker: the main chat (reposView below), a team chat, a project and an assistant
-  // (team-github.js). Owner, 21/11/2026: "cho anh nút x rõ ràng ... tìm xem khi thao tác có dễ bị chọn nhầm không".
+  // (team-github.js).
   //   - A chosen repo is a row with an X. The row itself does nothing, so a stray tap can no longer drop a repo.
   //   - Any other repo is one tap to add, marked with a +.
   //   - Adding and removing are separate requests, one at a time. Before, each tick sent the whole list: one repo
@@ -1140,7 +1140,7 @@
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 
-  // `logo`: the GitHub mark, so other chat screens (Teams) show the same logo as the main chat (2026-11-06).
+  // `logo`: the GitHub mark, so other chat screens (Teams) show the same logo as the main chat.
   // `list`: the one repo list, for the pickers of team-github.js (team chat, project, assistant).
   window.NaotaGithubRepos = { mount: mount, connect: connect, claimPending: claimPending, refresh: refresh, decorate: decorate, openDetail: openDetail,
     current: function () { return attached.slice(); }, logo: LOGO, list: repoList };

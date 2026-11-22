@@ -3857,7 +3857,7 @@ def _clear_pin_limit(provider: str) -> bool:
     prov = str(provider or "")
     had = _PIN_LIMITED.pop(prov, None) is not None
     try:
-        # 20/11/2026: the usage ring's "ran out" mark goes with it. It used to outlive the pick, so the ring stayed red
+        # The usage ring's "ran out" mark goes with it. It used to outlive the pick, so the ring stayed red
         # for up to an hour after the owner switched to a model the plan still ran (owner's report, Team plan at 66%).
         import plan_limits
         plan_limits.clear_het(prov)
@@ -15327,7 +15327,7 @@ async def _bo_vao_hom_thu(owner_chat, text, *, kind="answer", label="", source="
             await _CHAT_RUNTIME.publish({"type": "chat_unread", "session_id": sid})
         except Exception as e:  # noqa: BLE001 - the rail dot then shows on its next refresh
             print(f"[inbox] chat_unread WebSocket: {type(e).__name__}: {e}", file=sys.stderr)
-        # Owner, 2026-11-21 ("đang bị mất thông báo đẩy"): 0.602.0 took the push away together with the bell entry, so a
+        # An earlier change took the push away together with the bell entry, so a
         # long answer, a background job's follow-up and a Gate task no longer rang a phone in a pocket, where the red
         # dot cannot be seen. A chat turn's answer (push_if_away) rings the phone again when the notice would have
         # rung (loud) or the owner turned on "notify every answer". Still nothing in the bell, and a muted partner
@@ -20967,7 +20967,7 @@ async def _chat_socket(ws):
             # Lượt này vấp "hết lượt gói thuê bao"? Bốn nhánh engine thuê bao ghi vào đây qua
             # `_limit_frame`; cuối lượt đọc ra để lưu câu báo và hẹn tự chạy lại.
             _limit_state = {}
-            _turn_t0 = time.time()   # 20/11/2026: a refusal older than this turn goes once the turn answers
+            _turn_t0 = time.time()   # A refusal older than this turn goes once the turn answers
             _turn_acc = {}     # provider -> plan account THIS turn runs on (the one that rests on a quota error)
 
             def _limit_frame(raw, engine_hint, model=""):
@@ -22290,7 +22290,7 @@ async def _chat_socket(ws):
                 await _persist_turn(store, conv_sid, brain, user_message, final_text,
                                     turn_started=(_mem_snap or {}).get("t0") or 0)
                 if not _limit_state.get("quota"):
-                    # 20/11/2026: the plan just answered, so an older "ran out" mark on the ring goes (or, when it was
+                    # The plan just answered, so an older "ran out" mark on the ring goes (or, when it was
                     # another model's refusal, stays on that model only). Before, only a fresh meter report lifted it,
                     # and Claude Code sends one only when its limit state changes.
                     try:

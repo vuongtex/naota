@@ -23,7 +23,7 @@ check("the #hudVoice card is found (ends with the <!-- /hudVoice --> marker)", !
 const order = ["attachBar", "chatInput", "cpRow"].map(id => card.indexOf('id="' + id + '"'));
 check("attachments on top, text box in the middle, button row at the bottom", order[0] < order[1] && order[1] < order[2]);
 const row = card.slice(card.indexOf('id="cpRow"'));
-// Owner, 21/11/2026 ("sắp xếp lại khung giống của Claude"): the card keeps +, mic and send; the chips sit under it.
+// The card keeps +, mic and send; the chips sit under it.
 const rowOnly = row.slice(0, row.indexOf('id="cpUnder"'));
 check("button row: + first, then mic and send together on the right, no chip in the card's row",
   rowOnly.indexOf('id="plusBtn"') < rowOnly.indexOf('id="cpRight"') && rowOnly.indexOf('id="cpRight"') < rowOnly.indexOf('id="dictBtn"')
@@ -45,7 +45,7 @@ check("CSS: the card is ONE row (+, text, mic and send), 24px corners before the
   && css.includes(".hud-voice .cp-right { grid-column: 3; grid-row: 2; display: flex; align-items: center; gap: 6px; min-height: 40px; }"));
 check("CSS: the row under the card hangs below its border and the card keeps room for it",
   /\.cp-under \{ position: absolute; top: calc\(100% \+ 2px\);/.test(css) && /margin: 4px 16px calc\(4px \+ var\(--cp-under-h\)\);/.test(css));
-// 21/11/2026 (owner: "cho anh nút x rõ ràng khi ghim ở khung chat"): each chip is a group, name plus X. Icons only on a
+//: each chip is a group, name plus X. Icons only on a
 // phone with both pinned, and each icon keeps its X.
 check("CSS: a phone shows folder and repos as icons only when both are pinned",
   css.includes(".cp-ctx.is-two .cp-pin-open { width: 36px; padding: 0; justify-content: center; }")

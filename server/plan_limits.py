@@ -19,7 +19,7 @@ above, `ghi_het` records the moment the CLI refused a turn for running out of pl
 turn's limit detector calls it), so the ring can at least turn red then. It stays red until the
 reset time the CLI gave, or for an hour when it gave none.
 
-A refusal remembers the model it happened on (owner's report 20/11/2026: Claude Code on a Team plan, the ring red at
+A refusal remembers the model it happened on (a report: Claude Code on a Team plan, the ring red at
 66% and 58% after a refusal on one model, and still red after switching to another). It goes when the owner picks a
 model on purpose (`clear_het`, through main._clear_pin_limit) or when a later turn of the same brain succeeds
 (`lift_het`). A success on ANOTHER model proves the refusal was that model's own limit: the refusal is then `scoped`,

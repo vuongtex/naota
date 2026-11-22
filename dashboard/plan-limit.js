@@ -36,7 +36,7 @@
     return { key: "lim.reset_m", vars: { m: Math.max(1, m) } };
   }
 
-  // 20/11/2026 (owner's report: red at 66% and 58% after a refusal on one model, still red after switching). A model id
+  // A refusal on one model kept the ring red after switching. A model id
   // reduced to what tells two picks apart, and whether two may be the same model; same rule as plan_limits.same_model.
   function modelKey(m) {
     var k = String(m || "").trim().toLowerCase().split("/").pop().replace(/\[[^\]]*\]$/, "").replace(/[-@]\d{8}$/, "");

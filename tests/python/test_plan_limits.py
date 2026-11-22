@@ -181,7 +181,7 @@ pl.ghi_het("codex", NOW + 86400, now=NOW + 500)
 pl.ghi_codex(_codex_report(5), now=NOW + 600)
 check("Codex: a report that leaves out the window still full does not lift it", "het" in pl.doc(now=NOW + 700)["codex"])
 
-# 8c. Owner's report 20/11/2026: Claude Code on a Team plan, the ring red at 66% and 58% after a refusal on one model,
+# 8c. A report: Claude Code on a Team plan, the ring red at 66% and 58% after a refusal on one model,
 #     and still red after switching to another. The refusal now remembers its model; picking a model lifts it; a
 #     later turn that answers lifts it (same model) or narrows it to that model (another model).
 T = NOW + 20000

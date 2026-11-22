@@ -8,7 +8,11 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 ## [1.57.0] - 2026-11-22
 ### Cải thiện
-- Đang làm: lấy khung chat một hàng, nút X cho repo, vòng hạn mức theo model.
+- **Khung chat gọn một hàng như Claude.** Trong khung chỉ còn nút +, ô chữ, ghi âm và gửi. Model, mức suy nghĩ và vòng hạn mức xuống dưới khung bên phải; thư mục ghim và repo GitHub bên trái. Khung cũng nằm sát đáy màn hình hơn.
+### Sửa lỗi
+- **Nút X rõ ràng để bỏ repo**, ở khung chat, trong bảng chọn và ở trang Nhóm. Chạm nhầm vào dòng repo không còn bỏ mất nó, và repo vừa chọn không còn "nhảy về" cái cũ.
+- **Vòng hạn mức gói hết kẹt đỏ sau khi đổi model.** Một model bị chặn riêng cũng không còn làm đỏ cả gói.
+- **Câu trả lời dài lại báo về điện thoại** khi bạn không mở đúng cuộc chat đó.
 
 ## [1.56.0] - 2026-11-21
 ### Thêm mới

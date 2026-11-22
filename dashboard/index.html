@@ -40,8 +40,8 @@
   <!-- Biến --ic-* cho icon dùng trong content: của CSS. Phải đứng TRƯỚC style.css
        vì style.css tham chiếu các biến này. -->
   <link rel="stylesheet" href="/static/vendor/lucide-icons.css?v=1">
-  <link rel="stylesheet" href="/static/style.css?v=191">
-  <link rel="stylesheet" href="/static/console.css?v=175">
+  <link rel="stylesheet" href="/static/style.css?v=192">
+  <link rel="stylesheet" href="/static/console.css?v=176">
   <!-- Áp tông đã lưu TRƯỚC khi vẽ để không nháy tối rồi mới đổi sang sáng.
        Giá trị cũ "dim" (tông tối-nhạt, gỡ) quy về tối; theme.js sẽ ghi đè lại.
        Chưa chọn gì thì SÁNG (NAOTA 1.0.0). Chế độ "auto" (chỉ khi người dùng tự chọn) tính theo khung giờ "HH:MM-HH:MM", cùng quy tắc với
@@ -620,7 +620,7 @@
     <div class="model-bar" id="modelBar"></div>
 
     <!-- ===== Composer: ONE rounded card in the style of Claude =====
-         Owner, 21/11/2026 ("sắp xếp lại khung giống của Claude"): the card is ONE row, "+", the text box, then mic and
+         The card is ONE row, "+", the text box, then mic and
          send, all on one centre line (attached files above it). Under the card, outside its border, #cpUnder: the
          pinned folder and the GitHub repos on the left (icons only on a phone when both are pinned), model, Effort
          and the plan usage ring on the right. Popovers open just above the card (model-picker.js placePops).
@@ -636,7 +636,7 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
         </button>
         <div class="cp-right" id="cpRight">
-          <!-- Dictation bar (composer-dictate.js, 0.230.0): replaces +, chips, mic and voice chat while recording.
+          <!-- Dictation bar (composer-dictate.js): replaces +, chips, mic and voice chat while recording.
                X drops the recording, the meter shows the mic level, the square stops and keeps the text to edit,
                and the send button next to it stops and sends. -->
           <div class="dict-bar" id="dictBar">
@@ -650,7 +650,7 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
             </button>
           </div>
-          <!-- Two voice buttons (0.230.0): the mic records speech into the text box (nothing is sent by itself),
+          <!-- Two voice buttons: the mic records speech into the text box (nothing is sent by itself),
                the sound-wave button is the live voice chat (#voiceBtn, unchanged behaviour). -->
           <button type="button" class="mic-big dict-btn" id="dictBtn" title="Ghi âm thành chữ" data-i18n-title="dict.btn" aria-label="Ghi âm thành chữ" data-i18n-aria="dict.btn">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -671,7 +671,7 @@
           </button>
         </div>
       </div>
-      <!-- Under the card (owner, 21/11/2026): what this chat works on (the pinned folder, then the GitHub repos; their
+      <!-- Under the card: what this chat works on (the pinned folder, then the GitHub repos; their
            scripts fill #cpCtx) on the left, model, Effort and the plan usage ring on the right. -->
       <div class="cp-under" id="cpUnder">
         <div class="cp-ctx" id="cpCtx" hidden></div>
@@ -1078,8 +1078,8 @@
   "/static/agent-judge-ui.js?v=2"
  ],
  "teams": [
-  "/static/team-github.js?v=3",
-  "/static/teams.js?v=38"
+  "/static/team-github.js?v=4",
+  "/static/teams.js?v=39"
  ],
  "packs": [
   "/static/packs.js?v=10"
@@ -1228,11 +1228,11 @@
   <!-- Models page usage order: drag, swap, popover placement. console.js calls window.NaotaModelsOrder. -->
   <script src="/static/models-order.js?v=2"></script>
   <script src="/static/provider-logos.js?v=2"></script>
-  <script src="/static/plan-limit.js?v=3"></script>
-  <script src="/static/model-picker.js?v=23"></script>
+  <script src="/static/plan-limit.js?v=4"></script>
+  <script src="/static/model-picker.js?v=24"></script>
   <script src="/static/composer-plus.js?v=4"></script>
-  <script src="/static/composer-folder.js?v=4"></script>
-  <script src="/static/github-connect.js?v=10"></script>
+  <script src="/static/composer-folder.js?v=5"></script>
+  <script src="/static/github-connect.js?v=11"></script>
   <!-- Brain backup on the signed-in GitHub account: the top of the sync box on the Self-learning page. -->
   <script src="/static/backup-link.js?v=1"></script>
   <script src="/static/branding.js?v=12"></script>
@@ -1289,7 +1289,7 @@
   <script src="/static/login-vault.js?v=2"></script>
   <script src="/static/messenger-connect.js?v=5"></script>
   <script src="/static/voice-catalog.js?v=1"></script>
-  <script src="/static/console.js?v=237"></script>
+  <script src="/static/console.js?v=238"></script>
   <script src="/static/mobile-chat.js?v=24"></script>
   <script src="/static/brain-view.js?v=1"></script>
   <script src="/static/push.js?v=4"></script>

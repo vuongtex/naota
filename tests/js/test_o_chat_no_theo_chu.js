@@ -27,7 +27,7 @@ const base = (css.match(/\n\.voice-input \{[^}]*\}/) || [""])[0];
 check("tìm thấy khối .voice-input gốc", !!base);
 check("CSS gốc không còn ghim max-height:90px chặn autosize", base.indexOf("max-height: 90px") === -1);
 check("CSS gốc chỉ giữ lưới đỡ theo màn hình (max-height 45vh)", base.indexOf("max-height: 45vh") !== -1);
-// 21/11/2026: the card is a one-row grid now; "end" keeps the buttons on the last line exactly as flex-end did.
+// The card is a one-row grid now; "end" keeps the buttons on the last line exactly as flex-end did.
 check("hàng nhập neo nút ở đáy khi ô cao lên (align-items: end)",
   /\.hud-voice \{[^}]*align-items: (flex-)?end/s.test(css));
 

@@ -241,7 +241,7 @@ check("the drawer saves through <its route>/repos with the team picker", 'pdPost
       and "window.NaotaTeamGithub.panel(box, {" in ui and "save: luuRepos" in ui)
 check("the picker is loaded on demand on pages that lack it", 'window.NaotaNapCham.cho("teams")' in ui)
 gh = (ROOT / "dashboard" / "team-github.js").read_text(encoding="utf-8")
-# 21/11/2026: the list is the shared one (github-connect.js); a project saves its names through opts.save as before.
+# The list is the shared one (github-connect.js); a project saves its names through opts.save as before.
 check("the team picker can save somewhere other than a chat",
       "Promise.resolve(opts.save(next))" in gh and "if (opts.save) return saveList(" in gh)
 tm = (ROOT / "dashboard" / "teams.js").read_text(encoding="utf-8")

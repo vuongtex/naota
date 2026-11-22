@@ -1,9 +1,8 @@
-/* The repo chip and the repo list, run against the REAL github-connect.js with a small fake page (21/11/2026).
+/* The repo chip and the repo list, run against the REAL github-connect.js with a small fake page.
 
        node tests/js/test_github_repo_picker.js
 
-Owner, 21/11/2026, on a user's report ("đổi về Brain của anh cứ lâu lâu lại nhảy qua Naota"): "cho anh nút x rõ ràng
-khi ghim ở khung chat cũng như ở trên mục lựa chọn, tìm xem khi thao tác có dễ bị chọn nhầm không".
+From a user's report: a clear X on the chat chip and in the picker, and harder to pick the wrong repo.
 
 What went wrong before: every tick sent the chat's WHOLE repo list. A repo holding unsaved work could not come off, the
 server refused the request as a whole, and the picker put every tick back, the repo just added included. Nothing on
@@ -132,12 +131,12 @@ function makeEnv(o) {
 }
 
 (async () => {
-  // ---- 1 and 2. The swap that "jumped back": add the brain repo, then take naota-os off while it holds unsaved work.
-  let e = makeEnv({ sid: "s1", attached: ["blog/naota-os"], dirty: { "blog/naota-os": "dirty" }, remote: ["blog/naota-os", "loc/brain"] });
+  // ---- 1 and 2. The swap that "jumped back": add the brain repo, then take acme/app off while it holds unsaved work.
+  let e = makeEnv({ sid: "s1", attached: ["acme/app"], dirty: { "acme/app": "dirty" }, remote: ["acme/app", "loc/brain"] });
   await settle();
   check("an open chat with a repo shows the chip with an X", e.chip() && /class="cp-pin-open"/.test(e.chip().innerHTML) && /class="cp-pin-x"/.test(e.chip().innerHTML), e.chip() && e.chip().innerHTML.slice(0, 200));
   check("the chip is a group, not a button holding buttons", !!e.chip() && e.chip().type === undefined);
-  check("the X says what it removes", /gh\.remove_chat\{"name":"blog\/naota-os"\}/.test(e.chipHtml()));
+  check("the X says what it removes", /gh\.remove_chat\{"name":"acme\/app"\}/.test(e.chipHtml()));
 
   let p = e.openPanel();
   await settle();
@@ -154,20 +153,20 @@ function makeEnv(o) {
   const before = e.posts().length;
   p.click("data-nothing", 0);
   await settle();
-  check("a tap on a chosen row does nothing: only its X removes it", e.posts().length === before && e.attached.join() === "blog/naota-os");
+  check("a tap on a chosen row does nothing: only its X removes it", e.posts().length === before && e.attached.join() === "acme/app");
 
   p.click("data-gh-i", 1);
   await settle();
   const addCall = e.posts().slice(-1)[0];
   check("a tap adds ONE repo: the request names it and leaves the rest alone",
     /\/github\/session\/s1\/repos$/.test(addCall.url) && addCall.body.add === "loc/brain" && addCall.body.repos === undefined, JSON.stringify(addCall));
-  check("both repos are on the chat now", e.attached.join() === "blog/naota-os,loc/brain" && (p.out.innerHTML.match(/class="gh-row-x"/g) || []).length === 2);
+  check("both repos are on the chat now", e.attached.join() === "acme/app,loc/brain" && (p.out.innerHTML.match(/class="gh-row-x"/g) || []).length === 2);
 
   p.click("data-gh-x", 0);
   await settle();
   const rm = e.posts().slice(-1)[0];
-  check("the X removes ONE repo through /detach, without force", /\/github\/session\/s1\/detach$/.test(rm.url) && rm.body.full_name === "blog/naota-os" && rm.body.force === "", JSON.stringify(rm));
-  check("a refused removal keeps the repo that was just added (no more jumping back)", e.attached.join() === "blog/naota-os,loc/brain"
+  check("the X removes ONE repo through /detach, without force", /\/github\/session\/s1\/detach$/.test(rm.url) && rm.body.full_name === "acme/app" && rm.body.force === "", JSON.stringify(rm));
+  check("a refused removal keeps the repo that was just added (no more jumping back)", e.attached.join() === "acme/app,loc/brain"
     && /loc<\/span>|loc ·/.test(p.out.innerHTML) && (p.out.innerHTML.match(/class="gh-row-x"/g) || []).length === 2);
   check("the row asks: keep it, or remove it and delete the changes",
     /class="gh-sel is-asking"/.test(p.out.innerHTML) && /gh\.ask_dirty/.test(p.out.innerHTML) && /data-gh-keep="1"/.test(p.out.innerHTML)
@@ -184,7 +183,7 @@ function makeEnv(o) {
   p.click("data-gh-force", 0);
   await settle();
   const forced = e.posts().slice(-1)[0];
-  check("Remove anyway sends force", /\/detach$/.test(forced.url) && forced.body.force === "1" && forced.body.full_name === "blog/naota-os");
+  check("Remove anyway sends force", /\/detach$/.test(forced.url) && forced.body.force === "1" && forced.body.full_name === "acme/app");
   check("the chat ends on the brain repo alone", e.attached.join() === "loc/brain" && /gh\.remove_chat\{"name":"loc\/brain"\}/.test(e.chipHtml()));
 
   // ---- 4. The chip's own X.
@@ -195,12 +194,12 @@ function makeEnv(o) {
   check("the chip's X takes a clean repo off in one tap, and the chip goes", e.attached.length === 0 && !e.chip() && e.host.hidden === true);
   check("it does not open the panel for that", e.opened.length === 0);
 
-  e = makeEnv({ sid: "s3", attached: ["a/clean", "blog/naota-os"], dirty: { "blog/naota-os": "unpushed" }, remote: ["a/clean", "blog/naota-os"] });
+  e = makeEnv({ sid: "s3", attached: ["a/clean", "acme/app"], dirty: { "acme/app": "unpushed" }, remote: ["a/clean", "acme/app"] });
   await settle();
   check("several repos: the X counts them", /gh\.remove_all\{"n":2\}/.test(e.chipHtml()));
   e.clickChip(".cp-pin-x");
   await settle();
-  check("the chip's X on a repo with unsaved work keeps it and opens the picker", e.attached.join() === "blog/naota-os" && e.opened.join() === "github");
+  check("the chip's X on a repo with unsaved work keeps it and opens the picker", e.attached.join() === "acme/app" && e.opened.join() === "github");
   p = e.openPanel();
   await settle();
   check("the picker opens straight on the list, on that repo's question, without raising the keyboard",

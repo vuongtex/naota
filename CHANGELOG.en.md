@@ -6,7 +6,11 @@ NAOTA release history. Newest first.
 
 ## [1.57.0] - 2026-11-22
 ### Improved
-- In progress: porting khung chat một hàng, nút X cho repo, vòng hạn mức theo model.
+- **The chat box is one row, like Claude.** Only +, the text box, the mic and send stay inside. Model, Effort and the usage ring move under the box on the right; the pinned folder and GitHub repos sit on the left. The box also sits closer to the bottom of the screen.
+### Fixed
+- **A clear X to remove a repo**, on the chat box, in the picker and on the Teams page. A stray tap on a repo row no longer drops it, and a new pick no longer "jumps back" to the old repo.
+- **The plan usage ring no longer stays red after switching models.** One model hitting its own limit no longer paints the whole plan red.
+- **Long chat answers ring the phone again** when you are not looking at that chat.
 
 ## [1.56.0] - 2026-11-21
 ### Added

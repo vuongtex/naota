@@ -1654,11 +1654,11 @@ li.task-done > .dv-ttext { text-decoration: line-through; text-decoration-color:
 .voice-focus-resume[hidden] { display: none; }
 .hud-voice {
   position: relative;
-  /* One rounded card in the style of Claude. ONE row since 21/11/2026 (owner: "text khởi đầu ngang hàng và ở
-     giữa luôn nút + với các nút cho gọn"): "+", the text box, then mic and send, on one centre line; attached files on
+  /* One rounded card in the style of Claude. ONE row:
+     "+", the text box, then mic and send, on one centre line; attached files on
      a row above them. A longer text grows the card and the buttons stay on its last line. The row under the card
-     (#cpUnder) hangs below the border, so the bottom margin keeps its room (--cp-under-h). Owner, 21/11/2026 ("còn thừa
-     quá nhiều khung bên dưới"): that room is now exactly the row (2px gap + 34px chips) and only 4px more below it. */
+     (#cpUnder) hangs below the border, so the bottom margin keeps its room (--cp-under-h).
+     That room is now exactly the row (2px gap + 34px chips) and only 4px more below it. */
   display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: end; column-gap: 6px; row-gap: 0;
   --cp-under-h: 36px;
   margin: 4px 16px calc(4px + var(--cp-under-h)); padding: 6px 8px;
@@ -1770,8 +1770,8 @@ textarea.sug-ghosted::placeholder { color: transparent; }
 @media (prefers-reduced-motion: reduce) {
   .eff-fast[aria-pressed="true"], .eff-fast[aria-pressed="true"] svg { animation: none; }
 }
-/* Pinned working folder chip, right after the usage ring (composer-folder.js, 0.158.0). */
-/* 21/11/2026 (owner: "cho anh nút x rõ ràng khi ghim ở khung chat"): the chip is a group. .cp-pin-open (icon and
+/* Pinned working folder chip, right after the usage ring (composer-folder.js). */
+/*: the chip is a group. .cp-pin-open (icon and
    name) opens the panel, .cp-pin-x at the far end removes the pin; the repo chip keeps its status icon between them. */
 .cp-pin { display: inline-flex; align-items: center; gap: 0; height: 30px; max-width: 190px; padding: 0;
   border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text2);
@@ -1826,10 +1826,10 @@ textarea.sug-ghosted::placeholder { color: transparent; }
 .hud-voice.dictating .dict-bar { display: flex; }
 .hud-voice.dictating .cp-plus, .hud-voice.dictating .cp-under,
 .hud-voice.dictating .dict-btn, .hud-voice.dictating #voiceBtn { display: none; }
-/* One-row card (21/11/2026): while recording the text takes the whole first line and the dictation bar the second. */
+/* One-row card: while recording the text takes the whole first line and the dictation bar the second. */
 .hud-voice.dictating > .voice-input { grid-column: 1 / -1; }
 .hud-voice.dictating .cp-right { grid-column: 1 / -1; grid-row: 3; }
-/* 0.231.0: send is hidden while the box is empty (voice chat takes its place), but while dictating it is the
+/* Send is hidden while the box is empty (voice chat takes its place), but while dictating it is the
    "stop and send" button, so it stays even before the first word lands. */
 .hud-voice.dictating #sendBtn { display: flex !important; }
 /* 2026-11-19 (owner): Stop and send share one spot while Naota works. Dictating is typing by voice, so Stop steps aside
@@ -1889,9 +1889,9 @@ textarea.sug-ghosted::placeholder { color: transparent; }
   }
   .hud-voice .voice-input { min-height: 40px; max-height: 40vh; padding: 8px 4px; font-size: 16px; }
   .cp-under { padding: 0 2px; }
-  /* Folder AND repos pinned (owner, 21/11/2026): two names do not fit beside the model pill, so both chips show their
+  /* Folder AND repos pinned: two names do not fit beside the model pill, so both chips show their
      icon only. The names stay in their tooltip and their panel, a tap away. One pin alone keeps its name.
-     Each icon keeps its X (same day: "cho anh nút x rõ ràng"), so a pin never needs its panel to come off. */
+     Each icon keeps its X, so a pin never needs its panel to come off. */
   .cp-ctx.is-two .cp-pin { flex: none; }
   .cp-ctx.is-two .cp-pin-open { width: 36px; padding: 0; justify-content: center; }
   .cp-ctx.is-two .cp-pin-open > span, .cp-ctx.is-two .cp-pin > .gh-st { display: none; }
@@ -2770,8 +2770,8 @@ textarea.sug-ghosted::placeholder { color: transparent; }
    of the screen in view, so the first rows are never cut off. model-picker.js (POP_ANCHOR) sets both values. */
 .hud-voice .mb-pop, .hud-voice .eff-pop, .hud-voice .cp-menu { bottom: var(--cp-pop-bottom, calc(100% + 6px)); }
 .hud-voice .mb-pop { max-height: min(62vh, var(--cp-pop-room, 62vh)); }
-/* 21/11/2026: model, Effort and plan usage open right above their chips under the card, over the card (owner: "khi ấn
-   vào model nó phải hiện model ở trên khung chọn model"). Written after the rules above so it wins at equal weight. */
+/* Model, Effort and plan usage open right above their chips under the card, over the card.
+   Written after the rules above so it wins at equal weight. */
 .hud-voice .mb-pop, .hud-voice .eff-pop { bottom: var(--cp-chip-pop-bottom, var(--cp-pop-bottom, calc(100% + 6px))); }
 .hud-voice .mb-pop { max-height: min(62vh, var(--cp-chip-pop-room, var(--cp-pop-room, 62vh))); }
 .hud-voice .cp-menu { max-height: min(60vh, 440px, var(--cp-pop-room, 60vh)); }
@@ -5270,7 +5270,7 @@ select option, select optgroup { background-color: var(--bg2); color: var(--text
 .gh-name { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gh-tick { flex: none; display: inline-flex; color: var(--accent, #3b82f6); }
 .gh-tick svg { width: 18px; height: 18px; }
-/* 21/11/2026 (owner: "cho anh nút x rõ ràng ... tìm xem khi thao tác có dễ bị chọn nhầm không"). A chosen repo is a
+/*. A chosen repo is a
    row that does nothing with an X at its end; any other repo is one tap to add, marked with a +. */
 .cp-mi.gh-on { cursor: default; padding-right: 6px; }
 .gh-row-x { flex: none; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 1px solid var(--border);

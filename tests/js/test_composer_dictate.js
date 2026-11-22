@@ -29,7 +29,7 @@ check("composer-dictate.js loads after dictate.js", html.indexOf("/static/dictat
 check("CSS: while dictating the bar shows and +, the row under the card and both voice buttons hide",
   /\.hud-voice\.dictating \.dict-bar \{ display: flex; \}/.test(css)
   && /\.hud-voice\.dictating \.cp-plus, \.hud-voice\.dictating \.cp-under,\s*\.hud-voice\.dictating \.dict-btn, \.hud-voice\.dictating #voiceBtn \{ display: none; \}/.test(css));
-// One-row card (owner, 21/11/2026): while recording the text takes the first line and the dictation bar the second.
+// One-row card: while recording the text takes the first line and the dictation bar the second.
 check("CSS: while dictating the text and the dictation bar each take a whole line",
   css.includes(".hud-voice.dictating > .voice-input { grid-column: 1 / -1; }")
   && css.includes(".hud-voice.dictating .cp-right { grid-column: 1 / -1; grid-row: 3; }"));

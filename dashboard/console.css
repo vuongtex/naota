@@ -1217,7 +1217,7 @@ body.has-rail .hud { margin-left: var(--rail-w); width: calc(100% - var(--rail-w
   body.brain-max .brain-max-btn .bmx-out { display: block; }
   body.brain-max .brain-max-btn { color: var(--accent-ink); border-color: var(--accent-line); }
 
-  /* Ô nhập luôn nằm trong visual viewport của Safari/Chrome iOS và chừa safe area. Since 21/11/2026 every bottom
+  /* Ô nhập luôn nằm trong visual viewport của Safari/Chrome iOS và chừa safe area. Every bottom
      margin here also keeps the room of the row under the card (#cpUnder, --cp-under-h in style.css), which hangs
      below the card's border. */
   .hud-voice {

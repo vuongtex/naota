@@ -1,15 +1,15 @@
-"""A chat answer kept out of the bell still rings the phone (owner, 2026-11-21: "đang bị mất thông báo đẩy").
+"""A chat answer kept out of the bell still rings the phone.
 
     python tests/python/test_chat_answer_push_hidden.py
 
-0.602.0 keeps a notice out of the bell when its content sits in a chat with its own red dot. The push went with it, so
+An earlier change keeps a notice out of the bell when its content sits in a chat with its own red dot. The push went with it, so
 a long answer, a background job's follow-up and a Gate task stopped ringing a phone in a pocket, where no red dot can be
 seen. With "notify every answer" on, a short answer rang and a long one did not.
 
 - a chat turn's answer (push_if_away) pushes when the notice would have rung, or when "notify every answer" is on;
 - it still leaves nothing in the bell, names its chat (the device showing that chat stays quiet) and opens it on a tap;
 - the default (only urgent notices ring, switch off) is unchanged: no push;
-- a job result reported into a chat (no push_if_away) and a muted partner stay as 0.602.0 left them: no push.
+- a job result reported into a chat (no push_if_away) and a muted partner stay as that change left them: no push.
 """
 from _paths import ROOT, SERVER  # noqa: E402,F401
 import asyncio
@@ -95,7 +95,7 @@ async def run():
           len(got) == 1 and "secret" not in got[0][0][1], got)
     set_push(preview=None, turn_done=None)
 
-    # 3. Switch off, but the owner lets job results ring: a long answer pushes, as before 0.602.0.
+    # 3. Switch off, but the owner lets job results ring: a long answer pushes, as earlier.
     for g in notify_policy.GROUPS:
         notify_policy.set_mode(g, "important")
     got = await turn("t5", "render a fourth", "The fourth video is done.", 400)

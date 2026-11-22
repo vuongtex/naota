@@ -4070,7 +4070,7 @@
     }
     if (S.repos.length) {
       // the GitHub repos of the team chat. The name opens the picker; the status (once pushed) opens the detail.
-      // 21/11/2026 (owner: "cho anh nút x rõ ràng khi ghim ở khung chat"): an X like the folder chip's takes them off.
+      //: an X like the folder chip's takes them off.
       var G = window.NaotaTeamGithub, names = S.repos.map(function (r) { return r.full_name; });
       var stKey = S.ghIcon && S.ghIcon.state ? "gh.st_" + S.ghIcon.state : "";
       var rmText = names.length > 1 ? tw("gh.remove_all", { n: names.length }) : tw("gh.remove_chat", { name: names[0] });

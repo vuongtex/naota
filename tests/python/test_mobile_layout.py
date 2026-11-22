@@ -61,9 +61,9 @@ check("mobile-chat đo visualViewport và gắn lớp kb-open",
       "visualViewport" in MOBILE_CHAT and '"kb-open"' in MOBILE_CHAT and "--vv-h" in MOBILE_CHAT)
 check("khung chat đặt theo vùng nhìn thấy khi bàn phím mở",
       "body.kb-open .hud {" in CSS and "var(--vv-h" in CSS and "body.kb-open .cview {" in CSS)
-# 21/11/2026: each bottom margin also keeps the room of the row under the composer card (--cp-under-h).
+# Each bottom margin also keeps the room of the row under the composer card (--cp-under-h).
 check("bàn phím mở thì ô nhập bỏ lề an toàn", "body.kb-open .hud-voice { margin-bottom: calc(6px + var(--cp-under-h, 0px)); }" in CSS)
-# 0.359.0 (PR #850): app cài trên iPhone, lúc KHÔNG gõ 100dvh có khi lệch vùng nhìn thấy (hụt đầu, thừa đáy). Khung chat
+# App cài trên iPhone, lúc KHÔNG gõ 100dvh có khi lệch vùng nhìn thấy (hụt đầu, thừa đáy). Khung chat
 # lúc nghỉ lấy đúng chiều cao visualViewport, không cộng độ lệch; bàn phím hạ thì kéo trang về đầu.
 _sync = re.search(r"function syncKeyboard\(\) \{([\s\S]*?)\n    \}\n    function henKeyboard", MOBILE_CHAT)
 _sb = _sync.group(1) if _sync else ""

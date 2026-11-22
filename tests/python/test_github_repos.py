@@ -142,7 +142,7 @@ check("the second repo branches from its own default branch",
 err = raises(github_repos.detach, "chat-one", "acme/app", BRAIN)
 check("detach refuses while this chat's worktree has unsaved edits", "acme/app" in err)
 
-# 21/11/2026 (owner, on a user's report: "đổi về Brain của anh cứ lâu lâu lại nhảy qua Naota"). The picker sent the
+# From a user's report (the chat kept jumping back to the old repo). The picker sent the
 # chat's WHOLE list for every tick; one repo that could not come off refused it all, so the repo just ticked was lost
 # too. Adding and removing are separate now (`add`, `detach`), and the refusal carries a code the picker can answer.
 fake.add_repo("acme/docs")
@@ -224,7 +224,7 @@ out = github_repos.forget_session("chat-z")
 check("deleting a chat removes its clean worktree", not out["kept"] and not wtz.exists())
 check("the binding of the deleted chat is gone", coding_store.rang_buoc("chat-z") == {})
 
-# ---- The routes of the picker (21/11/2026): add one, detach one, and a refusal the dashboard can answer ----
+# ---- The routes of the picker: add one, detach one, and a refusal the dashboard can answer ----
 fake.add_repo("acme/web", files={"README.md": "web\n"})
 fake.add_repo("acme/api", files={"README.md": "api\n"})
 from fastapi import FastAPI  # noqa: E402

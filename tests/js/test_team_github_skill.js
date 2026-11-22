@@ -63,7 +63,7 @@ check("the chip and the picker have styles", css.indexOf(".tm-chip-gh") >= 0 && 
 check("chip text: first repo's short name, +N for the rest", TG.chipText(["a/web", "a/api"], 18) === "web +1");
 check("chip text is cut on a narrow screen", TG.chipText(["a/a-very-long-repository-name"], 10).length === 10);
 check("no repo: no chip text", TG.chipText([], 18) === "");
-// 21/11/2026: the list itself is the main chat's (github-connect.js, NaotaGithubRepos.list), so a team chat, a project
+// The list itself is the main chat's (github-connect.js, NaotaGithubRepos.list), so a team chat, a project
 // and an assistant get the same X and the same one-change-per-request rule. tests/js/test_github_repo_picker.js runs it.
 const tgJs = fs.readFileSync(path.join(ROOT, "dashboard", "team-github.js"), "utf8");
 check("the team picker draws the shared repo list", /G\.list\(box, \{/.test(tgJs) && !/function split\(/.test(tgJs));

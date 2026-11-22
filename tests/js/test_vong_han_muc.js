@@ -51,7 +51,7 @@ check("the popover lives next to the Effort popover", /id="effPop"[^>]*><\/div>\
 check("plan-limit.js is loaded", /<script src="\/static\/plan-limit\.js\?v=\d+"><\/script>/.test(html));
 check("the picker tells the ring which brain and model are in use",
   picker.indexOf("NaotaPlanLimit.setProvider(eff.provider, eff.model)") !== -1);
-// Owner's report 20/11/2026: red at 66% and 58% after a refusal on one model, still red after switching to another.
+// A report: red at 66% and 58% after a refusal on one model, still red after switching to another.
 check("picking a model re-reads the meters at once", /renderBar\(\);[^\n]*\n[^\n]*\n\s*try \{ if \(window\.NaotaPlanLimit\) window\.NaotaPlanLimit\.refresh\(\)/.test(picker));
 check("a new model makes the ring fetch again", /var changed = [^;]*\(m \|\| ""\) !== model/.test(src) && src.indexOf("(!data || changed)) refresh(true)") !== -1);
 check("an alias matches every version of its family", L.sameModel("opus", "claude-opus-5-5") && L.sameModel("fable", "fable-5-1")

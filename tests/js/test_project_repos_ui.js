@@ -58,7 +58,7 @@ const TG = read("team-github.js");
 check("signed in with the app, the + row opens the app's page on GitHub",
   G.addReposUrl({ source: "app", install_url: "https://github.com/apps/x/installations/new" }) === "https://github.com/apps/x/installations/new");
 check("a pasted token gets no GitHub link", G.addReposUrl({ source: "token", install_url: "https://x" }) === "" && G.addReposUrl(null) === "");
-// 21/11/2026: one list for every picker (github-connect.js, NaotaGithubRepos.list); team-github.js only wires it.
+// One list for every picker (github-connect.js, NaotaGithubRepos.list); team-github.js only wires it.
 const GC = read("github-connect.js");
 check("the picker draws the + row under its list, like the chat composer",
   /'<div class="gh-foot"><div class="cp-pin-err" role="status"><\/div>' \+ footRow\(addUrl\)/.test(GC)

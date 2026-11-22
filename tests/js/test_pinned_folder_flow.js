@@ -36,7 +36,7 @@ function makeEnv() {
     if (id) elems[id] = e;
     return e;
   }
-  // 21/11/2026: the chip lives in the row under the composer card (#cpCtx), before any GitHub repo chip.
+  // The chip lives in the row under the composer card (#cpCtx), before any GitHub repo chip.
   const host = el("cpCtx");
   host.hidden = true;
   host.insertBefore(el("ghChip"), null);
@@ -77,7 +77,7 @@ const tick = () => new Promise((r) => setTimeout(r, 0));
   let e = makeEnv();
   await e.api.pin("projects/shop");
   check("pin on an empty chat is held: chip shows, no request sent", e.chip() && /shop/.test(e.chip().innerHTML) && e.calls.length === 0);
-  // 21/11/2026 (owner): the folder sits under the composer card, first in #cpCtx, before the GitHub repos; with both
+  // The folder sits under the composer card, first in #cpCtx, before the GitHub repos; with both
   // pinned the row is marked .is-two, and a phone then shows both as icons only.
   check("the folder chip lands first in the row under the card, before the repo chip",
     e.host.children[0] === e.chip() && e.host.children[1] && e.host.children[1].id === "ghChip" && e.host.hidden === false);
