@@ -4069,12 +4069,15 @@
         esc(tw("cp.pin_unpin")) + '">' + ic("x") + "</button></span>";
     }
     if (S.repos.length) {
-      // The GitHub repos of the team chat. The name opens the picker; the status (once pushed) opens the detail.
+      // the GitHub repos of the team chat. The name opens the picker; the status (once pushed) opens the detail.
+      //: an X like the folder chip's takes them off.
       var G = window.NaotaTeamGithub, names = S.repos.map(function (r) { return r.full_name; });
       var stKey = S.ghIcon && S.ghIcon.state ? "gh.st_" + S.ghIcon.state : "";
-      h += '<span class="tm-chip tm-chip-gh" title="' + esc(tw("gh.chip_label", { names: names.join(", ") })) + '">' + ghLogo() +
+      var rmText = names.length > 1 ? tw("gh.remove_all", { n: names.length }) : tw("gh.remove_chat", { name: names[0] });
+      h += '<span class="tm-chip tm-chip-gh' + (S.ghBusy ? " is-busy" : "") + '" title="' + esc(tw("gh.chip_label", { names: names.join(", ") })) + '">' + ghLogo() +
         '<button type="button" class="tm-chip-name" data-gh-open="1">' + esc(G ? G.chipText(names, 18) : names[0]) + "</button>" +
-        (stKey ? '<button type="button" class="tm-chip-st tm-gh-st" data-gh-status="1">' + esc(tw(stKey)) + "</button>" : "") + "</span>";
+        (stKey ? '<button type="button" class="tm-chip-st tm-gh-st" data-gh-status="1">' + esc(tw(stKey)) + "</button>" : "") +
+        '<button type="button" class="tm-chip-x" data-gh-remove="1" aria-label="' + esc(rmText) + '" title="' + esc(rmText) + '">' + ic("x") + "</button></span>";
     }
     S.atts.forEach(function (a, i) {
       h += '<span class="tm-chip' + (a.err ? " is-err" : "") + (a.url ? " has-thumb" : "") + '" data-att="' + i + '">' +
@@ -4129,7 +4132,30 @@
   // The (i) explanation opens in its own pop-up (info-tip.js); reading it must not close the picker.
   function githubOutside(e) { if (!(e.target.closest && e.target.closest(".tm-gh-pop, .info-pop, .info-pop-bg"))) closeGithubPanel(); }
   function githubEsc(e) { if (e.key === "Escape") closeGithubPanel(); }
-  function openGithubPanel() {
+  // The X of the repo chip: every repo leaves the team chat, one request each. A repo that holds unsaved work stays,
+  // and the picker opens on it with the question "keep it, or remove it anyway".
+  function removeTeamRepos() {
+    var sid = sessionId(), G = window.NaotaTeamGithub;
+    if (!sid || !G || !G.detach || S.ghBusy) return;
+    S.ghBusy = true;
+    drawComposer();
+    S.repos.map(function (r) { return r.full_name; }).reduce(function (p, name) {
+      return p.then(function (stop) {
+        if (stop) return stop;
+        return G.detach(sid, brain(), name, false).then(function (d) { return d && d.ok !== false ? null : { name: name, d: d || {} }; });
+      });
+    }, Promise.resolve(null)).then(function (stop) {
+      S.ghBusy = false;
+      if (sessionId() !== sid) return;
+      drawComposer();
+      return loadRepos().then(function () {
+        if (!stop || sessionId() !== sid) return;
+        if (stop.d.code === "work_at_risk") openGithubPanel({ name: stop.name, risk: stop.d.risk, count: stop.d.count });
+        else setNote(stop.d.error || tw("gh.err_net"));
+      });
+    });
+  }
+  function openGithubPanel(ask) {
     var G = window.NaotaTeamGithub;
     var comp = S.el.querySelector(".tm-composer");
     if (!G || !comp || !S.team || !sessionId()) return;
@@ -4146,6 +4172,7 @@
       sid: function () { return sessionId() === sid ? sid : ""; }, brain: brain,
       current: function () { return S.repos.map(function (x) { return x.full_name; }); },
       changed: function (d) { if (sessionId() === sid) setRepos(d); },
+      ask: ask || null,
       close: closeGithubPanel,
       connections: function () { try { window.Alpine.store("nav").go("mcp"); } catch (e) { location.hash = "#p=mcp"; } } });
     setTimeout(function () {
@@ -5597,6 +5624,7 @@
     if (d.plusAttach) { setPlus(false); return pickFiles(attachFiles); }
     if (d.plusFolder || d.folderOpen) { setPlus(false); return openFolderPanel(); }
     if (d.folderUnpin) return pinTeamFolder("");
+    if (d.ghRemove) return removeTeamRepos();
     if (d.plusGithub || d.ghOpen) { setPlus(false); return openGithubPanel(); }
     if (d.ghStatus) { var gs = sessionId(); if (gs && window.NaotaTeamGithub) window.NaotaTeamGithub.openStatus(gs); return; }
     if (d.attX !== undefined) { forgetAtts(S.atts.splice(+d.attX, 1)); drawComposer(); return; }

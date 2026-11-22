@@ -2759,7 +2759,8 @@ def _side_work_paused() -> str:
     auto-learning) must wait, "" otherwise. It waits when the plan that work would run on has used most of
     its 5-hour allowance (plan_limits.side_pause) and resumes by itself after the reset. Never raises."""
     try:
-        st = plan_limits.side_pause(aux_engine.read_spec(tag="learn").get("provider"))
+        _spec = aux_engine.read_spec(tag="learn")
+        st = plan_limits.side_pause(_spec.get("provider"), model=str(_spec.get("model") or ""))
     except Exception:   # noqa: BLE001 - a broken meter must not stop that work for good
         return ""
     if not st.get("paused"):
@@ -3855,6 +3856,13 @@ def _clear_pin_limit(provider: str) -> bool:
     itself, with no way to undo it from the page. True when a mark was lifted."""
     prov = str(provider or "")
     had = _PIN_LIMITED.pop(prov, None) is not None
+    try:
+        # The usage ring's "ran out" mark goes with it. It used to outlive the pick, so the ring stayed red
+        # for up to an hour after the owner switched to a model the plan still ran (owner's report, Team plan at 66%).
+        import plan_limits
+        plan_limits.clear_het(prov)
+    except Exception as e:  # noqa: BLE001
+        print(f"[routing] clear ring mark {prov}: {type(e).__name__}: {e}", file=sys.stderr)
     try:
         m = cfgmod.read_settings().get("model") or {}
         if not (plan_accounts.in_use(prov) and plan_accounts.has_extra(m, prov)):
@@ -15284,12 +15292,14 @@ async def _bo_vao_hom_thu(owner_chat, text, *, kind="answer", label="", source="
         # đường rời trang). Hỏng thì bỏ qua - kênh là thứ làm ĐẸP đường về, không phải điều
         # kiện để lưu thư.
         kenh = ""
+        muted = False
         if sid:
             try:
                 kenh = str((get_store().get_session(sid) or {}).get("channel") or "")
                 # a muted partner's report still lands in its chat and the bell, just quietly.
                 if kenh.startswith("agent:") and _partner_muted(get_store().get_session(sid) or {}):
                     quiet = True
+                    muted = True
             except Exception as e:
                 print(f"[inbox] không đọc được kênh của phiên {sid[:8]}: "
                       f"{type(e).__name__}: {e}", file=sys.stderr)
@@ -15312,11 +15322,19 @@ async def _bo_vao_hom_thu(owner_chat, text, *, kind="answer", label="", source="
     if item.get("duplicate"):
         return item   # the same report was already filed: no second bell, no second push
     if hidden:
-        # Not in the bell, no push: the chat's dot and the rail dot (rail-unread.js) carry it. They refresh now.
+        # Not in the bell: the chat's dot and the rail dot (rail-unread.js) carry it. They refresh now.
         try:
             await _CHAT_RUNTIME.publish({"type": "chat_unread", "session_id": sid})
         except Exception as e:  # noqa: BLE001 - the rail dot then shows on its next refresh
             print(f"[inbox] chat_unread WebSocket: {type(e).__name__}: {e}", file=sys.stderr)
+        # An earlier change took the push away together with the bell entry, so a
+        # long answer, a background job's follow-up and a Gate task no longer rang a phone in a pocket, where the red
+        # dot cannot be seen. A chat turn's answer (push_if_away) rings the phone again when the notice would have
+        # rung (loud) or the owner turned on "notify every answer". Still nothing in the bell, and a muted partner
+        # stays quiet.
+        if push_if_away and not muted and (dec.get("verdict") == "loud"
+                                           or turn_done_notice.every_turn(cfgmod.read_settings())):
+            _push_chat_answer(sid, text)
         return item
     try:
         # Ai đang mở dashboard thì chấm đỏ trên chuông phải nhảy NGAY, không đợi lần
@@ -16642,16 +16660,28 @@ def _bao_luot_xong_ngan(conv_sid: str, final_text: str) -> bool:
     no bell entry. The phone stays quiet when a tab in front of the owner shows this chat (sw.js asks the tab).
     True when a push was scheduled."""
     try:
-        st = cfgmod.read_settings()
-        if not turn_done_notice.every_turn(st) or not conv_sid or not webpush.so_sub():
+        if not turn_done_notice.every_turn(cfgmod.read_settings()) or not conv_sid:
             return False
         import chat_bridge as _cb
         if _cb.co_viec(conv_sid):
             return False
-        body = turn_done_notice.push_text(channel_context.strip_control_blocks(final_text))
+        return _push_chat_answer(conv_sid, final_text)
+    except Exception as e:  # noqa: BLE001 - a missed doorbell never fails the turn
+        print(f"[turn push] {type(e).__name__}: {e}", file=sys.stderr)
+        return False
+
+
+def _push_chat_answer(conv_sid: str, final_text: str) -> bool:
+    """Push "Naota has answered" for one dashboard chat, with no bell entry. The phone stays quiet when a tab in front
+    of the owner shows this chat (sw.js asks the tab). Shared by a short turn under "notify every answer" and by a
+    chat answer whose bell entry is hidden (`_bo_vao_hom_thu`). True when a push was scheduled. Never raises."""
+    try:
+        if not conv_sid or not webpush.so_sub():
+            return False
+        body = turn_done_notice.push_text(channel_context.strip_control_blocks(str(final_text or "")))
         if not body:
             return False
-        if (st.get("push") or {}).get("preview") == "hidden":
+        if (cfgmod.read_settings().get("push") or {}).get("preview") == "hidden":
             body = localefmt.chu("Naota đã trả lời xong.", "Naota has answered.")
         # Not awaited: a dead subscription waits up to 15 s and the turn is already over. One notice per chat: a newer
         # answer replaces the older one (tag).
@@ -20937,6 +20967,7 @@ async def _chat_socket(ws):
             # Lượt này vấp "hết lượt gói thuê bao"? Bốn nhánh engine thuê bao ghi vào đây qua
             # `_limit_frame`; cuối lượt đọc ra để lưu câu báo và hẹn tự chạy lại.
             _limit_state = {}
+            _turn_t0 = time.time()   # A refusal older than this turn goes once the turn answers
             _turn_acc = {}     # provider -> plan account THIS turn runs on (the one that rests on a quota error)
 
             def _limit_frame(raw, engine_hint, model=""):
@@ -20959,9 +20990,9 @@ async def _chat_socket(ws):
                 try:
                     import plan_limits
                     if noi:
-                        plan_limits.ghi_het(engine_hint, float(lim.reset_epoch or 0))
+                        plan_limits.ghi_het(engine_hint, float(lim.reset_epoch or 0), model=model or "")
                     elif engine_hint in ("grok-cli", "antigravity-cli") and plan_limits.la_het_han_muc(raw):
-                        plan_limits.ghi_het(engine_hint)
+                        plan_limits.ghi_het(engine_hint, model=model or "")
                         _limit_state["quota"] = True   # the next route may take over
                         if engine_hint == "grok-cli":
                             _note_pin_limit("grok-cli", account=_turn_acc.get("grok-cli"))   # that account rests
@@ -22258,6 +22289,16 @@ async def _chat_socket(ws):
             if final_text:
                 await _persist_turn(store, conv_sid, brain, user_message, final_text,
                                     turn_started=(_mem_snap or {}).get("t0") or 0)
+                if not _limit_state.get("quota"):
+                    # The plan just answered, so an older "ran out" mark on the ring goes (or, when it was
+                    # another model's refusal, stays on that model only). Before, only a fresh meter report lifted it,
+                    # and Claude Code sends one only when its limit state changes.
+                    try:
+                        import plan_limits
+                        _ok_model = api_model or (mcfg.get("claude_model") if prov == "anthropic-cli" else "")
+                        await asyncio.to_thread(plan_limits.lift_het, prov, str(_ok_model or ""), _turn_t0)
+                    except Exception as _e:  # noqa: BLE001 - a meter must never break a turn
+                        print(f"[plan limits] lift: {type(_e).__name__}: {_e}", file=sys.stderr)
                 if _limit_state.get("quota") and not ws.untouched():
                     # out of quota halfway (words written or tools run): the turn stops where it is, never
                     # reruns by itself (a tool may have sent or posted something). A "Run again" card under the answer
