@@ -4,6 +4,16 @@
 
 NAOTA release history. Newest first.
 
+## [1.61.0] - 2026-11-23
+### Fixed
+- **Bots no longer post a model's sign-in error into a customer group.** When a model loses its sign-in the customer gets nothing, the turn runs on another connected model, and your bell says to sign in again on the Models page.
+- **A model signed in later is really used as a fallback.** If Claude Code and ChatGPT both lose their sign-in, bots, background jobs and workflows move to Antigravity, in the order the Models page shows.
+- **ChatGPT no longer signs itself out** after Naota refreshes its token.
+- **Phone dictation records for real from the first press,** with a moving wave like the ChatGPT app.
+
+### Improved
+- **Stop gives the text back almost at once,** without waiting for Claude Code or Codex to rewrite it. A Gemini key now hears the dictation mic too.
+
 ## [1.60.0] - 2026-11-22
 ### Improved
 - **The mascot takes the NAOTA logo shape**: the old orange star becomes a rounded square in NAOTA yellow on the Tasks page, the mascot at the screen edge and the Give a star card. A device still on the default star switches after the update; anyone who picked another shape or colour keeps it. The star is still in Settings > Mascot.
