@@ -1,8 +1,8 @@
-"""Stop gives the text back at once when a speech model heard it (2026-11-22).
+"""Stop gives the text back at once when a speech model heard it.
 
     python tests/run.py dictation_quick
 
-Owner, 2026-11-22: "chức năng viết lại lời của Naota đang bị quá chậm", ChatGPT and Claude transcribe with their own
+The rewrite was too slow, while ChatGPT and Claude transcribe with their own
 model and are fast on stop. No network: the models are fakes. Pins:
   - `quick` (the ear heard the text) never starts the main brain's subscription CLI;
   - with no model that answers in a second, `quick` gives the word rules back at once;

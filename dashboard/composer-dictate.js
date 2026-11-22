@@ -39,8 +39,7 @@
 
    2026-11-08: a hidden tab no longer stops the recording (see dictate.js for how the background is handled).
 
-   2026-11-22: the wave always moves while the phone hears (owner: "không nhìn thấy cái sóng âm" on a phone). A phone
-   with no ear runs the browser's recognizer alone and may not open a second mic capture for the meter, so
+   The wave always moves while a phone hears. A phone with no ear runs the browser's recognizer alone and may not open a second mic capture for the meter, so
    there was no level to draw and the wave stayed a flat dotted line. With no analyser the bars now follow the
    recognizer's own events (dictate.js onHeard): they rise while it hears sound or hands back words and fall when it
    reports silence, so a wave that never moves means the phone is not hearing at all. waveLevel is pure for node tests. */
@@ -78,7 +77,7 @@
     return false;
   }
 
-  // One bar of the wave when there is no mic stream to measure (2026-11-22): from the recognizer's events, not the mic.
+  // One bar of the wave when there is no mic stream to measure: from the recognizer's events, not the mic.
   // `voice` the recognizer says it hears sound now, `since` ms since its last result. A soft wobble, never random, so
   // the same moment always draws the same bar.
   function waveLevel(voice, since, now) {
@@ -292,7 +291,7 @@
         if (kind === "result") S.resultAt = Date.now();
         else S.voice = kind === "sound";
       },
-      // The open chat: a partner's chat (or one pinned to a model) is heard by that model's vendor (2026-11-08).
+      // The open chat: a partner's chat (or one pinned to a model) is heard by that model's vendor.
       session: function () { return window.NaotaChatApi && window.NaotaChatApi.sid ? window.NaotaChatApi.sid() : ""; },
       onState: function (st) {
         var was = S.state;

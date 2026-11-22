@@ -8,7 +8,7 @@ biết về nick liên quân"), nên phải để một model nghe chính âm th
 
 Module này lo hai việc:
   - CHỌN tai cho lượt nói (`select_ear`, `order`), từ khoá `voice.ear` = auto | chatgpt | groq | openai | off
-    (auto also reaches the Gemini ear, 2026-11-22).
+    (auto also reaches the Gemini ear).
   - Chạy tai dạng TẢI LÊN (`transcribe_upload`): trình duyệt ghi âm, hết câu gửi file lên /stt.
 
 Ba lớp rào cho chữ của tai, giống nhau với mọi tai:
@@ -40,7 +40,7 @@ EARS = {
     # English words in it stayed as Chrome heard it ("Claude Code" -> "lót code"). gpt-4o-transcribe keeps both.
     # The model is OpenAI's newest transcribe model (stt_models), so the label names no version.
     "openai": {"label": "OpenAI transcribe", "kind": "upload", "key_field": "openai_api_key"},
-    # 2026-11-22: a Gemini key hears the dashboard mic too (voice messages already used it, stt.listen_any), so a
+    # A Gemini key hears the dashboard mic too (voice messages already used it, stt.listen_any), so a
     # Gemini brain dictates with its own model and a phone with only that key records instead of relying on the
     # browser's recognizer. Not one of CHOICES: auto picks it, the settings list stays as it was.
     "gemini": {"label": "Gemini", "kind": "upload", "key_field": "gemini_api_key"},
@@ -50,7 +50,7 @@ EARS = {
 # có số mới thì sửa ở đây.
 # Groq stays first: it is the ear tools/stt_bench measured. The ChatGPT plan comes next: it costs the
 # owner nothing beyond the plan they pay for, so it goes before the OpenAI key, which bills every minute.
-# Gemini last: an LLM asked to write down the audio, slower than a transcription endpoint (2026-11-22).
+# Gemini last: an LLM asked to write down the audio, slower than a transcription endpoint.
 RANKING = ("groq", "chatgpt", "openai", "gemini")
 
 # Provider của bộ não chính (main._effective_main) -> tai cùng hãng. No setting: the ear follows

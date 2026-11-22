@@ -91,7 +91,7 @@ _AUTH_FINAL_PATTERNS = ("please run /login", "not logged in", "invalid api key",
 _AUTH_FINAL_MAX = 400   # câu lỗi đăng nhập luôn ngắn; final dài là nội dung thật, đừng nghi oan
 
 # Providers signed in as the Models page counts them, `fn(settings) -> [id, ...]` (main._routing_connected_ids, set by
-# main at import). None when this module runs alone: the chain then follows the saved order only, as before 2026-11-22.
+# main at import). None when this module runs alone: the chain then follows the saved order only, as it used to.
 CONNECTED_IDS = None
 
 
@@ -1309,7 +1309,7 @@ def swap(cli, mode: str = None, tag: str = None, spec: dict = None,
         if not stored:
             conn = [model_routing.main_provider(m)] + [p for p in API_PROVIDERS if api_key_for(p, s)]
         elif CONNECTED_IDS is not None:
-            # 2026-11-22: a card signed in after the order was saved (Antigravity signs in from a terminal) joins the
+            # A card signed in after the order was saved (Antigravity signs in from a terminal) joins the
             # chain at the end, as the Models page draws it. Claude Code and ChatGPT were both signed out and the jobs
             # never reached the Antigravity that was signed in. Cards of the saved order all stay, as before.
             try:

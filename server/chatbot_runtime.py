@@ -239,7 +239,7 @@ _CAU_ENGINE_RE = re.compile(
 def engine_notice(text: str) -> str:
     """The reply itself, when it is an engine/plan notice that must never reach a customer; "" otherwise.
 
-    2026-11-22 (owner's screenshot of a customer Telegram group): a bot posted Claude Code's "Failed to authenticate:
+    Seen in a customer Telegram group: a bot posted Claude Code's "Failed to authenticate:
     this login reached its time limit ... Run claude auth login" as its reply, quoting the customer. A lost sign-in in
     any CLI's wording is now caught here too (`signin_loss.is_signin_answer`), the last gate before every channel."""
     t = str(text or "").strip()
@@ -1928,7 +1928,7 @@ def _bao_hop_thu(bot_id: str, cfg: dict, meta: dict, loi: str) -> None:
     nhom = str((meta or {}).get("chat_title") or "") if (meta or {}).get("chat_type") == "group" else ""
     noi = (f" trong nhóm {nhom}" if nhom else "")
     noi_en = (f" in the group {nhom}" if nhom else "")
-    # A lost sign-in (2026-11-22) has one fix, and it is not on the Chatbot page: say it first.
+    # A lost sign-in has one fix, and it is not on the Chatbot page: say it first.
     try:
         signed_out = signin_loss.is_signin_error(loi)
     except Exception:      # noqa: BLE001

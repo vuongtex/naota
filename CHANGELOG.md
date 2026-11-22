@@ -7,8 +7,14 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
 ## [1.61.0] - 2026-11-23
+### Sửa lỗi
+- **Bot không còn gửi câu lỗi đăng nhập của model vào nhóm khách.** Khi model mất đăng nhập, khách không nhận gì, lượt đó chạy bằng model khác đã kết nối, còn chuông của bạn nhắc vào trang Models đăng nhập lại.
+- **Model đăng nhập sau thật sự được dùng làm dự phòng.** Ví dụ Claude Code và ChatGPT cùng mất đăng nhập thì bot, việc nền và workflow chuyển sang Antigravity theo đúng thứ tự trên trang Models.
+- **ChatGPT không còn tự đăng xuất** sau khi Naota tự làm mới mã đăng nhập.
+- **Mic chép lời trên điện thoại ghi âm thật từ lần bấm đầu,** có sóng âm chạy như app ChatGPT.
+
 ### Cải thiện
-- Đang làm: lấy bản nguồn 0.625.0 tới 0.627.0 (đọc chép trên điện thoại, đăng nhập ChatGPT và Claude bền hơn).
+- **Bấm dừng là có chữ gần như ngay,** không còn chờ Claude Code hay Codex viết lại. Khoá Gemini cũng nghe được mic chép lời.
 
 ## [1.60.0] - 2026-11-22
 ### Cải thiện

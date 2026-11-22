@@ -1,8 +1,8 @@
-"""Naota refreshing the ChatGPT token first never brings the spent token back (2026-11-22).
+"""Naota refreshing the ChatGPT token first never brings the spent token back.
 
     python tests/run.py codex_auth_naota_refreshed_first     (no network, CODEX_HOME in a temp folder)
 
-Owner's report, 22/11/2026: ChatGPT signed out "for no reason", at the same time as Claude Code. The trace:
+Seen in use: ChatGPT signed out "for no reason", at the same time as Claude Code. The trace:
 
     settings R1 = disk R1 (Naota bridged its pair to ~/.codex/auth.json)
     a bot, an image, a voice turn or the model list calls valid_creds -> Naota refreshes -> settings R2, disk still R1

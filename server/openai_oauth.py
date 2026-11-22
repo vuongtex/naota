@@ -143,13 +143,13 @@ def _la_token_cua_naota(dtok, o):
 
 
 def _disk_is_newer(dtok, o):
-    """Whether the pair in ~/.codex/auth.json was issued AFTER the pair Naota holds (2026-11-22).
+    """Whether the pair in ~/.codex/auth.json was issued AFTER the pair Naota holds.
 
     Different refresh tokens used to mean "Codex CLI rotated it, take the disk pair". They also mean the opposite:
     Naota refreshed (bots, image, voice, the model list all call `valid_creds`) and saved the new pair to settings
     only, so the disk still held the refresh token Naota had just spent. The next Codex turn then copied that dead
     token over the live one, the live one was lost, and both Naota and Codex were told "refresh token was already
-    used" (owner's report: ChatGPT signed out for no reason). The access tokens decide: the one that expires later
+    used" (ChatGPT signed out for no reason). The access tokens decide: the one that expires later
     was issued later. When either cannot be read, the disk wins, as before."""
     d_exp = _decode_jwt_claims((dtok or {}).get("access_token") or "").get("exp")
     if not d_exp:
@@ -464,7 +464,7 @@ def valid_creds():
         return None
     if o.get("access_token") and time.time() < (o.get("expires_at") or 0):
         return {"access_token": o["access_token"], "account_id": o.get("account_id", "")}
-    # One refresh at a time (2026-11-22): two threads refreshing the same refresh token is the second one told "already
+    # One refresh at a time: two threads refreshing the same refresh token is the second one told "already
     # used". The one that waited reads what the first one saved.
     with _MAIN_REFRESH_LOCK:
         o = cfgmod.read_settings()["model"].get("openai_oauth") or {}
@@ -505,7 +505,7 @@ _MAIN_REFRESH_LOCK = threading.Lock()
 
 def _mirror_to_codex(o, dtok):
     """Naota just refreshed: the pair on disk holds the refresh token it spent. Write the new pair there at once
-    (2026-11-22), so a Codex turn never refreshes with the spent one. Only over Naota's own bridged pair (the same
+, so a Codex turn never refreshes with the spent one. Only over Naota's own bridged pair (the same
     account); an empty disk is left to `write_codex_auth`, another account's `codex login` is never touched."""
     if not (dtok or {}).get("refresh_token") or not _cung_tai_khoan(dtok, o):
         return
@@ -645,7 +645,7 @@ def write_codex_auth():
         if drt != (o.get("refresh_token") or "").strip() and _disk_is_newer(dtok, o):
             _nhan_token_tu_codex(dtok)
             return True
-        # An OLDER pair on disk is the one Naota already spent (2026-11-22): it is overwritten below, never taken.
+        # An OLDER pair on disk is the one Naota already spent: it is overwritten below, never taken.
     creds = valid_creds()
     if not creds or not creds.get("access_token") or creds.get("stale"):
         return False

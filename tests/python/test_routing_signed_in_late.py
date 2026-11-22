@@ -1,9 +1,9 @@
-"""A card signed in after the usage order was saved is a real fallback (2026-11-22).
+"""A card signed in after the usage order was saved is a real fallback.
 
     python tests/run.py routing_signed_in_late     (no network, no real CLI)
 
-Owner, 22/11/2026: Claude Code and ChatGPT were both signed out at the same time, Antigravity was signed in, "nhưng nó
-đang không sử dụng dự phòng của Anti-Gravity để có thể trả lời khách hoặc là có thể làm tiếp các cái nhiệm vụ".
+Seen in use: Claude Code and ChatGPT were both signed out at the same time, Antigravity was signed in, but it was
+never used as the fallback to answer customers or carry on with tasks.
 
 Cause: the Models page draws the usage order as the saved order plus every card signed in since, at the end
 (`_routing_view`), but routing read the SAVED order only. An API key joins the saved order when it is added; a plan

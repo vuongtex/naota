@@ -43,8 +43,7 @@ is tried, and when none keeps the language the words stay as heard.
     `MAX_REWRITE_CHARS` now keeps every word and only gets the word rules.
 Each rewrite logs how long each step took (numbers only), so a slow one can be traced.
 
-2026-11-22 (owner: "chức năng viết lại lời của Naota đang bị quá chậm", ChatGPT and Claude give the text back at once
-after stop): a sentence a speech MODEL heard (the ear: the ChatGPT plan, Groq, OpenAI, Gemini) is already punctuated
+Quick path (ChatGPT and Claude give the text back at once after stop): a sentence a speech MODEL heard (the ear: the ChatGPT plan, Groq, OpenAI, Gemini) is already punctuated
 and spelled, which is all the ChatGPT and Claude apps do on stop. The browser asks for it with `quick`, and then
 `rewrite_transcript` only tries what answers in about a second (a main brain on an API key, the quick API key) and never
 starts a subscription CLI: no quick model on the machine means the word rules alone, at once. The browser's own words
@@ -408,7 +407,7 @@ def rewrite_tries(cfg: dict, quick: bool = False) -> list:
     """Names of the models a rewrite asks, in order: "main" and/or the quick key's provider. Pure, for tests.
 
     Fast first: a main brain on an API key, else the quick API key and then the main brain's CLI. `quick` (the text came
-    from a speech model, see the 2026-11-22 note at the top) leaves the CLI out."""
+    from a speech model, see the quick path note at the top) leaves the CLI out."""
     cli = main_is_cli(cfg or {})
     pick = pick_quick_api(cfg or {})
     main = ["main"] if _ASK is not None and not (quick and cli) else []

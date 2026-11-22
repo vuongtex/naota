@@ -80,9 +80,7 @@
    made at a speech bitrate (32 kbit/s Opus, not on iOS), about a quarter of the browser's default size, so a long
    dictation uploads faster. With localStorage "naota.debug.dictate" = "1" the console shows how long each step took.
 
-   2026-11-22: the phone path works like the ChatGPT and Claude apps, and stop gives the text back at once (owner: "ở
-   điện thoại ấn vào thì nó không chép được lời và không nhìn thấy cái sóng âm", "chức năng viết lại lời đang bị quá
-   chậm", ChatGPT and Claude transcribe smoothly with their own model and are fast on stop).
+   The phone path works like the ChatGPT and Claude apps, and stop gives the text back at once.
    - The ear answer is remembered across page loads (localStorage "naota.dictate.ear") and asked as soon as the script
      loads. A press made before the first answer of a fresh page used to count as "no ear", so a phone ran the browser's
      recognizer (no meter, and in an iPhone app often no words at all) instead of recording for the model.
@@ -174,7 +172,7 @@
     } catch (e) { return undefined; }
   }
 
-  // The last answer of GET /voice/ear survives a reload (2026-11-22, see the note at the top). Only "upload" or "".
+  // The last answer of GET /voice/ear survives a reload (see the note at the top). Only "upload" or "".
   var EAR_KEY = "naota.dictate.ear";
   function storedEar() {
     try {
@@ -200,7 +198,7 @@
   }
 
   // Ask in the background so a press finds the answer already there and can open the mic inside the tap.
-  // 2026-11-22: right away as well, not only 1.5 seconds after load: a press in the first seconds needs it too.
+  // Right away as well, not only 1.5 seconds after load: a press in the first seconds needs it too.
   function warmEar() { try { askEar(); } catch (e) { /* the next press asks again */ } }
   if (typeof document !== "undefined" && typeof window !== "undefined" && window.addEventListener) {
     setTimeout(warmEar, 0);
@@ -242,7 +240,7 @@
   // onError(code) with "unsupported", "denied", "service" (the device's speech service is off), "failed" or "nothing" (the run ended with no word at all,
   // reported only when no other error was); onStream(stream | null) when given also opens the mic for a level meter
   // even without an upload ear; onHeard("sound" | "silence" | "result") the recognizer's own events
-  // (2026-11-22), for a wave when there is no mic stream to measure. Returns { start, stop, cancel, active, busy }.
+  //, for a wave when there is no mic stream to measure. Returns { start, stop, cancel, active, busy }.
   function create(opts) {
     opts = opts || {};
     var rec = null, media = null, stream = null, chunks = [], on = false, spoken = "", cancelled = false;
@@ -348,8 +346,8 @@
       });
     }
 
-    // The last step of every recording (2026-11-06): the model rewrites the sentence with the chat as context.
-    // `quick` (2026-11-22): the ear heard it, so only a model that answers in a second polishes it.
+    // The last step of every recording: the model rewrites the sentence with the chat as context.
+    // `quick`: the ear heard it, so only a model that answers in a second polishes it.
     function polish(text, quick) {
       if (!text || opts.polish === false) return Promise.resolve(text);
       var ctx = [];
@@ -429,7 +427,7 @@
         heard("result");
         if (opts.onText) opts.onText(spoken, false);
       };
-      // The recognizer's own sense of sound, for a wave on a phone that has no mic stream to measure (2026-11-22).
+      // The recognizer's own sense of sound, for a wave on a phone that has no mic stream to measure.
       r.onsoundstart = r.onspeechstart = function () { if (rec === r && !cancelled) heard("sound"); };
       r.onsoundend = r.onspeechend = function () { if (rec === r && !cancelled) heard("silence"); };
       r.onerror = function (e) {
@@ -587,7 +585,7 @@
   // How long the rewrite may take before the words go in as heard. A subscription brain (Claude Code, Codex) starts a
   // CLI for it, which takes a few seconds; an API key answers in about one.
   var POLISH_WAIT_MS = 25000;
-  // After an ear (2026-11-22): the server asks no CLI then, so a longer wait would only mean a stuck network.
+  // After an ear: the server asks no CLI then, so a longer wait would only mean a stuck network.
   var QUICK_POLISH_WAIT_MS = 12000;
 
   // The whole recording rewritten by the server (POST /stt/fix with `final`, server/transcript_fix.py): what the owner
@@ -629,7 +627,7 @@
     return out;
   }
 
-  // The i18n key of the "nothing was heard" note (2026-11-22). A phone with no ear ran the browser's recognizer, which
+  // The i18n key of the "nothing was heard" note. A phone with no ear ran the browser's recognizer, which
   // an iPhone app often cannot use at all: the note says how to give the phone a model that listens. `nav` and `ear`
   // are injectable for node tests.
   function nothingKey(nav, ear) {

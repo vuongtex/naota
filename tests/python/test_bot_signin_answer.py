@@ -1,14 +1,14 @@
-"""A lost sign-in printed AS the answer never reaches a customer (2026-11-22).
+"""A lost sign-in printed AS the answer never reaches a customer.
 
     python tests/run.py bot_signin_answer     (no network, no real CLI, fake Telegram)
 
-Owner's screenshot, 22/11/2026, a customer Telegram group with four members: the bot "Naota Vũ" quoted a member and
+Seen in use, a customer Telegram group with four members: the bot "Naota Shop" quoted a member and
 posted, as its reply:
 
     Failed to authenticate: this login reached its time limit and cannot be renewed. Run claude auth login to sign in
     again, or use claude setup-token and set CLAUDE_CODE_OAUTH_TOKEN for unattended jobs
 
-Owner: "khi logout thì các tin báo hệ thống như thế này không được đi vào bot". Claude Code prints this sentence as the
+System notices like this must never reach a bot's chat. Claude Code prints this sentence as the
 ANSWER (a `final`), not as an error, so every guard that waits for an error string let it through, and the last gate
 before the channel (`chatbot_runtime.engine_notice`) only knew "Not logged in" and "Please run /login".
 
@@ -241,9 +241,9 @@ def _end_to_end():
 
     brain = tempfile.mkdtemp(prefix="brain-")
     chatbot_runtime.wire(answer=engine, brain_root=lambda b: brain,
-                         read_agent=lambda b, slug: ({"name": "Vũ", "role": "Trợ lý"}, "Ngắn gọn."),
+                         read_agent=lambda b, slug: ({"name": "Shop", "role": "Trợ lý"}, "Ngắn gọn."),
                          notify=lambda text: bell.append(text))
-    bid, err = chatbot_store.create_bot({"name": "Naota Vũ", "agent_slug": "vu", "brain": "b", "token": "1:x",
+    bid, err = chatbot_store.create_bot({"name": "Naota Shop", "agent_slug": "shop", "brain": "b", "token": "1:x",
                                          "channel": "telegram"})
     check("a test bot is made", bool(bid) and not err, err)
     tg = _FakeTelegram()

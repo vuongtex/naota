@@ -1,9 +1,9 @@
-/* The phone records for a model from the first press, the wave moves, and stop is quick after an ear (2026-11-22).
+/* The phone records for a model from the first press, the wave moves, and stop is quick after an ear.
 
        node tests/js/test_dictate_quick.js
 
-   Owner, 2026-11-22: "ở điện thoại ấn vào thì nó không chép được lời và không nhìn thấy cái sóng âm", and "chức năng
-   viết lại lời đang bị quá chậm", ChatGPT and Claude transcribe smoothly with their own model. Drives dictate.js with
+   On a phone the first press did not transcribe and the wave stayed flat, and the rewrite was slow, while ChatGPT and
+   Claude transcribe smoothly with their own model. Drives dictate.js with
    fakes. Pins:
    - the ear answer is remembered across page loads, so a phone's FIRST press records for the model (with the meter)
      instead of falling back to the browser's recognizer;

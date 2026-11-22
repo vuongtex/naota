@@ -2517,7 +2517,7 @@ def _routing_order(mcfg, connected=None) -> list:
     """The usage order a turn walks to find a card that can run: the saved order, then every card signed in since
     it was saved, at the end, exactly as the Models page draws it (`_routing_view`).
 
-    2026-11-22 (owner): Claude Code and ChatGPT were both signed out, Antigravity was signed in, and neither the bots
+    Seen in use: Claude Code and ChatGPT were both signed out, Antigravity was signed in, and neither the bots
     nor the background jobs moved to it. Only an API key joins the saved order when it is added; a plan card signed in
     later (Antigravity signs in from a terminal with `agy`, outside Naota) was drawn on the page as the last fallback
     but never tried. An empty or unknown list of signed-in cards keeps the saved order as it is."""
@@ -19617,7 +19617,7 @@ async def stt_fix_route(request: Request):
     if (body or {}).get("final"):
         ctx = (body or {}).get("context") or []
         ctx = [str(c)[:300] for c in ctx[-6:]] if isinstance(ctx, list) else []
-        # `quick` (2026-11-22): a speech model heard the text, so only a model that answers in a second may polish it.
+        # `quick`: a speech model heard the text, so only a model that answers in a second may polish it.
         quick = bool((body or {}).get("quick"))
         return {"ok": True, **await transcript_fix.rewrite_transcript(cfg, text, ctx, quick=quick)}
     return {"ok": True, **await transcript_fix.fix_transcript(cfg, text)}
@@ -26845,7 +26845,7 @@ def _tg_signin_out(out: str, prov: str, account: str = None) -> bool:
 
 def _tg_signin_answer(out, prov: str, bot=None, acted: bool = False):
     """A channel turn whose ANSWER is only the plan CLI's sign-in failure, returned as the error string it is
-    (2026-11-22). Owner's screenshot: a Full-access bot posted Claude Code's "Failed to authenticate: this login reached
+. Seen in use: a Full-access bot posted Claude Code's "Failed to authenticate: this login reached
     its time limit ... Run claude auth login" into a customer Telegram group, because the CLI prints it as the answer
     and every guard downstream waits for an error string. As a string the turn moves on to the next route like any lost
     sign-in, a customer bot sends nothing and rings the owner's bell, and it is never stored as an answer.
@@ -27258,7 +27258,7 @@ async def _bot_doc_stream(stream, *, progress, runtime_trace, prov, api_model):
         print(f"[bot {prov}] {type(e).__name__}: {e}", file=__import__('sys').stderr)
         loi.append(str(e))
     if signin_loss.is_signin_answer(out):
-        # 2026-11-22: Claude Code prints a lost sign-in ("Failed to authenticate: this login reached its time limit...")
+        # Claude Code prints a lost sign-in ("Failed to authenticate: this login reached its time limit...")
         # as the answer, and a bot posted it to a customer group. It is the turn's error: the caller returns it as a
         # failed turn, which the customer never sees, and it never joins the bot's chat history.
         loi.insert(0, out.strip())
@@ -32175,9 +32175,9 @@ def _agent_spec_available(spec: dict, settings: dict = None) -> tuple:
 
 def _team_main(settings, tools: bool = False) -> dict:
     """The main model a team turn falls back to when the assistant's own model cannot run: MAIN while it can run,
-    else the first card of the usage order that can, among those this kind of turn supports (2026-11-22).
+    else the first card of the usage order that can, among those this kind of turn supports.
 
-    Owner: Claude Code (MAIN) and ChatGPT were both signed out, Antigravity was signed in, and team members whose own
+    Seen in use: Claude Code (MAIN) and ChatGPT were both signed out, Antigravity was signed in, and team members whose own
     model was signed out "fell back to the main model", the very Claude Code that could not run. A text-only team turn
     runs only on Claude Code, ChatGPT or an API card (`team_engine.text_only_supported`); a turn with tools also on
     Grok Build and Antigravity."""
