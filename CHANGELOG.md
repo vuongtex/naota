@@ -6,6 +6,14 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.59.0] - 2026-11-22
+### Thêm mới
+- **Naota bấm nút và điền form được bằng cookie đã cất** (cần kết nối Playwright). Mỗi thẻ ở trang Cookies có công tắc riêng, cookie cũ vẫn chỉ đọc tới khi bạn bật. Chatbot khách không bao giờ dùng được trình duyệt đã đăng nhập.
+- **Naota chạy được đoạn code chỉ đọc (`naota_code`)** để gọi nối nhiều tool đọc rồi chỉ trả kết quả, đỡ tốn token. Chạy cách ly, tối đa 40 lần gọi, tắt bằng `NAOTA_CODE_MODE=0`.
+### Sửa lỗi
+- **Việc nền không còn kẹt vì bước chỉ bạn làm được** (nghe kiểm, duyệt, tải file quá lớn). Các bước đó chuyển sang mục **Để lại cho bạn** trên thẻ việc, kèm chuông báo.
+- **Bước của Team và việc Kanban tự chạy lại sau khi máy mất mạng chốc lát.** Gọi tool kèm tên nguồn không còn nhảy sang tài khoản khác, và link cài Hostinger gọn hơn để hPanel không từ chối.
+
 ## [1.58.0] - 2026-11-22
 ### Thêm mới
 - **Chặn, Rời nhóm, Xoá ngay trong bảng Thông tin của cuộc chat**, giống menu "..." trên danh sách. Rời nhóm Zalo thì cuộc chat cũng được xoá khỏi Naota, và cuộc chat đã xoá không tự hiện lại nữa.

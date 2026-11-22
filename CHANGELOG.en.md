@@ -4,6 +4,14 @@
 
 NAOTA release history. Newest first.
 
+## [1.59.0] - 2026-11-22
+### Added
+- **Naota can click and fill forms with a stored cookie** (needs the Playwright connection). Each card on the Cookies page has its own switch, and older cookies stay read-only until you turn it on. Customer chatbots never get the signed-in browser.
+- **Naota can run read-only scripts (`naota_code`)** that chain read calls and return only the result, saving tokens. Isolated, at most 40 calls, off with `NAOTA_CODE_MODE=0`.
+### Fixed
+- **Background jobs no longer stall on steps only you can do** (listening, approving, a file too large for a tool). Those steps move to a **Left for you** section on the job card, with a ring.
+- **Team steps and Kanban jobs retry on their own after a brief network drop.** A tool call with a source prefix no longer falls back to another account, and the Hostinger install file is smaller so hPanel does not refuse it.
+
 ## [1.58.0] - 2026-11-22
 ### Added
 - **Block, Leave group and Delete right in a chat's Info panel**, like the "..." menu in the list. Leaving a Zalo group also deletes its chat from Naota, and a deleted chat no longer comes back by itself.

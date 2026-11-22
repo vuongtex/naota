@@ -42,6 +42,7 @@ import mcp_store
 import once_ledger
 import turn_ledger
 import scout
+import code_mode
 import secret_guard
 import skill_router
 import skill_usage
@@ -194,6 +195,8 @@ def allow_patterns():
 # `naota_team` creates, edits and deletes team chats and writes assistant files: owner-only for the same reason.
 # `naota_watch` makes the server fetch an address on a schedule and message the owner: not a customer's call.
 # `naota_login` opens pages signed in as the owner (login vault): a customer must never browse as them.
+# Its op=browser puts a sign-in into the Playwright browser; `discover_all` then also keeps that
+# browser's own tools away from a bot.
 OWNER_ONLY_TOOLS = frozenset({"naota_reply_policy", "naota_reply_policy_tune", "naota_team", "naota_memory",
                               "naota_watch", "naota_login",
                               # changes which notices reach the owner. A customer must never mute the owner.
@@ -436,6 +439,9 @@ def _shape_and_log(text, fn, conn, tool, scope):
 # use it, and a line costs far less per turn than listing the whole tool.
 SCOUT_HINT = (" naota_scout(task): giao model nền ĐỌC dữ liệu nặng (nhiều nguồn, nhiều trang, kỳ dài) rồi chỉ trả "
               "về kết luận; gọi qua {run}.")
+# Same idea for naota_code (code_mode.py): one line, in English like every new prompt text.
+CODE_MODE_HINT = (" naota_code(code): run a read-only Python script that chains several tool reads and returns only "
+                  "what it prints; call via {run}.")
 
 
 def _shape_view(result, name, scope):
@@ -1814,7 +1820,10 @@ def _lazy_tools_and_route(visible_tools, visible_route, pool, full_route, top_k,
             listed = {t.get("fn") for t in pool} | set(visible_route)
             near = [f for f in tool_finder.suggest_names(name, [f for f in full_route if f in listed or not pool])
                     if f not in (_LAZY_SEARCH, _LAZY_RUN)]
-            same_tail = [f for f in near if f.lower().split("__")[-1] == name.lower().split("__")[-1]]
+            # Only auto-match a bare name without a namespace prefix; an explicit "ns__tool" must never
+            # silently dispatch to another account or connector.
+            same_tail = ([] if "__" in name else
+                         [f for f in near if f.lower().split("__")[-1] == name.lower().split("__")[-1]])
             if len(same_tail) == 1:
                 name = same_tail[0]
             else:
@@ -1862,7 +1871,9 @@ def _lazy_tools_and_route(visible_tools, visible_route, pool, full_route, top_k,
                                   f"tham số tool để gọi tiếp qua {_LAZY_RUN}; nếu khớp nguồn tài khoản "
                                   "Claude thì trả hướng dẫn gọi thẳng tool native mcp__<tên>__*."
                                   + (SCOUT_HINT.format(run=_LAZY_RUN)
-                                     if any(t.get("fn") == scout.TOOL for t in pool) else "")),
+                                     if any(t.get("fn") == scout.TOOL for t in pool) else "")
+                                  + (CODE_MODE_HINT.format(run=_LAZY_RUN)
+                                     if any(t.get("fn") == code_mode.TOOL for t in pool) else "")),
                   "schema": {"type": "object", "properties": {
                       "query": {"type": "string",
                                 "description": "Việc cần làm / nguồn / từ khoá, vd 'doanh thu POS hôm nay'"}},
@@ -2058,9 +2069,15 @@ async def discover_all(mode="full", vault_root=None, include_plugins=True, inclu
 
     tools_spec, route = [], {}
     hidden = {}          # conn_id -> {"perm", "ns", "tools"} - tool CÓ THẬT nhưng bị quyền lọc
+    # Once the browser has held one of the owner's sign-ins (naota_login op=browser), a customer bot
+    # gets no tool of that browser connection at all: whoever drives it browses as the owner.
+    import browser_login
+    owner_browser = for_bot and browser_login.in_use()
     for t in raw_tools:
         raw = raw_route.get(t["fn"])
         if not raw:
+            continue
+        if owner_browser and browser_login.is_browser_spec(raw.get("spec")):
             continue
         conn = raw["conn"]
         connector = mcp_catalog.get(conn.get("connector_id"))
@@ -2109,6 +2126,13 @@ async def discover_all(mode="full", vault_root=None, include_plugins=True, inclu
         q_entry["full_route"] = query_route      # every route behind the tool search too (job_recipes.replay)
         tools_spec.append(q_spec)
         route[q_spec["fn"]] = q_entry
+        # naota_code: a read-only script that chains several reads and returns only what it prints (code_mode.py).
+        # Same reach as naota_query (declared reads only, through the guarded routes), but it runs code the model
+        # wrote, so never for a customer bot.
+        if code_mode.enabled() and not for_bot:
+            c_spec, c_entry = code_mode.build(query_route, str(vault_root or ""))
+            tools_spec.append(c_spec)
+            route[c_spec["fn"]] = c_entry
     # naota_scout: a read-only run on the background model that returns only its findings (scout.py). Never for a
     # customer bot (it starts a run on the owner's background model), and absent when no runner is configured.
     # Not in OWNER_ONLY_TOOLS on purpose: that set lists tools every owner session HAS, and this one is optional.
@@ -2259,6 +2283,17 @@ def bo_cache_phien(sid: str) -> int:
     for k in bo:
         _cache.pop(k, None)
     return len(bo)
+
+
+def drop_bot_cache() -> int:
+    """Forget the tool lists built for customer bots, so the next bot turn builds its list again. Called when the
+    browser first takes one of the owner's sign-ins (browser_login.py): a bot must lose that browser now, not when
+    the cache ages out. Unlike `invalidate_cache` this closes no session: the browser that was just signed in
+    keeps running. The key's tenth field is `for_bot` (see `discover_all`). Returns how many entries went."""
+    gone = [k for k in list(_cache) if isinstance(k, tuple) and len(k) > 9 and k[9] is True]
+    for k in gone:
+        _cache.pop(k, None)
+    return len(gone)
 
 
 def invalidate_cache():
