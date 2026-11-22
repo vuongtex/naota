@@ -2296,7 +2296,7 @@
     if (calm()) return;
     var c = document.createElement("canvas"), dpr = window.devicePixelRatio || 1;
     c.className = "nv-confetti"; document.body.appendChild(c);
-    var W = c.width = innerWidth * dpr, H = c.height = innerHeight * dpr, ctx = c.getContext("2d"), P = [], cols = ["#f97316", "#eab308", "#22c55e", "#3b82f6", "#ec4899", "#fd6100"];
+    var W = c.width = innerWidth * dpr, H = c.height = innerHeight * dpr, ctx = c.getContext("2d"), P = [], cols = ["#f97316", "#eab308", "#22c55e", "#3b82f6", "#ec4899", "#fccb1d"];
     for (var i = 0; i < 150; i++) P.push({ x: W / 2 + (Math.random() - 0.5) * W * 0.25, y: H * 0.38, vx: (Math.random() - 0.5) * 17 * dpr, vy: (-Math.random() * 15 - 5) * dpr, s: (5 + Math.random() * 5) * dpr, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.35, c: cols[i % cols.length] });
     var t0 = performance.now();
     (function f(t) {
