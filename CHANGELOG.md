@@ -6,6 +6,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.57.0] - 2026-11-22
+### Cải thiện
+- Đang làm: lấy khung chat một hàng, nút X cho repo, vòng hạn mức theo model.
+
 ## [1.56.0] - 2026-11-21
 ### Thêm mới
 - **Kết nối Asana.** Trang Kết nối có thẻ Asana dùng MCP chính chủ bản V2: Naota tìm và đọc việc, dự án, hạn chót, tạo và cập nhật việc, thêm bình luận. Đăng nhập ngay trong dashboard, chạy được cả trên VPS.

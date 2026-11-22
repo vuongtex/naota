@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.57.0] - 2026-11-22
+### Improved
+- In progress: porting khung chat một hàng, nút X cho repo, vòng hạn mức theo model.
+
 ## [1.56.0] - 2026-11-21
 ### Added
 - **Connect Asana.** The Connections page has an Asana card on the official V2 MCP: Naota finds and reads tasks, projects and due dates, creates and updates tasks, and adds comments. Sign in from the dashboard; works on a VPS too.
