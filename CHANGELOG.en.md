@@ -4,6 +4,14 @@
 
 NAOTA release history. Newest first.
 
+## [1.58.0] - 2026-11-22
+### Added
+- **Block, Leave group and Delete right in a chat's Info panel**, like the "..." menu in the list. Leaving a Zalo group also deletes its chat from Naota, and a deleted chat no longer comes back by itself.
+- **The bot can step aside when staff answer from the Zalo OA app or the Page inbox.** Put minutes in the "Step aside after you type" box and the bot stays quiet that long, then answers again. Off by default.
+### Fixed
+- **The personal Zalo bot no longer says "no information" after you typed by hand**, and choosing who a bot replies to now opens on direct messages.
+- **Facebook Pages uses every connection that is on** and skips one that is off. Webhook instructions can be up to 5,000 characters, and `NAOTA_BOT_MAX_IMAGES` sets how many images a bot sends.
+
 ## [1.57.0] - 2026-11-22
 ### Improved
 - **The chat box is one row, like Claude.** Only +, the text box, the mic and send stay inside. Model, Effort and the usage ring move under the box on the right; the pinned folder and GitHub repos sit on the left. The box also sits closer to the bottom of the screen.

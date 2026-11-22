@@ -6,6 +6,14 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.58.0] - 2026-11-22
+### Thêm mới
+- **Chặn, Rời nhóm, Xoá ngay trong bảng Thông tin của cuộc chat**, giống menu "..." trên danh sách. Rời nhóm Zalo thì cuộc chat cũng được xoá khỏi Naota, và cuộc chat đã xoá không tự hiện lại nữa.
+- **Bot có thể nhường khi nhân viên trả lời từ app Zalo OA hoặc hộp thư Trang.** Ghi số phút vào ô "Nhường khi bạn nhắn tay" là bot im chừng ấy phút rồi tự trả lời lại. Mặc định không nhường.
+### Sửa lỗi
+- **Bot Zalo cá nhân không còn nói "chưa có thông tin" sau khi bạn nhắn tay**, và chọn người cho bot trả lời giờ mở ngay danh sách nhắn riêng.
+- **Facebook Trang dùng đúng mọi kết nối đang bật**, bỏ qua kết nối đang tắt. Nội dung webhook dài tới 5.000 ký tự, số ảnh bot gửi chỉnh được bằng `NAOTA_BOT_MAX_IMAGES`.
+
 ## [1.57.0] - 2026-11-22
 ### Cải thiện
 - **Khung chat gọn một hàng như Claude.** Trong khung chỉ còn nút +, ô chữ, ghi âm và gửi. Model, mức suy nghĩ và vòng hạn mức xuống dưới khung bên phải; thư mục ghim và repo GitHub bên trái. Khung cũng nằm sát đáy màn hình hơn.
