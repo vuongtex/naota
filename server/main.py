@@ -7933,6 +7933,10 @@ async def settings_set(section: str = Form(...), data: str = Form("{}")):
             # Use that picture as the browser tab icon too, so several Naota tabs tell apart at a glance.
             if "favicon" in pet_moi:
                 pet["favicon"] = bool(pet_moi["favicon"])
+            # Which generation of defaults this look has seen (pet.js LOOK): a small whole number, nothing else.
+            v = pet_moi.get("look")
+            if isinstance(v, int) and not isinstance(v, bool) and 0 <= v <= 99:
+                pet["look"] = v
             cfg["dashboard"]["pet"] = pet
     elif section == "image":
         cfg.setdefault("image", {})

@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.60.0] - 2026-11-22
+### Improved
+- **The mascot takes the NAOTA logo shape**: the old orange star becomes a rounded square in NAOTA yellow on the Tasks page, the mascot at the screen edge and the Give a star card. A device still on the default star switches after the update; anyone who picked another shape or colour keeps it. The star is still in Settings > Mascot.
+
 ## [1.59.0] - 2026-11-22
 ### Added
 - **Naota can click and fill forms with a stored cookie** (needs the Playwright connection). Each card on the Cookies page has its own switch, and older cookies stay read-only until you turn it on. Customer chatbots never get the signed-in browser.

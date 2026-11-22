@@ -6,6 +6,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.60.0] - 2026-11-22
+### Cải thiện
+- **Linh vật mang dáng logo NAOTA**: ngôi sao cam của bản cũ thành ô vuông bo góc màu vàng NAOTA, ở trang Việc cần làm, con linh vật nép mép màn hình và thẻ Tặng sao. Máy đang để ngôi sao mặc định tự đổi sang hình mới sau khi cập nhật; ai đã tự chọn hình hay màu khác thì giữ nguyên. Ngôi sao vẫn còn trong Cài đặt > Linh vật nếu muốn chọn lại.
+
 ## [1.59.0] - 2026-11-22
 ### Thêm mới
 - **Naota bấm nút và điền form được bằng cookie đã cất** (cần kết nối Playwright). Mỗi thẻ ở trang Cookies có công tắc riêng, cookie cũ vẫn chỉ đọc tới khi bạn bật. Chatbot khách không bao giờ dùng được trình duyệt đã đăng nhập.
