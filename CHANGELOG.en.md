@@ -4,6 +4,17 @@
 
 NAOTA release history. Newest first.
 
+## [1.64.0] - 2026-11-23
+### Fixed
+- **Notices with a link no longer run past the card.** A bell card shows the link's words, not the whole address, and a long word wraps inside the card.
+- **The Effort frame sits even.** "Recommended" moved up beside the chosen level, so no empty line is left under the slider.
+- The model list no longer shows a cut-off strip of text above the search box while scrolling.
+### Improved
+- **The phone chat box has two lines.** The text box takes the top line, with plus, mic and send on the line below. A computer keeps one row. Applies to the main chat, Teams and Conversations.
+- **The pinned folder and GitHub repos sit in a tray on top of the composer**, as in Claude's app. The tray has its own row, so a phone shows both names even when both are pinned.
+- Under the composer only the model, Effort and the plan usage ring remain.
+- **Phone: model, Effort and the plan ring are three buttons again**, as on a computer, in slightly smaller text so the whole model name fits. Each button opens its own sheet.
+
 ## [1.63.0] - 2026-11-23
 ### Added
 - **Claude Code connects with a long-lived token.** The Claude Code card on the Models page has one **Connect Claude** button. Naota shows a link, you sign in to claude.ai and paste the code. The token lasts a year and is never signed out midway, so bots and background work no longer stop.

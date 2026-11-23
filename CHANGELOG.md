@@ -6,6 +6,17 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.64.0] - 2026-11-23
+### Sửa lỗi
+- **Thông báo có link không còn tràn viền.** Thẻ ở chuông chỉ hiện chữ của link, không in nguyên địa chỉ dài, và chữ dài vẫn xuống dòng trong thẻ.
+- **Khung mức suy nghĩ hết lệch.** Chữ "Recommended" lên cùng hàng với mức đang chọn, không còn chừa một dòng trống dưới thanh trượt.
+- Danh sách model không còn lộ một dải chữ bị cắt phía trên ô tìm khi cuộn.
+### Cải thiện
+- **Khung chat trên điện thoại thành hai dòng.** Ô chữ nằm trọn dòng trên, nút cộng, ghi âm và gửi ở dòng dưới. Máy tính giữ một hàng. Áp cho chat chính, Nhóm và Hội thoại.
+- **Thư mục đang ghim và repo GitHub lên khay phía trên khung chat**, giống app Claude. Khay có hàng riêng nên trên điện thoại ghim cả hai vẫn thấy đủ tên, không còn chỉ là icon.
+- Dưới khung chat giờ chỉ còn model, mức suy nghĩ và vòng hạn mức.
+- **Điện thoại: model, mức suy nghĩ và vòng hạn mức tách lại thành 3 nút** như trên máy tính, chữ nhỏ hơn một chút để hiện trọn tên model. Bấm nút nào mở bảng của riêng nút đó.
+
 ## [1.63.0] - 2026-11-23
 ### Thêm mới
 - **Claude Code kết nối bằng token dài hạn.** Thẻ Claude Code ở trang Models chỉ còn nút **Kết nối Claude**. Naota hiện link, bạn đăng nhập claude.ai rồi dán mã là xong. Token dùng được 1 năm, không bị đăng xuất giữa chừng nên bot và việc nền không còn dừng ngang.
