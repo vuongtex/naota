@@ -273,7 +273,7 @@ check("Threads profile link", pr.get("url") == "https://www.threads.net/@lan.ngu
 
 _conv = (ROOT / "dashboard" / "conversations.js").read_text(encoding="utf-8")
 check("the add-channel form opens the Threads form on the Threads card, not the Messenger one",
-      'k.id === "threads") M.openThreadsForm()' in _conv)
+      'k.id === "threads") window.NaotaMessenger.openThreadsForm()' in _conv)
 check("the add-channel form asks for no webhook for a channel with its own card",
       "if (!k.webhook || k.the_ket_noi) return;" in _conv)
 
