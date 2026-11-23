@@ -25,8 +25,11 @@ check("no lazy file is also loaded eagerly", all.every(u => {
   const f = u.split("?")[0];
   return !new RegExp('<script src="' + f.replace(/[.]/g, "\\.") + '\\?').test(html) && !new RegExp('<link rel="stylesheet" href="' + f.replace(/[.]/g, "\\.") + '\\?').test(html);
 }));
-check("files that wire things at load stay eager (studio.js binds the Studio button, openStudio is used by app.js)",
-  /<script src="\/static\/studio\.js\?v=/.test(html) && !all.some(u => /studio\.js/.test(u)));
+// Studio.js itself became a lazy file. The two things it wired at load moved to app.js, which stays eager.
+check("what is wired at load stays eager (app.js binds the Studio button and owns openStudio)",
+  /<script src="\/static\/app\.js\?v=/.test(html) && !all.some(u => /\/app\.js/.test(u))
+  && /window\.openStudio = /.test(read("dashboard/app.js")) && /getElementById\("studioOpenBtn"\)/.test(read("dashboard/app.js"))
+  && !/window\.openStudio = /.test(read("dashboard/studio.js")));
 check("the conversations CSS loads before its JS in the same group",
   lazy.hoithoai[0].indexOf("inbox-v5.css") > 0 && lazy.hoithoai[1].indexOf("inbox-compact.css") > 0);
 check("the shared pulse parts load before teams.js (teams needs NaotaAgentJudge)", lazy.congviec.some(u => /agent-judge-ui/.test(u)));
@@ -34,9 +37,10 @@ check("nap-cham.js loads early, before console.js", html.indexOf("/static/nap-ch
 
 const con = read("dashboard/console.js");
 const map = (con.match(/const NHOM_TRANG = \{([\s\S]*?)\};/) || [])[1] || "";
+// NAOTA: the Chatbot page also loads "congviec", its Edit agent button opens the editor in studio.js.
 check("every page that needs lazy code is mapped in NHOM_TRANG",
   /workspace: \["congviec"\]/.test(map) && /teams: \["congviec", "teams"\]/.test(map) && /conversations: \["hoithoai"\]/.test(map)
-  && /chatbots: \["hoithoai"\]/.test(map) && /packs: \["packs"\]/.test(map) && /plugins: \["packs"\]/.test(map) && /mcp: \["packs"\]/.test(map)
+  && /chatbots: \["hoithoai"(, "congviec")?\]/.test(map) && /packs: \["packs"\]/.test(map) && /plugins: \["packs"\]/.test(map) && /mcp: \["packs"\]/.test(map)
   && /usage: \["usage"\]/.test(map) && /webhooks: \["webhooks"\]/.test(map));
 check("renderPage waits for the page's group, and stops if the user moved on meanwhile",
   /await window\.NaotaNapCham\.cho\(nhomCan\);\n\s+if \(gen !== _renderGen\) return;/.test(con));

@@ -2861,11 +2861,15 @@
       if (mo) mo.onclick = function () {
         dong();
         try { window.NaotaNav.go("mcp"); } catch (e) {}
+        // messenger-connect.js loads with the lazy group "packs" (the Connections page waits for it too).
         setTimeout(function () {
-          try {
-            var M = window.NaotaMessenger;
-            if (M) { if (k.id === "threads") M.openThreadsForm(); else M.openForm(null); }
-          } catch (e) {}
+          var openForm = function () {
+            try {
+              if (!window.NaotaMessenger) return;
+              if (k.id === "threads") window.NaotaMessenger.openThreadsForm(); else window.NaotaMessenger.openForm(null);
+            } catch (e) {}
+          };
+          try { if (window.NaotaNapCham) window.NaotaNapCham.goi("packs", openForm); else openForm(); } catch (e) {}
         }, 400);
       };
       box.querySelectorAll(".cb-kenh-o").forEach(function (n) { n.classList.toggle("on", n.dataset.k === id); });
