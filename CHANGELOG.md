@@ -6,6 +6,22 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.65.0] - 2026-11-24
+### Thêm mới
+- **Nhắn "chạy lại CI" là Naota chạy lại các job đỏ của PR.** Naota theo dõi kết quả như mọi lần. Token GitHub cần quyền Actions là Read and write.
+### Sửa lỗi
+- **Chat bằng Codex không còn bỏ sót MCP bạn tự thêm vào Codex.** Các MCP khai trong `~/.codex/config.toml` (ví dụ Composio, Notion gắn thẳng vào Codex) vốn gọi được, nhưng ô tìm tool và danh sách kết nối của Naota không nhắc tới, nên model trả lời là chưa có tool. Giờ cả hai đều nêu tên chúng và chỉ cách gọi thẳng, giống connector của tài khoản Claude.
+- **Nút tròn trên thanh Độ sâu suy nghĩ không còn lệch lên trên.** Nút nằm giữa thanh ở mọi cỡ, và thẳng hàng với các chấm mốc.
+- **Chat bằng Grok Build hay Antigravity không còn bỏ sót MCP bạn tự thêm vào hai CLI đó.** Các MCP khai trong `~/.grok/config.toml` hoặc `~/.gemini/config/mcp_config.json` (ví dụ Composio, Notion gắn thẳng vào CLI) vốn gọi được, nhưng ô tìm tool và danh sách kết nối của Naota không nhắc tới, nên model trả lời là chưa có tool. Giờ cả hai đều nêu tên chúng và nói rõ là gọi thẳng, giống Codex và connector của tài khoản Claude.
+- **Đang đọc trên máy tính thì điện thoại không rung nữa.** Trước đây mỗi câu trả lời đều báo sang điện thoại, kể cả khi bạn đang xem đúng đoạn chat đó trên máy tính, nên vừa nói vừa chat là điện thoại báo liên tục. Giờ mỗi tab Naota báo cho máy chủ biết bạn đang xem chat nào: còn đang xem ở bất kỳ máy nào thì câu trả lời trong chat đó không đẩy thông báo tới máy nào cả. Bạn rời màn hình (ẩn tab, sang ứng dụng khác, không chạm chuột hay bàn phím 2 phút) thì thông báo hoạt động lại như cũ. Kết quả việc nền, nhắc lịch và tin khẩn vẫn báo bình thường.
+- **Dán ảnh vào khung chat lúc đang có lời nhắc không còn bị chữ đè lên ảnh.** Chữ gợi ý màu xám đi theo ô nhập khi dải file đính kèm hiện ra và đẩy ô xuống.
+- **Nhóm ở quyền "cần duyệt" chạy được trên ChatGPT (Codex) dù máy có MCP riêng của Codex.** Trước đây chỉ cần `~/.codex/config.toml` có một MCP ngoài Naota (ví dụ `node_repl`) là mọi bước Làm bị từ chối và bảo đổi sang Claude Code. Giờ Naota tắt riêng các MCP đó cho đúng lượt chạy, file cấu hình của bạn giữ nguyên, giống cách workflow vẫn làm.
+- **Lượt chỉ chữ của nhóm trên Codex hết báo "code-mode host is disabled".** Codex bản mới vẫn đưa model công cụ chạy mã dù đã tắt phần host, model gọi rồi báo lên nhóm là chưa đọc được cấu hình. Giờ lượt chỉ chữ tắt hẳn code mode.
+- **Tìm tool không còn bỏ sót app nằm sau Composio.** Composio chỉ hiện vài tool chung (tìm, chạy, nối tài khoản), còn hàng trăm tool của Gmail, Notion, Slack, GitHub... nằm ẩn phía sau. Trước đây hỏi "gmail" thì Naota trả về Resend, hỏi "gửi tin slack" thì ra Zalo, rồi kết luận là chưa nối app. Giờ Naota đọc danh sách app bạn đã nối trong Composio, nhắc tên app nào thì đưa cổng Composio lên đầu kèm hướng dẫn gọi hai bước, và hỏi theo việc ("đọc email mới nhất") cũng được gợi ý app đã nối.
+- **Connector gắn tài khoản Claude được tìm thấy theo việc, không chỉ theo tên.** "Đọc email mới nhất" giờ chỉ tới connector Gmail, "lịch hẹn tuần này" tới Google Calendar, và một connector Composio trên tài khoản Claude khớp khi bạn nhắc Notion, Slack, GitHub...
+### Cải thiện
+- **Job CI đỏ mà GitHub không có log thì Naota tự chạy lại một lần.** Repo private hết phút Actions hay chạm hạn mức chi tiêu hay gặp cảnh này. Lượt sửa ghi rõ vì sao không có log, model không còn đoán bừa lỗi trong code.
+
 ## [1.64.0] - 2026-11-23
 ### Sửa lỗi
 - **Thông báo có link không còn tràn viền.** Thẻ ở chuông chỉ hiện chữ của link, không in nguyên địa chỉ dài, và chữ dài vẫn xuống dòng trong thẻ.

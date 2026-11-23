@@ -197,6 +197,7 @@ import lang as lang_mod   # chốt ngôn ngữ trả lời cho một lượt
 import lang_registry      # sổ đăng ký: mọi thứ về một ngôn ngữ nằm đúng một chỗ
 import background_status  # việc nền còn sống của một khung chat + bắt lời hứa "xong em báo"
 import tien_trinh_nen     # lệnh chạy ngầm engine bỏ lại: nhận theo dõi, xong tự báo + làm tiếp
+import push_presence      # which chat the owner is reading on any device: no push about it
 import turn_done_notice   # a long chat turn that finishes rings the bell (the owner has left the screen)
 import chatbot_log       # nhật ký hội thoại khách + thống kê câu bot trả lời không nổi
 import chatbot_runtime   # bộ giám sát Bot chuyên trách (mỗi bot một poller Telegram)
@@ -6122,7 +6123,9 @@ def _apply_grok_hub(cli, vault_root=None, mode="full"):
         return cli
     hub = None
     if _hub_enabled():
-        headers = {"Authorization": f"Bearer {mcp_hub.hub_token()}", "X-Naota-Mode": mode}
+        # X-Naota-Engine: the hub then names the MCP servers in the user's own grok config (mcp_hub._ambient_kind).
+        headers = {"Authorization": f"Bearer {mcp_hub.hub_token()}", "X-Naota-Mode": mode,
+                   "X-Naota-Engine": "grok"}
         try:
             headers["X-Naota-Vault"] = str(Path(root).expanduser().resolve())
         except Exception:
@@ -6152,7 +6155,9 @@ def _apply_antigravity_hub(cli, vault_root=None, mode="full"):
         return cli
     hub = None
     if _hub_enabled():
-        headers = {"Authorization": f"Bearer {mcp_hub.hub_token()}", "X-Naota-Mode": mode}
+        # X-Naota-Engine: the hub then names the MCP servers in the user's own antigravity config (mcp_hub._ambient_kind).
+        headers = {"Authorization": f"Bearer {mcp_hub.hub_token()}", "X-Naota-Mode": mode,
+                   "X-Naota-Engine": "antigravity"}
         try:
             headers["X-Naota-Vault"] = str(Path(root).expanduser().resolve())
         except Exception:
@@ -16869,6 +16874,8 @@ async def _bao_luot_dai_xong(conv_sid: str, brain, turn_tag: str, user_message: 
     text = str(final_text or "")
     if not turn_done_notice.should_notify(elapsed, user_message, text):
         return _bao_luot_xong_ngan(conv_sid, text)
+    if push_presence.watching(conv_sid):
+        return False   # the owner is reading this chat on some device: the answer is on screen, a bell copy is clutter
     import chat_bridge as _cb
     if _cb.co_viec(conv_sid):
         return False   # work an outside AI sent: chat_bridge rings once, and only if that AI did not read the answer
@@ -19373,6 +19380,14 @@ async def push_subscribe(request: Request, payload: dict = Body(None)):
     ok, err = webpush.dang_ky(p.get("subscription") or p, str(p.get("nhan") or ""),
                               phien=_phien_bam(request.cookies.get("naota_session", "")))
     return {"ok": ok, "error": err, "subs": webpush.so_sub()}
+
+
+@app.post("/push/presence")
+async def push_presence_report(payload: dict = Body(None)):
+    """A dashboard tab says which chat it shows and whether the owner is in front of it (push.js). While a chat is read
+    on one device, an answer in it rings no other device either (push_presence.py)."""
+    p = payload or {}
+    return {"ok": push_presence.report(str(p.get("tab") or ""), str(p.get("session_id") or ""), bool(p.get("active")))}
 
 
 @app.post("/push/unsubscribe")
@@ -32213,20 +32228,35 @@ _TEAM_ENGINE_BUILD_TOOLS_REAL = team_engine.build_tools
 TEAM_WORK_MODE = "full"
 
 
-def _codex_user_mcp_servers():
-    """MCP servers in the user's own Codex config besides Naota's hub: Codex would call them without the gate."""
+def _codex_config_toml():
+    """The user's own ~/.codex/config.toml as a dict, {} when missing or unreadable."""
     try:
         import tomllib
         p = claude_cli._codex_home() / "config.toml"
-        if not p.is_file():
-            return []
-        cfg = tomllib.loads(p.read_text(encoding="utf-8"))
-    except Exception:  # noqa: BLE001 - unreadable config: nothing known to add
+        return tomllib.loads(p.read_text(encoding="utf-8")) if p.is_file() else {}
+    except Exception:  # noqa: BLE001 - unreadable config: nothing known
+        return {}
+
+
+def _codex_user_mcp_servers():
+    """Top-level MCP servers in the user's own Codex config besides Naota's hub: Codex would call them without the gate.
+
+    Only the top level: a restricted Codex process switches each of them off with `-c mcp_servers.<name>.enabled=false`,
+    which merges onto the existing table. A server that lives only under another `[profiles.X]` is not loaded by a
+    Naota run (it uses its own profile), and the same override would create a half entry with no command."""
+    return sorted(n for n in ((_codex_config_toml().get("mcp_servers") or {}).keys()) if n != "naota")
+
+
+def _codex_profile_mcp_servers():
+    """MCP servers declared under the profile Naota runs Codex with: an override cannot switch those off safely."""
+    try:
+        prof = ((_codex_config_toml().get("profiles") or {}).get(mcp_hub.codex_profile_name()) or {})
+    except Exception:  # noqa: BLE001
         return []
-    names = set((cfg.get("mcp_servers") or {}).keys())
-    for prof in (cfg.get("profiles") or {}).values():
-        names |= set(((prof or {}).get("mcp_servers") or {}).keys())
-    return sorted(n for n in names if n != "naota")
+    return sorted(n for n in ((prof.get("mcp_servers") or {}).keys()) if n != "naota")
+
+
+_CODEX_SERVER_NAME_RE = re.compile(r"[A-Za-z0-9_-]+")
 
 
 def _team_gate_support(provider):
@@ -32241,11 +32271,16 @@ def _team_gate_support(provider):
         if not _hub_enabled():
             return {"ok": False, "approved_actions": False,
                     "reason": "MCP Hub đang tắt nên Codex gọi thẳng các kết nối, không qua cổng duyệt của Naota"}
-        extra = _codex_user_mcp_servers()
+        # Field report (`node_repl`): the user's own top-level Codex servers are switched off for the
+        # gated step's process (mcp_hub.dat_codex_team_gated), as a restricted workflow step already does, instead
+        # of refusing the whole step. Only a name an override cannot express, or a server under Naota's own profile,
+        # still refuses.
+        extra = [n for n in _codex_user_mcp_servers() if not _CODEX_SERVER_NAME_RE.fullmatch(n)]
+        extra += _codex_profile_mcp_servers()
         if extra:
             return {"ok": False, "approved_actions": False,
                     "reason": ("Codex trên máy này có MCP riêng ngoài Naota (" + ", ".join(extra[:5]) + ") mà Naota không "
-                               "chặn được trước khi chạy")}
+                               "tắt riêng cho lượt này được")}
     deny = True
     if prov == aux_engine.GROK_CLI:
         try:
@@ -32637,7 +32672,7 @@ def _team_engine_for(team, agent_key, role):
             # Natives stay in Codex's own `auto` sandbox (no network); hub tools get the gated level and the turn key,
             # so an approved outside action can pass the gate and nothing else can.
             # Review: also no ChatGPT apps (Gmail, Slack... outside the hub) and no shell network.
-            mcp_hub.dat_codex_team_gated(eng.extra_config)
+            mcp_hub.dat_codex_team_gated(eng.extra_config, tat_server=_codex_user_mcp_servers())
             eng.hub_turn = True
         if tool_spec.get("provider") == aux_engine.CODEX:
             try:
