@@ -1,4 +1,4 @@
-"""A chat read on one device rings no other device (owner, 2026-11-23).
+"""A chat read on one device rings no other device.
 
 "Every answer buzzes the phone while I am reading it on the computer." sw.js only sees the tabs of its own device, so
 each tab now tells the server which chat it shows (push.js -> POST /push/presence), and a push about that chat is

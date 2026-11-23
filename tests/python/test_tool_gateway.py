@@ -48,13 +48,13 @@ def tool(ns, name, desc, cid="", label=""):
 
 def _pool(with_composio=True):
     pool = [
-        tool("pos-lcx", "pos_list_orders", "List orders of the shop, filter by status and created date.", "pos",
-             "Làng Chài Xưa"),
-        tool("pos-lcx", "pos_statistic_revenue", "Revenue statistics: total sales and order count per day.", "pos",
-             "Làng Chài Xưa"),
-        tool("zalo-quy", "zalo_send_message", "Send a text message to a Zalo user or group thread.", "zalo",
-             "Minh Quý"),
-        tool("zalo-quy", "zalo_get_history", "Get the message history of a Zalo thread.", "zalo", "Minh Quý"),
+        tool("pos-demo", "pos_list_orders", "List orders of the shop, filter by status and created date.", "pos",
+             "Demo Shop"),
+        tool("pos-demo", "pos_statistic_revenue", "Revenue statistics: total sales and order count per day.", "pos",
+             "Demo Shop"),
+        tool("zalo-owner", "zalo_send_message", "Send a text message to a Zalo user or group thread.", "zalo",
+             "Shop Owner"),
+        tool("zalo-owner", "zalo_get_history", "Get the message history of a Zalo thread.", "zalo", "Shop Owner"),
         tool("resend", "send-email", "Send an email with Resend.", "resend", "Resend"),
         tool("resend", "list-emails", "List sent emails.", "resend", "Resend"),
     ]
@@ -79,7 +79,7 @@ check("connected apps are read from its description, slugs normalised",
       gw and gw["connected"][:3] == ["ahrefs", "facebook", "gmail"], gw and gw["connected"])
 check("'500+ apps' makes it reach any known app", gw and gw["universal"])
 check("an ordinary source is not a gateway",
-      tool_finder.gateway_info([t for t in _pool() if t["namespace"] == "pos-lcx"]) is None)
+      tool_finder.gateway_info([t for t in _pool() if t["namespace"] == "pos-demo"]) is None)
 check("app ids: googlecalendar / Google Calendar / google_calendar are one app",
       {tool_finder.app_id(s) for s in ("googlecalendar", "Google Calendar", "google_calendar")} == {"googlecalendar"})
 check("apps_in reads a Composio slug", tool_finder.apps_in("GMAIL_SEND_EMAIL") == ["gmail"])

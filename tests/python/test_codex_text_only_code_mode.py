@@ -1,4 +1,4 @@
-"""A text-only Codex team turn offers the model no code-mode tool (field report 23/11/2026).
+"""A text-only Codex team turn offers the model no code-mode tool.
 
 Codex 0.171 still handed the model code mode's run-code tool when only `features.code_mode_host` was off. The model
 called it, got "code-mode host is disabled" and told the team it "could not read the config". The text-only turn now

@@ -624,7 +624,7 @@ def _ambient_kind(include_ambient):
     or "".
 
     include_ambient is True for the Claude engine (its historic meaning) or the engine name. 2026-11-23: the CLI
-    engines have their own MCP servers too, outside Naota' hub: `[mcp_servers.*]` in ~/.codex/config.toml or
+    engines have their own MCP servers too, outside Naota's hub: `[mcp_servers.*]` in ~/.codex/config.toml or
     ~/.grok/config.toml, `mcpServers` in Antigravity's ~/.gemini/config/mcp_config.json (Composio or Notion added
     straight to the CLI). The CLI calls them natively, but the hub never named them, so naota_search_tools answered
     "no tool" and naota_connections left them out, the same blind spot the Claude account connectors had before."""
@@ -659,7 +659,7 @@ _native_cache = {}
 
 
 def _native_servers(kind):
-    """MCP servers in one CLI engine's own config (not Naota' hub): [{"name", "prefix", "source"}]. Read from disk,
+    """MCP servers in one CLI engine's own config (not Naota's hub): [{"name", "prefix", "source"}]. Read from disk,
     cached on each file's mtime; the `naota` entry and disabled ones left out; [] when nothing is readable."""
     files_fn, key, source = _NATIVE_SOURCES[kind]
     try:
@@ -771,7 +771,7 @@ def _match_ambient(ambient, query):
         return []
     terms = set(_WORD_RE.findall(q))
     out = []
-    # 2026-11-23: matching the connector NAME alone missed most requests. "đọc email mới nhất" never says
+    # Matching the connector NAME alone missed most requests. "đọc email mới nhất" never says
     # "Gmail", and a Composio connector on the Claude account is named "Composio" while the request says
     # "notion" or "slack". An app connector now also matches by what the app is for, and a gateway connector by
     # any app it can reach.

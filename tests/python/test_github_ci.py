@@ -195,7 +195,7 @@ check("a runner failure is rerun once instead of a fix round", 801 in fake.rerun
 run(w.tick())
 check("a second failure on the same commit is real: a fix round", len(turns) == n_turns + 1)
 
-# ---- a red job with no log at all (owner 23/11/2026, naotaos-blog PR #58: the job never ran) ----
+# ---- a red job with no log at all (the job never ran) ----
 (wt / "src/a.py").write_text("a = 200\n", encoding="utf-8")
 run(w.after_turn("chat", BRAIN, "log trống"))
 fake.set_checks(row()["head_sha"], [("Build", "completed", "failure", 901)])

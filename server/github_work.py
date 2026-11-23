@@ -827,7 +827,7 @@ def _ci_snapshot(row: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # Why a red job came with no log. The fix turn used to get only a link, and the engine went looking for a bug in code
-# that builds fine (owner, 23/11/2026: naotaos-blog PR #58, a private repo whose job left no log at all).
+# that builds fine (a private repo whose job left no log at all).
 NO_LOG_DENIED = ("GitHub từ chối cho đọc log của job này (GitHub {status}): token GitHub của Naota thiếu quyền Actions "
                  "(Read). Người dùng cấp thêm ở thẻ GitHub trên trang Kết nối. Không có log thì đừng đoán lỗi trong code.")
 NO_LOG_NEVER_RAN = ("GitHub không có log cho job này: job gần như chắc chưa hề chạy (repo private hết phút GitHub "
@@ -1594,7 +1594,7 @@ def _rerun_denied(status: int) -> str:
 
 
 async def rerun_ci(sid: str, full_name: str) -> Dict[str, Any]:
-    """A person asked to rerun the failed CI of the chat's PR (owner, 23/11/2026: "how do I let you do that?"). Reruns
+    """A person asked to rerun the failed CI of the chat's PR. Reruns
     the failed GitHub Actions jobs of the PR's current head; the watcher then follows the new result as usual, and a
     second red on the same commit gets its own notice and fix round."""
     row = st().get(sid, full_name)

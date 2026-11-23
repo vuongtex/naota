@@ -1,4 +1,4 @@
-"""Which chat the owner is reading right now, on ANY device (owner, 2026-11-23).
+"""Which chat the owner is reading right now, on ANY device.
 
 The owner reported: "every answer buzzes the phone while I am reading it on the computer; talking and chatting at the
 same time, it buzzes non-stop". The quiet check in dashboard/sw.js only sees the tabs of its OWN device, so the phone,

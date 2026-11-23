@@ -170,7 +170,7 @@ check("api gated: built at the gated hub level", seen and seen[0]["mode"] == tea
 seen, task, tm, t = one_job("grok", aux_engine.GROK_CLI)
 check("grok gated: refused before the engine (shared config file), with the reason",
       not seen and task["status"] == "team_blocked" and "Grok" in (task["block_reason"] or ""), task["block_reason"])
-# 23/11/2026 (field report, `node_repl`): the user's own top-level Codex servers no longer refuse the step. They are
+# Field report (`node_repl`): the user's own top-level Codex servers no longer refuse the step. They are
 # switched off for this one process, as a restricted workflow step already did.
 with patch.object(main, "_codex_user_mcp_servers", return_value=["github", "node_repl"]), \
         patch.object(main.claude_cli, "codex_sandbox_cho_mode", return_value="workspace-write"), \

@@ -197,7 +197,7 @@ import lang as lang_mod   # chốt ngôn ngữ trả lời cho một lượt
 import lang_registry      # sổ đăng ký: mọi thứ về một ngôn ngữ nằm đúng một chỗ
 import background_status  # việc nền còn sống của một khung chat + bắt lời hứa "xong em báo"
 import tien_trinh_nen     # lệnh chạy ngầm engine bỏ lại: nhận theo dõi, xong tự báo + làm tiếp
-import push_presence      # which chat the owner is reading on any device: no push about it (2026-11-23)
+import push_presence      # which chat the owner is reading on any device: no push about it
 import turn_done_notice   # a long chat turn that finishes rings the bell (the owner has left the screen)
 import chatbot_log       # nhật ký hội thoại khách + thống kê câu bot trả lời không nổi
 import chatbot_runtime   # bộ giám sát Bot chuyên trách (mỗi bot một poller Telegram)
@@ -32271,7 +32271,7 @@ def _team_gate_support(provider):
         if not _hub_enabled():
             return {"ok": False, "approved_actions": False,
                     "reason": "MCP Hub đang tắt nên Codex gọi thẳng các kết nối, không qua cổng duyệt của Naota"}
-        # 23/11/2026 (field report, `node_repl`): the user's own top-level Codex servers are switched off for the
+        # Field report (`node_repl`): the user's own top-level Codex servers are switched off for the
         # gated step's process (mcp_hub.dat_codex_team_gated), as a restricted workflow step already does, instead
         # of refusing the whole step. Only a name an override cannot express, or a server under Naota's own profile,
         # still refuses.
@@ -32671,7 +32671,7 @@ def _team_engine_for(team, agent_key, role):
         if gate_id and prov == aux_engine.CODEX:
             # Natives stay in Codex's own `auto` sandbox (no network); hub tools get the gated level and the turn key,
             # so an approved outside action can pass the gate and nothing else can.
-            # Review 0.207.0: also no ChatGPT apps (Gmail, Slack... outside the hub) and no shell network.
+            # Review: also no ChatGPT apps (Gmail, Slack... outside the hub) and no shell network.
             mcp_hub.dat_codex_team_gated(eng.extra_config, tat_server=_codex_user_mcp_servers())
             eng.hub_turn = True
         if tool_spec.get("provider") == aux_engine.CODEX:

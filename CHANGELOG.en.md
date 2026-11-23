@@ -5,8 +5,20 @@
 NAOTA release history. Newest first.
 
 ## [1.65.0] - 2026-11-24
+### Added
+- **Say "rerun the CI" and Naota reruns the PR's red jobs.** Naota follows the result as usual. The GitHub token needs Actions set to Read and write.
+### Fixed
+- **Codex chats no longer miss MCP servers you added straight to Codex.** Servers in `~/.codex/config.toml` (Composio or Notion added to Codex directly) could always be called, but Naota's tool search and connection list never named them, so the model said there was no tool. Both now name them and say how to call them directly, like the Claude account connectors.
+- **The Effort slider thumb is no longer off-center.** It stays in the middle of the track at any height and lines up with the stop dots.
+- **Grok Build and Antigravity chats no longer miss MCP servers you added straight to those CLIs.** Servers in `~/.grok/config.toml` or `~/.gemini/config/mcp_config.json` (Composio or Notion added to the CLI directly) could always be called, but Naota's tool search and connection list never named them, so the model said there was no tool. Both now name them and say to call them directly, like Codex and the Claude account connectors.
+- **The phone no longer buzzes while you read on the computer.** Every answer used to reach the phone even while that very chat was open on the computer, so talking and chatting made the phone ring non-stop. Each Naota tab now tells the server which chat you are viewing: while you are viewing it on any device, an answer in that chat pushes to no device. Once you step away (tab hidden, another app, no mouse or keyboard for 2 minutes) notifications work as before. Background results, reminders and urgent notices still arrive as usual.
+- **Pasting an image while a suggestion is showing no longer overlaps the image.** The grey suggestion follows the box when the attachment strip appears and pushes it down.
+- **Teams that need approvals run on ChatGPT (Codex) even when Codex has MCP servers of its own.** One server outside Naota in `~/.codex/config.toml` (such as `node_repl`) used to refuse every Work step and send the owner to Claude Code. Naota now switches those servers off for that run only and leaves your config file as it is, as workflows already did.
+- **Text-only team turns on Codex no longer report "code-mode host is disabled".** Newer Codex still offered the model its run-code tool with only the host off, so the model called it and told the team it could not read the config. Text-only turns now switch code mode off entirely.
+- **Tool search no longer misses apps behind Composio.** Composio shows only a few shared tools (search, run, connect an account) while hundreds of Gmail, Notion, Slack, GitHub... tools sit hidden behind them. Asking for "gmail" used to return Resend and "send a slack message" returned Zalo, so the model said the app was not connected. Naota now reads the apps you connected in Composio, puts the Composio gateway first with a two-step guide when you name one, and suggests a connected app when you only describe the job ("read my latest email").
+- **Claude account connectors are found by the job, not only by name.** "Read my latest email" now points to the Gmail connector, "appointments this week" to Google Calendar, and a Composio connector on the Claude account matches when you mention Notion, Slack, GitHub...
 ### Improved
-- In progress: porting bản nguồn 0.628.6 tới 0.629.2: MCP riêng của Codex, Grok, Antigravity, GitHub chạy lại CI, điện thoại im khi đang đọc.
+- **A red CI job with no log on GitHub is rerun once on its own.** This is what a private repo out of Actions minutes or over its spending limit looks like. The fix round says why there is no log, so the model no longer guesses at a bug in the code.
 
 ## [1.64.0] - 2026-11-23
 ### Fixed
