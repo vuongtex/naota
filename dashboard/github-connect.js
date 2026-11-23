@@ -553,8 +553,8 @@
   function announce() {
     try { window.dispatchEvent(new CustomEvent("naota:github-repos-changed", { detail: { sid: sid(), repos: attached } })); } catch (e) {}
   }
-  // The chip lives in the row under the composer card (#cpCtx), after the pinned folder;
-  // it used to squeeze the model and Effort chips in the card's button row.
+  // The chip lives in the tray on top of the composer card (#cpCtx), after the pinned folder.
+  // It used to squeeze the model and Effort chips in the card's button row.
   // The chip is a group now: the name opens the
   // panel, the status icon opens the detail, and an X at its far end takes the repos off the chat.
   function renderChip() {
@@ -612,8 +612,8 @@
       } else if (window.NaotaAttach) window.NaotaAttach.note(stop.d.error || tw("gh.err_net"));
     });
   }
-  // Same rule in composer-folder.js: the row hides while empty, and with folder AND repos pinned a phone shows both as
-  // icons only (.is-two), so a name is never cut to "ja...".
+  // Same rule in composer-folder.js: the tray hides while empty, and .is-two marks folder AND repos.
+  // The tray has a row of its own, so a phone keeps both names (they shrink with "…" instead of going icons only).
   function syncCtx(host) {
     host.hidden = !host.children.length;
     host.classList.toggle("is-two", host.children.length > 1);
