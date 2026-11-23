@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.65.0] - 2026-11-24
+### Improved
+- In progress: porting bản nguồn 0.628.6 tới 0.629.2: MCP riêng của Codex, Grok, Antigravity, GitHub chạy lại CI, điện thoại im khi đang đọc.
+
 ## [1.64.0] - 2026-11-23
 ### Fixed
 - **Notices with a link no longer run past the card.** A bell card shows the link's words, not the whole address, and a long word wraps inside the card.

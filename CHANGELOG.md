@@ -6,6 +6,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.65.0] - 2026-11-24
+### Cải thiện
+- Đang làm: lấy bản nguồn 0.628.6 tới 0.629.2: MCP riêng của Codex, Grok, Antigravity, GitHub chạy lại CI, điện thoại im khi đang đọc.
+
 ## [1.64.0] - 2026-11-23
 ### Sửa lỗi
 - **Thông báo có link không còn tràn viền.** Thẻ ở chuông chỉ hiện chữ của link, không in nguyên địa chỉ dài, và chữ dài vẫn xuống dòng trong thẻ.
