@@ -6123,7 +6123,9 @@ def _apply_grok_hub(cli, vault_root=None, mode="full"):
         return cli
     hub = None
     if _hub_enabled():
-        headers = {"Authorization": f"Bearer {mcp_hub.hub_token()}", "X-Naota-Mode": mode}
+        # X-Naota-Engine: the hub then names the MCP servers in the user's own grok config (mcp_hub._ambient_kind).
+        headers = {"Authorization": f"Bearer {mcp_hub.hub_token()}", "X-Naota-Mode": mode,
+                   "X-Naota-Engine": "grok"}
         try:
             headers["X-Naota-Vault"] = str(Path(root).expanduser().resolve())
         except Exception:
@@ -6153,7 +6155,9 @@ def _apply_antigravity_hub(cli, vault_root=None, mode="full"):
         return cli
     hub = None
     if _hub_enabled():
-        headers = {"Authorization": f"Bearer {mcp_hub.hub_token()}", "X-Naota-Mode": mode}
+        # X-Naota-Engine: the hub then names the MCP servers in the user's own antigravity config (mcp_hub._ambient_kind).
+        headers = {"Authorization": f"Bearer {mcp_hub.hub_token()}", "X-Naota-Mode": mode,
+                   "X-Naota-Engine": "antigravity"}
         try:
             headers["X-Naota-Vault"] = str(Path(root).expanduser().resolve())
         except Exception:
