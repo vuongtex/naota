@@ -6,6 +6,25 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.66.0] - 2026-11-24
+### Thêm mới
+- **Hẹn giờ đăng bài Fanpage ngay trong lịch của Facebook.** Bài chữ, bài một ảnh và album nhiều ảnh nhận thêm giờ hẹn. Bài nằm chờ trong lịch Meta Business Suite của Trang, không còn phải qua hàng đợi của công cụ khác. Giờ không ghi múi giờ được hiểu theo múi giờ của bạn, giờ quá gần (dưới 10 phút) bị chặn kèm lý do trước khi gửi.
+- **Công cụ `fb_page_scheduled` xem các bài đang chờ đăng.** Liệt kê bài đã hẹn theo thứ tự giờ đăng, để đối chiếu với Sheet hoặc lấy id bài cần huỷ, cần sửa chữ.
+- **Thông báo tự học từ cách bạn dùng.** Mỗi thông báo trên điện thoại được ghi lại là bạn bấm mở hay gạt bỏ. Loại nào bạn bỏ qua 5 lần liền, hoặc mở dưới 20%, Naota Core tự thôi cho rung và báo một dòng trong chat của nó. Hoàn tác được ở Bộ lọc của chuông. Tin khẩn không bao giờ bị tắt kiểu này.
+- **Giới hạn số lần rung mỗi ngày**, mặc định 8, chỉnh trong Bộ lọc (5, 8, 12, 20 hoặc không giới hạn). Quá mức thì tin không khẩn chờ bản tin, tin khẩn vẫn rung.
+- **Bản tin gộp lúc 11:30 và 17:30.** Các tin đáng xem nhưng không gấp được gom thành một lần rung, ví dụ "5 tin đáng xem trong chuông: Kết quả việc 3, Gợi ý của trợ lý 2". Tắt được trong Bộ lọc.
+- **Bộ lọc của chuông có số liệu 7 ngày:** rung bao nhiêu lần, bạn mở bao nhiêu phần trăm, loại tin ít được mở nhất.
+### Sửa lỗi
+- **Lưu được webhook Zalo OA.** Bấm Kiểm tra trên Zalo giờ nhận 200 dù Naota chưa có OA secret key (tin chưa ký vẫn bị bỏ, không tới bot), nên hết cảnh kẹt hai đầu: Zalo chỉ hiện khoá sau khi lưu webhook, còn Naota cần khoá mới tạo kênh.
+- **Form Zalo OA và Messenger cảnh báo địa chỉ .ts.net.** Địa chỉ Tailscale chỉ mở trong tailnet nên Zalo không gọi tới được (lỗi 408). Form nói rõ cần tên miền riêng hoặc Cloudflare Tunnel.
+- **Ảnh khách gửi qua Zalo OA không còn thành tệp 0 byte.** Naota thử lại kiểu trình duyệt, thử ảnh thu nhỏ, và nếu vẫn không tải được thì giữ nguyên đường dẫn gốc của Zalo trong tin thay vì lưu một tệp rỗng.
+- **Link khách chia sẻ qua Zalo OA không còn bị mất.** Thẻ link được đọc cả khi Zalo không để địa chỉ ở trường `url`, kèm tiêu đề và mô tả.
+- **Chợ ứng dụng có bản mới thì chuông kêu thật.** Thông báo này trước bị bộ lọc mặc định "chỉ tin khẩn" xếp vào mục Đã lọc. Bấm vào thông báo giờ mở Chợ ứng dụng đúng nhóm "Có bản mới".
+### Cải thiện
+- **Thông báo hai dòng có ích hơn.** Dòng một là kết quả kèm con số, dòng hai là việc bạn cần làm, không có việc thì để trống. Không còn đoạn báo cáo bị cắt ngang ở dòng hai.
+- **Câu trả lời chat mang tên cuộc chat thay cho chữ "Naota"**, dòng hai là câu kết luận chứ không phải câu mở đầu. Mỗi cuộc chat chỉ rung một lần trong 10 phút, và có nhóm "Câu trả lời chat" riêng trong Bộ lọc để hạ mức hoặc tắt.
+- **Tin khẩn phải có lý do:** lỗi cần sửa, tiền, khách, câu hỏi chờ bạn, hoặc hạn chót. Không có lý do thì hạ xuống mức đáng chú ý. Việc nào khai khẩn quá nửa số lần chạy thì mất quyền khẩn.
+
 ## [1.65.0] - 2026-11-24
 ### Thêm mới
 - **Nhắn "chạy lại CI" là Naota chạy lại các job đỏ của PR.** Naota theo dõi kết quả như mọi lần. Token GitHub cần quyền Actions là Read and write.

@@ -4,6 +4,25 @@
 
 NAOTA release history. Newest first.
 
+## [1.66.0] - 2026-11-24
+### Added
+- **Schedule Facebook Page posts into Facebook's own calendar.** Text posts, single photos and multi-photo albums take a scheduled time. The post waits in the Page's Meta Business Suite calendar instead of another tool's queue. A time with no timezone is read in yours, and a time too close (under 10 minutes) is refused with the reason before anything is sent.
+- **New `fb_page_scheduled` tool lists posts waiting to go out.** Scheduled posts in order of their time, to check against a sheet or to find the id of one to cancel or edit.
+- **Notifications learn from how you use them.** Every phone notification records whether you tapped or swiped it away. A kind you ignored 5 times in a row, or opened less than 20% of the time, stops buzzing, and Naota Core says so in one line in its chat. Undo it in the bell's filter. An urgent notice is never silenced this way.
+- **A daily limit on buzzes**, 8 by default, set in the filter (5, 8, 12, 20 or no limit). Past it, what is not urgent waits for the digest; urgent still buzzes.
+- **A digest at 11:30 and 17:30.** Notices worth a look but not urgent come as one buzz, for example "5 notices worth a look in the bell: Job results 3, Assistant suggestions 2". It can be turned off in the filter.
+- **The bell's filter shows the last 7 days:** how many buzzes, the share you opened, the kinds opened least.
+### Fixed
+- **The Zalo OA webhook can be saved.** Zalo's Check button now gets 200 even before Naota has the OA secret key (unsigned events are still dropped and reach no bot), which ends the deadlock: Zalo shows the key only after the webhook is saved, and Naota needs the key to create the channel.
+- **The Zalo OA and Messenger forms warn about a .ts.net address.** A Tailscale address only opens inside the tailnet, so Zalo cannot reach it (HTTP 408). The form says to use your own domain or a Cloudflare Tunnel.
+- **Photos customers send on Zalo OA are no longer saved as 0-byte files.** Naota retries like a browser, tries the thumbnail, and when it still cannot download, keeps Zalo's original address in the message instead of saving an empty file.
+- **Links customers share on Zalo OA are no longer lost.** A link card is read even when Zalo does not put the address under `url`, with its title and description.
+- **A Store update really rings the bell.** The default "urgent only" filter used to file this notice under Filtered. Pressing it now opens the Store on the "has an update" group.
+### Improved
+- **Two notification lines that say something.** The first is the result with its number, the second is what you should do, or nothing. No more report cut off mid-sentence on the second line.
+- **A chat answer is titled with its chat instead of "Naota"**, and its second line is the conclusion, not the opening. Each chat buzzes at most once in 10 minutes, and "Chat answers" has its own group in the filter to lower or turn off.
+- **Urgent needs a reason:** an error to fix, money, a customer, a question waiting for you, or a deadline. Without one it is lowered to important. A job that claims urgent on more than half its runs loses it.
+
 ## [1.65.0] - 2026-11-24
 ### Added
 - **Say "rerun the CI" and Naota reruns the PR's red jobs.** Naota follows the result as usual. The GitHub token needs Actions set to Read and write.
