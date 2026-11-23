@@ -9654,8 +9654,8 @@
         const s = _navStore();
         if (!g || !s) return false;
         if (s.collapsed) s.toggleCollapsed();   // đang thu gọn thì bung ra, không thì mục vẫn vô hình
-        const trongMenu = [...RAIL_MENU, ...RAIL_MENU_ADV];
-        if ((g.ids || []).some(id => trongMenu.includes(id))) s.advOpen = true;
+        const inMenu = [...RAIL_MENU, ...RAIL_MENU_ADV];
+        if ((g.ids || []).some(id => inMenu.includes(id))) s.advOpen = true;
         return true;
       },
       setCollapsed(thu) {

@@ -211,7 +211,7 @@ function fakeEl(tag) {
 const luuTru = {};
 const goi = [];
 // chữ tiếng Việt của sessions-ui.js đã dời vào từ điển i18n, nên module gọi
-// window.t() ngay lúc nạp (veNhanBtn). Trong app thật i18n/index.js nạp TRƯỚC sessions-ui.js
+// window.t() ngay lúc nạp (drawLabelBtn). Trong app thật i18n/index.js nạp TRƯỚC sessions-ui.js
 // (index.html), nên sandbox phải dựng t() y như thật: tra vi.json, có nội suy {bien} và
 // dạng số nhiều .one/.other, thiếu khoá thì trả về chính khoá.
 const VI = JSON.parse(fs.readFileSync(path.join(ROOT, "dashboard/i18n/vi.json"), "utf8"));

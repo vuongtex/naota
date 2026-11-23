@@ -286,7 +286,7 @@ async def _send_tagged(conn: dict, chat_id: str, text: str, mention, styles=()) 
         final, pos, ln = tagged_text(text, name)
         specs.append((pos, uid, ln))
     # Every other "@Name" the message carries, never the account itself, never inside the reply tag.
-    minh = str(zc.danh_tinh(cid).get("uid") or "")
+    minh = str(zc.identity(cid).get("uid") or "")
     specs += tag_ten_trong_cau(final, _danh_ba_nhom(cid, chat_id), bo_qua={u for u in (uid, minh) if u},
                                chiem=[(p, n) for p, _u, n in specs])
     if not specs:
@@ -728,7 +728,7 @@ class Transport:
 
     def _nho_anh_tron(self, ev: dict, thread: str):
         import zalo_personal_channel as zc
-        minh = zc.danh_tinh(self.conn_id).get("uid")
+        minh = zc.identity(self.conn_id).get("uid")
         nguoi = str(ev.get("sender_id") or "")
         url = str((ev.get("metadata") or {}).get("image_url") or "")
         if not nguoi or not url or (minh and nguoi == minh):
@@ -895,7 +895,7 @@ class Transport:
             return
         # Tin do CHÍNH nick này gửi (id đã học từ tin của nó) không bao giờ là khách, kể cả khi MCP
         # không gắn cờ "của mình": không thì bot tự trả lời chính nó.
-        minh = zc.danh_tinh(self.conn_id).get("uid")
+        minh = zc.identity(self.conn_id).get("uid")
         if minh and str(ev.get("sender_id") or "") == minh:
             return
         if nhom:
@@ -994,7 +994,7 @@ class Transport:
             if self.policy is not None:
                 # Tên gọi tự suy của nick (nhãn kết nối, tên hiển thị học được) để nhận ra gọi tên trơn
                 # ("nhi mai ơi"); tin nào gọi chắc chắn thì `prepare` đặt `meta["mentioned"]`.
-                meta["aliases_auto"] = [conn.get("label") or "", zc.danh_tinh(self.conn_id).get("ten") or ""]
+                meta["aliases_auto"] = [conn.get("label") or "", zc.identity(self.conn_id).get("ten") or ""]
                 meta["ts"] = float(ev.get("created_at") or time.time())
                 try:
                     pol = self.policy.prepare(text, meta)

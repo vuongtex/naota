@@ -71,8 +71,8 @@ for label, reader in (("empty memory", lambda b, s: ""), ("no rules section", la
 # ---- Clock line for lower-level bots
 src = (ROOT / "server" / "main.py").read_text(encoding="utf-8")
 check("Reads documents and Can write bots get the clock",
-      "text, sess=sess, sysprompt=_bot_co_dong_ho(_sys_bot, bot), prov=prov" in src)
-check("Read only bots get the clock", "_bot_tra_loi(text, sess=sess, sysprompt=_bot_co_dong_ho(_sys_bot, bot)," in src)
+      "text, sess=sess, sysprompt=_bot_with_clock(_sys_bot, bot), prov=prov" in src)
+check("Read only bots get the clock", "_bot_tra_loi(text, sess=sess, sysprompt=_bot_with_clock(_sys_bot, bot)," in src)
 check("rules are wired from the agent memory", "read_agent_memory=_agent_memory," in src)
 
 # ---- Zalo contact cards

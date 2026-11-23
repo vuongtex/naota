@@ -118,7 +118,7 @@ def goi_npm() -> tarfile.TarFile:
     return _goi
 
 
-def tai_tabler(name: str) -> str:
+def fetch_tabler(name: str) -> str:
     url = TABLER_CDN.format(ver=TABLER_VERSION, name=name)
     try:
         with urllib.request.urlopen(url, timeout=TIMEOUT) as resp:
@@ -131,7 +131,7 @@ def tai_tabler(name: str) -> str:
 
 def tai(name: str) -> str:
     if name in TABLER:
-        return tai_tabler(TABLER[name])
+        return fetch_tabler(TABLER[name])
     """SVG thô của một icon: thử CDN trước, hỏng mạng thì lấy trong gói npm.
 
     404 ở CDN dừng NGAY: gói và CDN là cùng một phiên bản, nên 404 nghĩa là tên icon sai chứ

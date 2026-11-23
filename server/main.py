@@ -27593,7 +27593,7 @@ class _BoQua(Exception):
 _MO_ANH_BANG_CONG_CU = ("anthropic-cli", "openai-oauth")
 
 
-def _bot_co_dong_ho(sys_bot, bot):
+def _bot_with_clock(sys_bot, bot):
     """Prompt of a lower-level bot plus the clock line. These bots have no `naota_now` and no admin prompt (a full-power
     bot gets the clock from there), so "is the shop open now?" was answered by guessing. Rebuilt every turn.
     A bot has no language pin any more (it follows its customer), so the line uses the machine's default."""
@@ -27863,11 +27863,11 @@ async def _tg_answer_engine(text, meta, progress, *, chat_id, sess, brain, mcfg,
                         text = borrowed_eyes.turn_text(text, _mo_ta, len(_anh))
         elif _muc in chatbot_store.MUC_CO_TOOL:
             return await _bot_tra_loi_co_tool(
-                text, sess=sess, sysprompt=_bot_co_dong_ho(_sys_bot, bot), prov=prov, api_key=api_key,
+                text, sess=sess, sysprompt=_bot_with_clock(_sys_bot, bot), prov=prov, api_key=api_key,
                 api_model=api_model, reasoning=reasoning, progress=_p,
                 runtime_trace=runtime_trace, brain=brain, chat_id=chat_id, muc_quyen=_muc, images=_anh)
         else:
-            return await _bot_tra_loi(text, sess=sess, sysprompt=_bot_co_dong_ho(_sys_bot, bot),
+            return await _bot_tra_loi(text, sess=sess, sysprompt=_bot_with_clock(_sys_bot, bot),
                                       prov=prov, api_key=api_key, api_model=api_model,
                                       reasoning=reasoning, progress=_p, runtime_trace=runtime_trace,
                                       brain=brain, chat_id=chat_id, images=_anh)

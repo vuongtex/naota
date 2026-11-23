@@ -3289,13 +3289,13 @@
     var btn = el('<div id="nt-sess-btn">' + ic("history") + ' <span class="nt-sess-lbl"></span></div>');
     // Nút này dựng NGAY lúc tải trang, có thể trước khi từ điển về, mà t() lúc đó trả về
     // chính cái khoá. Nên vẽ nhãn qua một hàm và vẽ lại khi từ điển sẵn sàng/đổi ngôn ngữ.
-    function veNhanBtn() {
+    function drawLabelBtn() {
       btn.title = window.t("sess.hist_title");
       var lbl = btn.querySelector(".nt-sess-lbl");
       if (lbl) lbl.textContent = window.t("sess.hist");
     }
-    veNhanBtn();
-    window.addEventListener("naota:i18n", veNhanBtn);
+    drawLabelBtn();
+    window.addEventListener("naota:i18n", drawLabelBtn);
     btn.onclick = function () { if (window.NaotaChatStage) window.NaotaChatStage.showSide(); };
     var host = document.querySelector(".hud-actions");
     (host || document.body).appendChild(btn);

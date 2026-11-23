@@ -440,9 +440,9 @@ def build_bot_prompt(bot: dict) -> str:
     if than.strip():
         phan.append("\n" + than.strip())
     # After the Agent file: the rule taught later wins over the older text.
-    luat = _owner_rules(a)
-    if luat:
-        phan.append("\nLUẬT CHỦ ĐÃ DẶN (làm theo đúng):\n" + "\n".join(luat))
+    owner_rules = _owner_rules(a)
+    if owner_rules:
+        phan.append("\nLUẬT CHỦ ĐÃ DẶN (làm theo đúng):\n" + "\n".join(owner_rules))
     if not meta:
         # Agent bị xoá hay đổi slug: bot đang chạy mà KHÔNG có hướng dẫn nào. Một dòng nêu
         # đúng sự thật đó, để nó thận trọng thay vì tự tin bịa. Đây là lấp chỗ trống khi không
