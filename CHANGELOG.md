@@ -6,6 +6,17 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.63.0] - 2026-11-23
+### Thêm mới
+- **Claude Code kết nối bằng token dài hạn.** Thẻ Claude Code ở trang Models chỉ còn nút **Kết nối Claude**. Naota hiện link, bạn đăng nhập claude.ai rồi dán mã là xong. Token dùng được 1 năm, không bị đăng xuất giữa chừng nên bot và việc nền không còn dừng ngang.
+- **Có nút Dán token** cho token tạo ở máy khác. Token được mã hoá khi lưu, không bao giờ gửi ra trình duyệt.
+- **Tài khoản Claude phụ cũng dùng token dài hạn.** Nút **Thêm tài khoản** và **Đăng nhập lại** lấy token 1 năm cho riêng tài khoản đó. Mỗi lượt chạy dùng đúng token của tài khoản mình.
+- **Nhắc trước khi token hết hạn.** Dòng tài khoản hiện ngày hết hạn. Trước một tuần, chuông nhắc mỗi ngày một lần, bấm **Lấy token mới** là xong.
+
+### Cải thiện
+- **Bỏ lựa chọn "Chạy bằng" trên thẻ Claude Code.** Muốn trả theo lượt bằng API key thì dùng thẻ **Anthropic (API)**. Máy đang đăng nhập kiểu cũ vẫn chạy bình thường và có nút **Chuyển sang token dài hạn**.
+- **Số ngày còn lại làm tròn lên:** token vừa lấy hiện "còn 365 ngày".
+
 ## [1.62.0] - 2026-11-23
 ### Bảo mật
 - **Mất mật khẩu không còn mở cửa cho người lạ tạo tài khoản.** Trang tạo tài khoản chỉ mở trên chính máy chạy Naota, hoặc trong 24 giờ sau khi chạy công cụ đặt lại. Lưu cài đặt cũng không còn xoá được mật khẩu của chủ.
