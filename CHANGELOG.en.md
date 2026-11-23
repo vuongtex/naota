@@ -4,6 +4,17 @@
 
 NAOTA release history. Newest first.
 
+## [1.63.0] - 2026-11-23
+### Added
+- **Claude Code connects with a long-lived token.** The Claude Code card on the Models page has one **Connect Claude** button. Naota shows a link, you sign in to claude.ai and paste the code. The token lasts a year and is never signed out midway, so bots and background work no longer stop.
+- **Paste a token** takes one made on another machine. It is stored encrypted and never sent to the browser.
+- **Extra Claude accounts use a long-lived token too.** **Add an account** and **Sign in again** get a one-year token for that account alone, and each turn runs on its own account's token.
+- **A reminder before the token ends.** The account row shows the expiry date; a week before, the bell reminds you once a day and **Get a new token** is all it takes.
+
+### Improved
+- **The "Runs on" choice is gone from the Claude Code card.** To pay per use with an API key, use the **Anthropic (API)** card. A machine on the old sign-in keeps working and gets a **Switch to a long-lived token** button.
+- **Days left are rounded up:** a fresh token reads "365 days left".
+
 ## [1.62.0] - 2026-11-23
 ### Security
 - **A lost password no longer lets a stranger create an account.** The account form opens only on the machine running Naota, or for 24 hours after the reset tool. Saving settings can no longer erase the owner's password.
