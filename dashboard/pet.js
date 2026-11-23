@@ -431,7 +431,7 @@
   // A STORED look (localStorage, the server, the Settings page) laid over the one in use. Without `look` it was
   // saved before LOOK existed, so the generation in use must not carry over and spare an old default star from
   // chuanHoa(). setCfg() does not come here: a star the owner picks right now is a choice, never an old default.
-  function tronLuu(o) {
+  function mergeSaved(o) {
     var b = Object.assign({}, cfg);
     if (o && typeof o === "object" && !("look" in o)) delete b.look;
     return Object.assign(b, o || {});
@@ -1150,7 +1150,7 @@
       var petMayChu = (j.dashboard || {}).pet;
       if (petMayChu) {
         var cu = !("look" in petMayChu);
-        cfg = chuanHoa(tronLuu(petMayChu));
+        cfg = chuanHoa(mergeSaved(petMayChu));
         ghiLocal(); apDung(); apDungTrangThai(); chay();
         // Saved before LOOK: write the look back once, so it follows the owner to every device.
         if (cu) ghiServer();
@@ -1521,7 +1521,7 @@
     // lần mở đầu, máy chủ mới là nguồn theo NGƯỜI).
     hydrate: function (o) {
       if (!o || typeof o !== "object") return;
-      cfg = chuanHoa(tronLuu(o));
+      cfg = chuanHoa(mergeSaved(o));
       ghiLocal();
       if (el) { apDung(); apDungTrangThai(); chay(); }
       veDauAn();

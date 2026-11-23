@@ -6,6 +6,15 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.62.0] - 2026-11-23
+### Bảo mật
+- **Mất mật khẩu không còn mở cửa cho người lạ tạo tài khoản.** Trang tạo tài khoản chỉ mở trên chính máy chạy Naota, hoặc trong 24 giờ sau khi chạy công cụ đặt lại. Lưu cài đặt cũng không còn xoá được mật khẩu của chủ.
+- **Nhật ký bảo mật ghi IP thật** của người truy cập qua Cloudflare, và ghi cả mỗi lần kết nối, đổi hay ngắt GitHub.
+
+### Cải thiện
+- **Hộp thư hiện rõ tin nào do AI, tin nào do người,** kèm icon và tên agent trên mọi kênh.
+- **Kiểm tra GitHub bị lỗi thì hiện "Không kiểm tra được",** không còn báo nhầm "Chưa kết nối".
+
 ## [1.61.0] - 2026-11-23
 ### Sửa lỗi
 - **Bot không còn gửi câu lỗi đăng nhập của model vào nhóm khách.** Khi model mất đăng nhập, khách không nhận gì, lượt đó chạy bằng model khác đã kết nối, còn chuông của bạn nhắc vào trang Models đăng nhập lại.

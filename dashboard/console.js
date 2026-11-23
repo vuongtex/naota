@@ -7742,7 +7742,8 @@
     setup: "change", username_changed: "change", password_changed: "change", "2fa_enabled": "change",
     "2fa_disabled": "change", "2fa_recovery_regenerated": "change", token_created: "change", token_revoked: "change",
     login_disabled: "change", env_account_created: "change", env_account_reset: "change", env_2fa_reset: "change",
-    auth_changed_outside: "change", agent_secret_blocked: "change",
+    auth_changed_outside: "change", agent_secret_blocked: "change", setup_blocked: "change",
+    account_clear_blocked: "change", github_connected: "change", github_changed: "change", github_disconnected: "change",
   };
   let _secFilter = "all";
 
@@ -9653,8 +9654,8 @@
         const s = _navStore();
         if (!g || !s) return false;
         if (s.collapsed) s.toggleCollapsed();   // đang thu gọn thì bung ra, không thì mục vẫn vô hình
-        const trongMenu = [...RAIL_MENU, ...RAIL_MENU_ADV];
-        if ((g.ids || []).some(id => trongMenu.includes(id))) s.advOpen = true;
+        const inMenu = [...RAIL_MENU, ...RAIL_MENU_ADV];
+        if ((g.ids || []).some(id => inMenu.includes(id))) s.advOpen = true;
         return true;
       },
       setCollapsed(thu) {

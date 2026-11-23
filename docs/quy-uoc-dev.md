@@ -169,6 +169,10 @@ Repo mở cho người đóng góp quốc tế, nên phần NGƯỜI NGOÀI Đ�
   đang viết tiếng Việt. Không dịch lại phần code cũ không đụng tới. Chữ hiện cho người dùng đi qua
   i18n (`vi.json` có dấu, `en.json`). Bảng từ điển định danh tiếng Việt cũ cho người nước ngoài ở
   GLOSSARY, kiến trúc ở `ARCHITECTURE.md`.
+- **Luật cứng cho tên mới:** `tests/python/test_english_identifiers.py` đỏ khi có tên tiếng Việt MỚI (hàm, lớp, biến,
+  tham số, tên file) trong `server/`, `tools/`, `cli/`, `dashboard/`. Tên cũ nằm trong
+  `tests/python/english_identifiers_baseline.json`, được ở yên tới khi PR đụng cụm đó. **Không bao giờ thêm tên mới vào
+  file mốc để cho xanh**, viết bằng tiếng Anh. Đổi tên xong không cần sửa file mốc.
 - **Giữ tiếng Việt:** `CHANGELOG.md` (bản gốc), file quy ước này, spec trong
   `docs/dev/`. Prompt gửi cho model thì viết tiếng Anh từ 15/11/2026 (xem mục "Chữ hiện lên màn hình").
 - PR từ người ngoài không cần đụng `VERSION`/CHANGELOG: người merge tăng số và viết nhật ký.

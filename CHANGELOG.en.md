@@ -4,6 +4,15 @@
 
 NAOTA release history. Newest first.
 
+## [1.62.0] - 2026-11-23
+### Security
+- **A lost password no longer lets a stranger create an account.** The account form opens only on the machine running Naota, or for 24 hours after the reset tool. Saving settings can no longer erase the owner's password.
+- **The security log records the real visitor IP** behind Cloudflare, and every GitHub connect, switch and disconnect.
+
+### Improved
+- **The inbox shows which messages the AI wrote and which a person wrote,** with the agent's icon and name on every channel.
+- **A failed GitHub check reads "Could not check",** not a false "Not connected".
+
 ## [1.61.0] - 2026-11-23
 ### Fixed
 - **Bots no longer post a model's sign-in error into a customer group.** When a model loses its sign-in the customer gets nothing, the turn runs on another connected model, and your bell says to sign in again on the Models page.

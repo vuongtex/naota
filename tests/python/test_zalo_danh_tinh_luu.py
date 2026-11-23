@@ -36,7 +36,7 @@ TAG = {"text": "@Tly Hoàng Ngọc Vương em có ở đây không", "metadata":
 
 # Nick tự gửi một tin: học tên + id, và ghi xuống đĩa.
 zc._hoc_danh_tinh(CID, {"from": "900", "threadId": GROUP, "senderName": "Tly Hoàng Ngọc Vương"})
-f = zc._file_danh_tinh()
+f = zc._identity_file()
 check("học xong thì ghi file danh tính", f.exists())
 luu = json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
 check("file giữ đúng tên và id", luu.get(CID) == {"uid": "900", "ten": "Tly Hoàng Ngọc Vương"}, luu)
@@ -48,7 +48,7 @@ zc._ID_MINH_NAP = False
 check("sau khởi động lại vẫn nhận ra tag bằng tên Zalo", zc.nhan_dien_goi(CID, TAG, ("Naota Cường",))[0])
 check("và nhận ra tag theo id", zc.nhan_dien_goi(CID, {"text": "alo", "metadata": {"mentions": [{"uid": "900"}]}}, ())[0])
 check("id nạp lại vẫn tin được ở lần học sau", (zc._hoc_danh_tinh(CID, {"from": "900", "threadId": GROUP}) or True)
-      and zc.danh_tinh(CID).get("uid") == "900")
+      and zc.identity(CID).get("uid") == "900")
 
 # Tag người khác thì không phải gọi bot.
 check("tag một thành viên khác không tính là gọi bot",
@@ -58,7 +58,7 @@ check("tag một thành viên khác không tính là gọi bot",
 zc._ID_MINH.clear()
 zc._ID_MINH_NAP = False
 Path(f).write_text("{hong", encoding="utf-8")
-check("file hỏng thì coi như chưa biết, không sập", zc.danh_tinh(CID) == {})
+check("file hỏng thì coi như chưa biết, không sập", zc.identity(CID) == {})
 zc._hoc_danh_tinh(CID, {"from": "900", "threadId": GROUP, "senderName": "Naota Cường"})
 check("học lại và ghi đè file hỏng", json.loads(f.read_text(encoding="utf-8")).get(CID, {}).get("ten") == "Naota Cường")
 

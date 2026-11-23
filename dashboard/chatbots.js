@@ -1131,27 +1131,27 @@
     // The same editor as the Assistants page. It sits below this form in the stacking order, so the form steps aside
     // while the editor is open and comes back as it was, with everything typed still there.
     var oAgent = box.querySelector("#cbAgent"), nutSuaAgent = box.querySelector("#cbEditAgent");
-    function dongBoNutSua() { nutSuaAgent.disabled = !oAgent.value; }
-    oAgent.addEventListener("change", dongBoNutSua);
-    dongBoNutSua();
+    function syncEditBtn() { nutSuaAgent.disabled = !oAgent.value; }
+    oAgent.addEventListener("change", syncEditBtn);
+    syncEditBtn();
     nutSuaAgent.onclick = function () {
       var St = window.NaotaStudio, slug = oAgent.value, ed = document.getElementById("studioEditor");
       if (!slug || !St || !St.editAgent || !ed) return;
       var daMo = false;
-      var theoDoi = new MutationObserver(function () {
+      var classWatch = new MutationObserver(function () {
         var mo = ed.classList.contains("open");
         if (mo && !daMo) { daMo = true; box.style.display = "none"; }
-        else if (!mo && daMo) { theoDoi.disconnect(); box.style.display = ""; }
+        else if (!mo && daMo) { classWatch.disconnect(); box.style.display = ""; }
       });
-      theoDoi.observe(ed, { attributes: true, attributeFilter: ["class"] });
+      classWatch.observe(ed, { attributes: true, attributeFilter: ["class"] });
       Promise.resolve(St.editAgent({ slug: slug }, { onSaved: function () {
         // A renamed agent shows its new name in the picker; the choice stays.
         napAgent(br).then(function (ds) {
           if (!box.parentNode) return;
           oAgent.innerHTML = htmlAgent(ds, slug);
-          dongBoNutSua();
+          syncEditBtn();
         });
-      } })).catch(function () { if (!daMo) theoDoi.disconnect(); });
+      } })).catch(function () { if (!daMo) classWatch.disconnect(); });
     };
 
     function giaTri(ten) {

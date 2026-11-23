@@ -330,7 +330,7 @@ def _loai_tin(msg: dict) -> str:
     return "other"
 
 
-def _dict_tu(v: Any) -> dict:
+def _as_dict(v: Any) -> dict:
     """`v` as a dict: already one, or a JSON object in a string. Anything else is {}."""
     if isinstance(v, dict):
         return v
@@ -343,7 +343,7 @@ def _dict_tu(v: Any) -> dict:
     return {}
 
 
-def _danh_thiep(msg: dict) -> Optional[dict]:
+def _contact_card(msg: dict) -> Optional[dict]:
     """{"name", "phone"} of a contact card, None for any other message.
 
     Zalo sends cards as `chat.recommended` with the details in a JSON object (in `text` or `content`, the phone sometimes
@@ -352,12 +352,12 @@ def _danh_thiep(msg: dict) -> Optional[dict]:
     if "recommen" not in str(_lay(msg, "type", "msgType", "message_type", mac_dinh="") or "").lower():
         return None
     for k in ("text", "content", "msg", "message"):
-        d = _dict_tu(msg.get(k))
+        d = _as_dict(msg.get(k))
         if not d:
             continue
         phone = ""
-        for nguon in (d, _dict_tu(d.get("description")), _dict_tu(d.get("params"))):
-            phone = re.sub(r"[^\d+]", "", str(nguon.get("phone") or ""))[:20]
+        for source in (d, _as_dict(d.get("description")), _as_dict(d.get("params"))):
+            phone = re.sub(r"[^\d+]", "", str(source.get("phone") or ""))[:20]
             if phone:
                 break
         if not phone and "user" not in str(d.get("action") or "").lower():
@@ -367,7 +367,7 @@ def _danh_thiep(msg: dict) -> Optional[dict]:
     return None
 
 
-def _chu_danh_thiep(card: dict) -> str:
+def _contact_card_text(card: dict) -> str:
     """The one line the inbox and the bot read for a contact card."""
     ten = card.get("name") or localefmt.chu("không rõ tên", "no name")
     sdt = card.get("phone") or localefmt.chu("không hiện số", "number hidden")
@@ -552,10 +552,10 @@ def chuan_hoa_tin(conn: dict, msg: dict, ten: Dict[str, dict]) -> Optional[dict]
     elif isinstance(text, dict):
         text = _lay(text, "text", "title", "description", "href", mac_dinh="")
     text = strip_mention_markup(str(text or ""))
-    danh_thiep = _danh_thiep(msg)
-    if danh_thiep is not None:
+    contact_card = _contact_card(msg)
+    if contact_card is not None:
         # As plain text, so the merged turn keeps it and the bot sees the number (an "other" message is dropped there).
-        loai, text = "text", _chu_danh_thiep(danh_thiep)
+        loai, text = "text", _contact_card_text(contact_card)
     if loai != "text" and not text.strip():
         # The account's own photo (isSelf, from the owner's phone) is not "the customer sent".
         text = (f"[{conversations.KENH_NHAN[KENH]}: gửi {loai}]" if _la_cua_minh(msg)
@@ -1681,12 +1681,12 @@ _ID_MINH: Dict[str, dict] = {}      # conn_id -> {"uid", "ten"} của CHÍNH nic
 _ID_MINH_NAP = False
 
 
-def _file_danh_tinh():
+def _identity_file():
     from pathlib import Path
     return Path(cfgmod.STATE_DIR) / "zalo_self.json"
 
 
-def _nap_danh_tinh() -> None:
+def _load_identity() -> None:
     """Nạp danh tính đã học từ đĩa, một lần mỗi tiến trình.
 
     Trước đây `_ID_MINH` chỉ sống trong bộ nhớ: khởi động lại server là quên, và nick chưa tự gửi
@@ -1698,7 +1698,7 @@ def _nap_danh_tinh() -> None:
         return
     _ID_MINH_NAP = True
     try:
-        f = _file_danh_tinh()
+        f = _identity_file()
         d = json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
     except Exception as e:      # noqa: BLE001 - file hỏng thì học lại từ tin như cũ
         print(f"[zalo-personal] đọc danh tính đã học lỗi: {type(e).__name__}", file=sys.stderr)
@@ -1716,10 +1716,10 @@ def _nap_danh_tinh() -> None:
             _ID_MINH[str(cid)] = cu
 
 
-def _luu_danh_tinh() -> None:
+def _save_identity() -> None:
     d = {cid: {k: v[k] for k in ("uid", "ten") if v.get(k)} for cid, v in _ID_MINH.items()}
     try:
-        f = _file_danh_tinh()
+        f = _identity_file()
         tmp = f.with_suffix(".tmp")
         tmp.write_text(json.dumps(d, ensure_ascii=False, indent=1), encoding="utf-8")
         tmp.replace(f)
@@ -1727,9 +1727,9 @@ def _luu_danh_tinh() -> None:
         print(f"[zalo-personal] lưu danh tính lỗi: {type(e).__name__}", file=sys.stderr)
 
 
-def danh_tinh(conn_id: str) -> dict:
+def identity(conn_id: str) -> dict:
     """{"uid", "ten"} đã học của nick `conn_id` (nạp từ đĩa nếu tiến trình vừa khởi động)."""
-    _nap_danh_tinh()
+    _load_identity()
     return _ID_MINH.get(str(conn_id)) or {}
 
 
@@ -1746,7 +1746,7 @@ def _hoc_danh_tinh(conn_id: str, msg: dict) -> None:
     uid = str(_lay(msg, "from", "senderId", "sender_id", "uidFrom", mac_dinh="") or "").strip()
     thread = str(_lay(msg, "threadId", "thread_id", "chatId", mac_dinh="") or "").strip()
     ten = str(_lay(msg, "senderName", "sender_name", "fromName", "dName", mac_dinh="") or "").strip()
-    _nap_danh_tinh()
+    _load_identity()
     cu = _ID_MINH.setdefault(str(conn_id), {})
     truoc = (cu.get("uid"), cu.get("ten"))
     if uid and uid != thread:
@@ -1760,7 +1760,7 @@ def _hoc_danh_tinh(conn_id: str, msg: dict) -> None:
     if ten:
         cu["ten"] = ten
     if (cu.get("uid"), cu.get("ten")) != truoc:
-        _luu_danh_tinh()
+        _save_identity()
 
 
 def _chuan_ten(s: Any) -> str:
@@ -1783,7 +1783,7 @@ def nhan_dien_goi(conn_id: str, ev: dict, ten_khac=()) -> tuple:
     KHÔNG dùng tên Agent/bot: "@Lan" trong nhóm thường là một thành viên tên Lan.
     Không nhận ra thì cùng lắm chế độ Tự đánh giá vẫn bắt được câu hỏi thuộc tài liệu.
     """
-    minh = danh_tinh(conn_id)
+    minh = identity(conn_id)
     # A restart clears _ID_MINH. Recover a recently verified self identity
     # without trusting arbitrary @Name text or treating other people's tags as ours.
     if not minh.get("uid") and not minh.get("_da_thay"):
