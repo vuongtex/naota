@@ -370,10 +370,14 @@
       var go = ev.target && ev.target.closest && ev.target.closest(".rsa-goto-ws");
       // Mở đúng tab Trợ lý (NaotaNav.go thì rơi vào tab đang nhớ dở, có thể là Quy trình).
       if (go) {
-        try {
-          if (window.NaotaWorkspace && window.NaotaWorkspace.openTab) window.NaotaWorkspace.openTab("agent");
-          else window.NaotaNav.go("workspace");
-        } catch (e) {}
+        // Workspace.js is a lazy file. Load its group, then open the tab.
+        var openTab = function () {
+          try {
+            if (window.NaotaWorkspace && window.NaotaWorkspace.openTab) window.NaotaWorkspace.openTab("agent");
+            else window.NaotaNav.go("workspace");
+          } catch (e) {}
+        };
+        try { if (window.NaotaNapCham) window.NaotaNapCham.goi("congviec", openTab); else openTab(); } catch (e) {}
         return;
       }
       var btn = ev.target && ev.target.closest && ev.target.closest(".rsa-assign");

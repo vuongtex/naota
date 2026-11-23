@@ -6,6 +6,13 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.67.0] - 2026-11-24
+### Cải thiện
+- **Naota khởi động lại nhanh hơn khoảng 13 giây.** Bản cài bằng Docker đã biên dịch sẵn mã, nên sau mỗi lần cập nhật không còn phải chờ lâu mới dùng được.
+- **Lượt chat ngay sau khi Naota gom gọn một cuộc dài không còn phải chờ khởi động lại từ đầu.** Naota mở sẵn phiên mới ngay khi biết lượt kế sẽ cần. Tắt bằng `NAOTA_WARM_NEW_THREAD=0`.
+- **Mở dashboard nhẹ hơn.** Mã của trang Cộng sự, trình sửa Skill và thẻ Messenger chỉ tải khi mở tới các trang đó, bớt khoảng 10% mã phải chạy lúc mở. Ba con số đếm ở màn chính cũng thôi tải trọn danh sách agent.
+- **Naota ghi lại vì sao một lượt chat phải chờ lâu** (cuộc mới, vừa gom gọn, để yên quá lâu, đổi cấu hình), để lần sau sửa đúng chỗ chậm.
+
 ## [1.66.0] - 2026-11-24
 ### Thêm mới
 - **Hẹn giờ đăng bài Fanpage ngay trong lịch của Facebook.** Bài chữ, bài một ảnh và album nhiều ảnh nhận thêm giờ hẹn. Bài nằm chờ trong lịch Meta Business Suite của Trang, không còn phải qua hàng đợi của công cụ khác. Giờ không ghi múi giờ được hiểu theo múi giờ của bạn, giờ quá gần (dưới 10 phút) bị chặn kèm lý do trước khi gửi.

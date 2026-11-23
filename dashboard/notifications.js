@@ -276,17 +276,29 @@
       try { window.NaotaTeams.open(nhom); return; } catch (e) {}
     }
     var cs = congSuCuaThu(item);
-    if (cs && window.NaotaWorkspace && window.NaotaWorkspace.openCommand) {
+    // Workspace.js is a lazy file. Load its group, then open the partner; if it still is not there, open
+    // the session in the main chat as before.
+    var openInChat = function () {
       try {
-        window.NaotaWorkspace.openCommand(cs.loai, cs.slug, item.session_id);
-        return;
+        if (window.Alpine && Alpine.store("nav") && Alpine.store("nav").active !== "home"
+            && Alpine.store("nav").active !== "chat") Alpine.store("nav").go("home");
       } catch (e) {}
+      try { if (window.NaotaSessions) window.NaotaSessions.open(item.session_id); } catch (e) {}
+    };
+    if (cs && (window.NaotaWorkspace || window.NaotaNapCham)) {
+      var openPartner = function () {
+        try {
+          if (window.NaotaWorkspace && window.NaotaWorkspace.openCommand) {
+            window.NaotaWorkspace.openCommand(cs.loai, cs.slug, item.session_id);
+            return;
+          }
+        } catch (e) {}
+        openInChat();
+      };
+      if (window.NaotaNapCham) window.NaotaNapCham.goi("congviec", openPartner); else openPartner();
+      return;
     }
-    try {
-      if (window.Alpine && Alpine.store("nav") && Alpine.store("nav").active !== "home"
-          && Alpine.store("nav").active !== "chat") Alpine.store("nav").go("home");
-    } catch (e) {}
-    try { if (window.NaotaSessions) window.NaotaSessions.open(item.session_id); } catch (e) {}
+    openInChat();
   }
   // Naota Core (spec 7.3): the notice goes into this person's own Naota Core chat, with its source and time,
   // and the chat opens there. The shared notice itself never changes.
@@ -298,7 +310,10 @@
         body: JSON.stringify({ source: src, id: id, brain: brain }) })).json();
       if (!r || !r.id) return;
       closePanel();
-      if (window.NaotaWorkspace && window.NaotaWorkspace.openCommand) window.NaotaWorkspace.openCommand("agent", "naota-core", r.id);
+      var openCore = function () {
+        if (window.NaotaWorkspace && window.NaotaWorkspace.openCommand) window.NaotaWorkspace.openCommand("agent", "naota-core", r.id);
+      };
+      if (window.NaotaNapCham) window.NaotaNapCham.goi("congviec", openCore); else openCore();
     } catch (e) {}
   }
   function phanHoiHtml(item) {

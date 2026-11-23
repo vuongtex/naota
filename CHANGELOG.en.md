@@ -4,6 +4,13 @@
 
 NAOTA release history. Newest first.
 
+## [1.67.0] - 2026-11-24
+### Improved
+- **Naota restarts about 13 seconds faster.** The Docker image now ships its code precompiled, so an update no longer leaves you waiting before you can use it.
+- **The chat turn right after Naota trims a long conversation no longer starts from cold.** Naota opens the new session ahead of time as soon as it knows the next turn needs one. Switch it off with `NAOTA_WARM_NEW_THREAD=0`.
+- **The dashboard opens lighter.** The code for the Partners page, the Skill editor and the Messenger card loads only when you open those pages, about 10% less code to run at start. The three counters on the home screen also stop downloading the whole agent list.
+- **Naota now records why a chat turn had to wait** (new chat, just trimmed, idle too long, settings changed), so the next fix lands on the real slow spot.
+
 ## [1.66.0] - 2026-11-24
 ### Added
 - **Schedule Facebook Page posts into Facebook's own calendar.** Text posts, single photos and multi-photo albums take a scheduled time. The post waits in the Page's Meta Business Suite calendar instead of another tool's queue. A time with no timezone is read in yours, and a time too close (under 10 minutes) is refused with the reason before anything is sent.

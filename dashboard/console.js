@@ -539,9 +539,13 @@
   // Hai đường vào giống hệt link file: cú bấm thường (chat-render.js) và deep-link "#cs=".
   function moCongSu(spec) {
     const m = /^(agent|workflow):([^:]+)(?::(.+))?$/.exec(String(spec == null ? "" : spec).trim());
-    if (!m || !window.NaotaWorkspace) return false;
-    window.NaotaWorkspace.openCommand(m[1], m[2]).then((ok) => {
-      if (ok && m[3] && window.NaotaSessions) window.NaotaSessions.open(m[3]);
+    // Workspace.js is a lazy file, so "not loaded yet" is no longer "no such page": load, then open.
+    if (!m || !(window.NaotaWorkspace || window.NaotaNapCham)) return false;
+    _goiNhom("congviec", () => {
+      if (!window.NaotaWorkspace) return;
+      window.NaotaWorkspace.openCommand(m[1], m[2]).then((ok) => {
+        if (ok && m[3] && window.NaotaSessions) window.NaotaSessions.open(m[3]);
+      });
     });
     return true;
   }
@@ -620,8 +624,10 @@
   // Trang nào cần nhóm code nạp chậm nào (nap-cham.js, khối naota-lazy trong index.html).
   const NHOM_TRANG = {
     workspace: ["congviec"], teams: ["congviec", "teams"], packs: ["packs"], plugins: ["packs"], mcp: ["packs"],
-    conversations: ["hoithoai"], chatbots: ["hoithoai"], usage: ["usage"], webhooks: ["webhooks"],
+    conversations: ["hoithoai"], chatbots: ["hoithoai", "congviec"], usage: ["usage"], webhooks: ["webhooks"],
     tasks: ["nhiemvu"], office: ["vanphong"],
+    // studio.js and workspace.js load with "congviec", so every page in STUDIO_PAGES waits for it too.
+    skills: ["congviec"],
   };
   // Performance: pointing at (or touching) a page in the side rail starts loading that page's code, so by the
   // time the click lands it is usually there. Costs nothing on a group that is already loaded.

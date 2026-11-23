@@ -1019,8 +1019,13 @@
       // openTab() để mở đúng tab, chứ NaotaNav.go("workspace") thì rơi vào tab đang nhớ dở
       // từ lần trước và cú bấm "Quy trình" có khi mở ra danh sách trợ lý.
       if (id === "agent" || id === "workflow") {
-        try { if (window.NaotaWorkspace) { window.NaotaWorkspace.openTab(id); return; } } catch (err) {}
-        id = "workspace";
+        // Workspace.js is a lazy file. Load its group, then open the tab; without it, the page itself.
+        var openTab = function () {
+          try { if (window.NaotaWorkspace) { window.NaotaWorkspace.openTab(id); return; } } catch (err) {}
+          try { window.NaotaNav && window.NaotaNav.go("workspace"); } catch (err) {}
+        };
+        if (window.NaotaNapCham) window.NaotaNapCham.goi("congviec", openTab); else openTab();
+        return;
       }
       try { window.NaotaNav && window.NaotaNav.go(id); } catch (err) {}
     });
