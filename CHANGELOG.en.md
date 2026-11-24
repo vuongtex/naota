@@ -6,7 +6,12 @@ NAOTA release history. Newest first.
 
 ## [1.68.0] - 2026-11-25
 ### Improved
-- In progress: porting bản nguồn mới: Antigravity, ChatGPT, việc nền.
+- **Antigravity answers much faster.** Each chat keeps a process ready and resumes its own conversation, so from the second turn the first word arrives in 2 to 3 seconds. While you wait you see what the model is thinking, and every step says what it is doing.
+- **Antigravity remembers the whole of a long chat**, files it read and commands it ran included.
+
+### Fixed
+- **The ChatGPT model list comes from the account in use,** and opening the picker loads a fresh list.
+- **Background jobs are more honest:** a blank result no longer counts as done, the job card in the chat and on the Tasks page turns yellow when a result was not checked, and a Team job stops with an error when its plan has a broken assignment block. Claude opens fewer needless new threads.
 
 ## [1.67.0] - 2026-11-24
 ### Improved

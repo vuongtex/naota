@@ -1,4 +1,4 @@
-"""The CLI fast path streams Antigravity and Grok text as it comes (owner's measurement, 2026-11-24).
+"""The CLI fast path streams Antigravity and Grok text as it comes.
 
     python tests/python/test_cli_sub_doc_stream.py
 

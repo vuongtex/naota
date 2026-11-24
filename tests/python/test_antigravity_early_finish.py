@@ -1,4 +1,4 @@
-"""An Antigravity turn closes on agy's result line, not on its exit (owner's measurement, 2026-11-24).
+"""An Antigravity turn closes on agy's result line, not on its exit.
 
     python tests/python/test_antigravity_early_finish.py
 

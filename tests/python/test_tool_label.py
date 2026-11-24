@@ -67,7 +67,7 @@ check("engine API kèm input trong sự kiện tool_call",
       ENG.count('"type": "tool_call", "name": fn, "input": args') == 1
       and ENG.count('"input": args}') >= 3)
 
-# Antigravity (agy 1.5.15, measured 2026-11-24): parameters come in PascalCase. A lowercase-only
+# Antigravity (agy 1.5.15): parameters come in PascalCase. A lowercase-only
 # lookup gave every agy step an empty label, so the chat listed "Run command", "Read file"
 # twenty times with nothing after them.
 check("agy run_command: CommandLine",

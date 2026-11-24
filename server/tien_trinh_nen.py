@@ -567,7 +567,7 @@ def bo_tag(tag: str) -> None:
 # ---------------------------------------------------------------------------------------
 # Engines that answer before they exit (Antigravity)
 # ---------------------------------------------------------------------------------------
-# 2026-11-24: Naota closes an Antigravity turn as soon as agy prints its result line, while agy
+# Naota closes an Antigravity turn as soon as agy prints its result line, while agy
 # still spends 2-3 s shutting its own language server down. Adopted at that moment, agy's own
 # process group would pass for work the turn left behind. So the turn notes the event its reader
 # sets once agy is gone, and adoption waits for it first.

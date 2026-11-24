@@ -1,4 +1,4 @@
-"""Antigravity chat turns on one agy process per conversation, kept warm between turns (2026-11-24).
+"""Antigravity chat turns on one agy process per conversation, kept warm between turns.
 
 The owner measured it on agy 1.5.15 with Naota's real 58 KB context (gemini-4-hydrogen-high):
 
@@ -6,7 +6,7 @@ The owner measured it on agy 1.5.15 with Naota's real 58 KB context (gemini-4-hy
     --conversation on a new process, message only ...... first word 3.7 s, turn 4.4 s, cache 85%
     warm --input-format stream-json, turns 2 to 4 ....... first word 1.6-2.7 s, turn 2.2-2.9 s, cache 92%
 
-How agy behaves in this mode (measured again on 1.5.15, Windows, 2026-11-24):
+How agy behaves in this mode (measured again on 1.5.15, Windows):
 
 - `agy --input-format stream-json --output-format stream-json` prints `init` with its conversation_id about 2.5 s
   after it starts, BEFORE any message. Each stdin line {"event":"user","message":{"role":"user","content":...}}

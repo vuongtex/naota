@@ -40,7 +40,7 @@
   <!-- Biến --ic-* cho icon dùng trong content: của CSS. Phải đứng TRƯỚC style.css
        vì style.css tham chiếu các biến này. -->
   <link rel="stylesheet" href="/static/vendor/lucide-icons.css?v=1">
-  <link rel="stylesheet" href="/static/style.css?v=197">
+  <link rel="stylesheet" href="/static/style.css?v=198">
   <link rel="stylesheet" href="/static/console.css?v=179">
   <!-- Áp tông đã lưu TRƯỚC khi vẽ để không nháy tối rồi mới đổi sang sáng.
        Giá trị cũ "dim" (tông tối-nhạt, gỡ) quy về tối; theme.js sẽ ghi đè lại.
@@ -1123,7 +1123,7 @@
   "/static/tasks.css?v=14",
   "/static/date-range.js?v=1",
   "/static/tasks-stats.js?v=1",
-  "/static/tasks.js?v=19"
+  "/static/tasks.js?v=20"
  ]
 }</script>
   <script src="/static/nap-cham.js?v=2"></script>
@@ -1209,8 +1209,8 @@
   <script src="/static/chat-marks.js?v=5"></script>
   <!-- Khối tiến trình từng bước trong khung chat: phải đứng TRƯỚC app.js vì app.js gọi
        window.NaotaSteps ngay khi khung tool_call đầu tiên về. -->
-  <script src="/static/chat-steps.js?v=4"></script>
-  <script src="/static/chat-viec.js?v=8"></script>
+  <script src="/static/chat-steps.js?v=5"></script>
+  <script src="/static/chat-viec.js?v=9"></script>
   <script src="/static/chat-nho.js?v=1"></script>
   <script src="/static/chat-doi.js?v=1"></script>
   <script src="/static/chat-card.js?v=2"></script>
@@ -1226,12 +1226,12 @@
   <script src="/static/screen-awake.js?v=1"></script>
   <script src="/static/incoming-call.js?v=1"></script>
   <script src="/static/call-bar.js?v=1"></script>
-  <script src="/static/app.js?v=181"></script>
+  <script src="/static/app.js?v=182"></script>
   <!-- Sau app.js: dải việc nền đọc window.NaotaSessions (app.js dựng) để biết phiên + brain. -->
   <script src="/static/background-strip.js?v=4"></script>
   <!-- Thân bảng chọn model dùng chung: phải đứng TRƯỚC model-picker.js (thanh chat) và
        studio.js (ô Model của trợ lý) vì cả hai gọi window.NaotaModelList lúc vẽ. -->
-  <script src="/static/model-list.js?v=3"></script>
+  <script src="/static/model-list.js?v=4"></script>
   <script src="/static/effort-slider.js?v=4"></script>
   <!-- Models page usage order: drag, swap, popover placement. console.js calls window.NaotaModelsOrder. -->
   <script src="/static/models-order.js?v=2"></script>
@@ -1293,7 +1293,7 @@
   <script src="/static/login-vault.js?v=3"></script>
   <!-- messenger-connect.js loads with the lazy group "packs": only the Connections page draws it. -->
   <script src="/static/voice-catalog.js?v=1"></script>
-  <script src="/static/console.js?v=242"></script>
+  <script src="/static/console.js?v=243"></script>
   <script src="/static/mobile-chat.js?v=24"></script>
   <script src="/static/brain-view.js?v=1"></script>
   <script src="/static/push.js?v=5"></script>

@@ -219,7 +219,7 @@ check("plan card: no pulse once the turn ended", pbox.innerHTML.indexOf("plan-li
 const nop = S.ve(null, S.nhan(null, goi("Bash", "x")), false).querySelector(".steps-plan");
 check("plan card: hidden without a plan", nop.hidden === true);
 
-// ---- Antigravity tool names (agy 1.5.15 init.tools, 2026-11-24) --------------------------
+// ---- Antigravity tool names (agy 1.5.15 init.tools) --------------------------
 const agyStep = (name, detail) => S.nhan(null, { type: "tool_call", tool: name, detail: detail }).ds[0].label;
 const editLabel = agyStep("Edit", "a.md").split(":")[0];
 check("agy replace_file_content reads as an edit", agyStep("replace_file_content", "a.md").split(":")[0] === editLabel,
@@ -233,7 +233,7 @@ const runLabel = agyStep("Bash", "ls").split(":")[0];
 check("agy run_command with its command line", agyStep("run_command", "git status") === runLabel + ": git status",
   agyStep("run_command", "git status"));
 
-// ---- The model's thinking (Antigravity over agy acp, server/agy_acp.py, 2026-11-24) ----------
+// ---- The model's thinking (Antigravity over agy acp, server/agy_acp.py) ----------
 // agy sends a summary of its thinking every few seconds before the first word of the answer. Each one is a step
 // read in full when the block is opened; it is not a tool call, so it never counts in "Ran N steps".
 const THOUGHT = "**Weighing weekly tracking**\n\nWeekly revenue tracking gives a small shop a faster signal than a " +

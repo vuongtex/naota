@@ -120,7 +120,7 @@ check("luồng thật: câu trả lời vẫn đủ chữ",
       "Tôi đang tìm kiếm" in "".join(m for m in manh if m), manh)
 
 
-# ---- 8. The step label and result (owner, 2026-11-24, agy 1.5.15) -------------------------
+# ---- 8. The step label and result (agy 1.5.15) -------------------------
 # The parameters reach the chat as they are, and the DONE line's output marks the step done.
 ra, _ = _chay([buoc_tool(2, "ACTIVE"), buoc_tool(2, "DONE")])
 goi = [e for e in ra if e.get("type") == "tool_call"]

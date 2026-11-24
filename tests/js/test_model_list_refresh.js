@@ -2,7 +2,7 @@
 
        node tests/js/test_model_list_refresh.js
 
-   Owner's report 23/11/2026, "the Models page shows only 3 GPT models": the Models page picker opened on `peek` and
+   Bug: the Models page showed only 3 GPT models: the Models page picker opened on `peek` and
    asked the server only when it had nothing, so a list kept from earlier (3 models of a switched-off account) stayed on
    screen while the account in use had 10. The picker now draws what `peek` has and redraws with `refresh`.
 

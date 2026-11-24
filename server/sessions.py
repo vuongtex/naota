@@ -566,7 +566,7 @@ def _sach_icon(icon: Optional[str]) -> Optional[str]:
     return v if _ICON_RE.match(v) else None
 
 
-# The column holding a chat's Antigravity conversation (agy --conversation, 2026-11-24). It is Gemini CLI's old
+# The column holding a chat's Antigravity conversation (agy --conversation). It is Gemini CLI's old
 # column: see the comment on `gemini_session_id` in the schema for why it is not a new one.
 AGY_THREAD_COLUMN = "gemini_session_id"
 
@@ -656,7 +656,7 @@ class SessionStore:
                               # Mạch native của Gemini CLI (UUID). Cùng vai với codex_thread_id
                               # nhưng phải là cột RIÊNG: đổi bộ não giữa chừng mà dùng chung một
                               # cột là lượt sau đưa UUID của engine này cho engine kia resume.
-                              # Since 2026-11-24 it holds Antigravity's conversation id instead
+                              # It holds Antigravity's conversation id instead
                               # (AGY_THREAD_COLUMN): Gemini CLI left in 0.50.0, and a NEW column
                               # would be refused by the improvement trials' schema check, whose
                               # column list is pinned by the native qualification evidence.
@@ -2444,7 +2444,7 @@ class SessionStore:
     # ── mạch native của các engine giữ phiên ──
     #
     # Nhãn engine -> cột giữ mạch. Engine KHÔNG có mặt ở bảng này (mọi engine API; Antigravity
-    # CLI giữ mạch từ 2026-11-24) không giữ mạch riêng: chúng dựng lại ngữ cảnh từ transcript ở MỌI lượt nên
+    # CLI giữ mạch) không giữ mạch riêng: chúng dựng lại ngữ cảnh từ transcript ở MỌI lượt nên
     # không bao giờ stale. Thêm engine giữ phiên mới thì thêm một dòng ở đây, đừng rải thêm
     # một lệnh clear nữa vào main.py - đó chính là cách bảng này bị bỏ sót hai engine.
     _MACH_NATIVE = {"cli": "cli_session_id",

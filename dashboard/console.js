@@ -5079,7 +5079,7 @@
       sh.body.innerHTML = `<input class="mb-search" type="search" enterkeyhint="search" placeholder="${esc(t("mpick.search_ph"))}">`
         + `<div class="ord-mlist"></div>`;
       const ML = window.NaotaModelList;
-      // Every open asks the server again (2026-11-23, owner's report "the Models page shows only 3 GPT models"). It
+      // Every open asks the server again. It
       // used to open on `peek` and ask only when nothing was in hand, so a list kept from earlier stayed for good: 3
       // models of a switched-off account while the account in use had 10. What is in hand is drawn at once, with a
       // "loading" line under it, and the fresh list replaces it when it comes.

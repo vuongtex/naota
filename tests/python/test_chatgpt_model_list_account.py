@@ -2,7 +2,7 @@
 
     python tests/run.py chatgpt_model_list_account      (no network, no Codex CLI)
 
-Owner's report 23/11/2026, "the Models page shows only 3 GPT models": account 1 (a Free plan) was switched off on the
+Bug: the Models page showed only 3 GPT models: account 1 (a Free plan) was switched off on the
 ChatGPT card and an extra Plus account was on. Chat turns ran on the Plus account, but `openai_oauth.list_models`
 always asked account 1: it wrote account 1's tokens into the shared ~/.codex and asked Codex app-server there, so the
 picker showed the Free plan's 3 models instead of the Plus plan's 10, and every refresh wrote the 3 back over a 10.

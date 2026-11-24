@@ -4736,7 +4736,7 @@ async def _cli_sub_doc(g, prompt, model):
     Dùng chung được vì hai engine đã phát cùng một hợp đồng {tool_call, final, usage, error};
     viết lại là hai bản dễ lệch nhau.
 
-    2026-11-24: the engines' `delta` pieces go out as `text` as they come, the way
+    The engines' `delta` pieces go out as `text` as they come, the way
     `_claude_sub_doc` streams Claude Code. Before, this path dropped them and even a one-line
     answer appeared only once the CLI had exited. `final` then only adds what the pieces did not
     carry (a warning the engine appends at the end), never the whole answer a second time."""
@@ -6008,7 +6008,7 @@ def _cli_do_sau_khac(cli, mod, reasoning, message):
     `gemini-3.8-flash-medium`): với model đó, cờ `--effort` đúng cú pháp vẫn làm CLI thoát mã 1
     kèm "conflicts with --effort", mất trọn lượt chat. Nên hỏi module trước.
 
-    Such a model gets the message untouched (owner's measurement, 2026-11-24): picking
+    Such a model gets the message untouched: picking
     `gemini-4-hydrogen-high` already picked the depth, and the old fallback that appended the
     "think it through" line on top tripled its thinking tokens (428 -> 1,492) and pushed the first
     word from 5.4 s to 11.6 s, even for an owner who chose -low or -medium to go fast.
@@ -8790,7 +8790,7 @@ async def _fetch_provider_models(provider, m):
     if provider == "openai-oauth":
         # app-server là subprocess đồng bộ; chạy ở worker để request FastAPI
         # khác không đứng hình trong lúc Codex nạp catalog.
-        # The account a Codex run uses now, not account 1 (2026-11-23): see openai_oauth.list_models.
+        # The account a Codex run uses now, not account 1: see openai_oauth.list_models.
         return await asyncio.to_thread(openai_oauth.list_models, plan_accounts.current(m, provider))
     if provider == "grok-cli":
         # Chạy ở worker: `list_models` có thể đẻ tiến trình con (`grok --help` để dò cờ, rồi
@@ -8872,7 +8872,7 @@ def _why_no_models(provider: str, m: dict, cause: str = "") -> str:
     """
     d = _provider_def(provider) or {}
     if provider == "openai-oauth":
-        # The sign-in of the account the list was asked from (2026-11-23), not always account 1's.
+        # The sign-in of the account the list was asked from, not always account 1's.
         if not (openai_oauth.valid_creds_for(plan_accounts.current(m, provider)) or {}).get("access_token"):
             return localefmt.chu("Chưa kết nối ChatGPT (hoặc phiên đăng nhập đã hết hạn) - "
                                  "đăng nhập lại ở thẻ ChatGPT.",
@@ -8944,7 +8944,7 @@ async def provider_models_index(provider: str, refresh: bool = False) -> dict:
     fallback = _gop_giu_thu_tu(d.get("default_models", []),
                                cat.get(d.get("catalog_key", "")) or [])
     now = time.time()
-    # ChatGPT's list belongs to one plan account (2026-11-23): a list kept while another account ran is not reused
+    # ChatGPT's list belongs to one plan account: a list kept while another account ran is not reused
     # once the owner switches accounts or one rests out of quota. Every other provider keeps "" here.
     account = plan_accounts.current(m, provider) if provider == "openai-oauth" else ""
     c = _PROV_MODELS_CACHE.get(provider)
@@ -15371,7 +15371,7 @@ def khoi_viec(viec) -> str:
     `strip_control_blocks` bóc nó cho Telegram/Zalo/hòm thư như mọi khối NAOTA_* khác."""
     if not isinstance(viec, dict):
         return ""
-    # `acceptance_check` (#1737): "unverified" turns the card's green "done" into a warning in dashboard/chat-viec.js.
+    # `acceptance_check`: "unverified" turns the card's green "done" into a warning in dashboard/chat-viec.js.
     gon = {k: str(viec.get(k) or "")[:200]
            for k in ("kind", "status", "title", "id", "call", "acceptance_check") if viec.get(k)}
     if not gon:
@@ -21846,7 +21846,7 @@ async def _chat_socket(ws):
                 steer_inbox.INBOX.set_live(conv_sid, False)   # one-shot CLI, messages wait for the end
                 # ===== Gói Google qua ANTIGRAVITY CLI (`agy`) - tool native + MCP hub =====
                 #
-                # 2026-11-24 (agy 1.5.15, measured): the chat resumes agy's own conversation
+                # agy 1.5.15, measured: the chat resumes agy's own conversation
                 # on a process kept warm between turns: `agy acp`, which also streams the model's thinking
                 # (agy_acp.py), else the stream-json mode (agy_warm.py, `--conversation`), both in warm_pool. The
                 # instructions and the transcript go only into the FIRST message of a thread; a continued
@@ -21854,7 +21854,7 @@ async def _chat_socket(ws):
                 # a word for an id it does not know, so agy_warm checks the id in `init` before sending and
                 # falls back to the whole context. NAOTA_AGY_RESUME=0 restores one process per turn.
                 actual_model = api_model or None
-                # Stable prompt (#975) for plain chats, as on the Claude Code lane: the clock and the
+                # Stable prompt for plain chats, as on the Claude Code lane: the clock and the
                 # session line travel in the per-turn header, since a continued thread keeps its first
                 # message's prompt.
                 _a_stable = not _persona
@@ -21910,7 +21910,7 @@ async def _chat_socket(ws):
                         _a_raw, _a_cur, max_chars=compaction.AGY_BOOTSTRAP_MAX_CHARS,
                         summary=_row0.get("compact_summary") or "")
                     if _a_stable:
-                        # First message of a thread: every per-turn fact plus the plan's turn context (#1329).
+                        # First message of a thread: every per-turn fact plus the plan's turn context.
                         _a_head = "\n".join(x for x in (
                             _turn_facts_header(brain, conv_sid or "", _lang_qd.lang, first=True),
                             getattr(_sub_plan, "turn_context", "") or "") if x)

@@ -1,4 +1,4 @@
-"""A stand-in for `agy --input-format stream-json --output-format stream-json` (agy 1.5.15, measured 2026-11-24).
+"""A stand-in for `agy --input-format stream-json --output-format stream-json` (agy 1.5.15).
 
 Used by test_agy_warm.py. It follows what the real binary does:
 - prints `init` with its conversation id before any message;

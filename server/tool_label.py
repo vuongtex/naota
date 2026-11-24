@@ -10,7 +10,7 @@ URL, câu tìm kiếm. Không đoán được thì trả "" và dashboard giữ 
 
 Chỉ đọc, không ném lỗi: payload lạ kiểu gì cũng chỉ ra chuỗi rỗng.
 
-Keys are matched without regard to case (owner, 2026-11-24): Antigravity names its parameters in
+Keys are matched without regard to case: Antigravity names its parameters in
 PascalCase (`CommandLine`, `Path`, `AbsolutePath`, `TargetFile`, measured on agy 1.5.15), so a
 lowercase-only lookup gave every agy step an empty label and the chat showed a bare "Run command",
 "Read file" twenty times over.

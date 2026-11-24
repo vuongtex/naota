@@ -8,7 +8,12 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 ## [1.68.0] - 2026-11-25
 ### Cải thiện
-- Đang làm: lấy bản nguồn mới: Antigravity, ChatGPT, việc nền.
+- **Antigravity trả lời nhanh hơn hẳn.** Mỗi cuộc chat giữ sẵn một tiến trình và nối tiếp đúng mạch, nên từ lượt thứ hai chữ đầu về sau 2 đến 3 giây. Trong lúc chờ, bạn thấy model đang nghĩ gì, và từng bước ghi rõ việc đang làm.
+- **Antigravity nhớ trọn cuộc chat dài**, kể cả file đã đọc và lệnh đã chạy ở các lượt trước.
+
+### Sửa lỗi
+- **Danh sách model ChatGPT lấy đúng tài khoản đang chạy,** và mở bộ chọn là tải lại danh sách mới.
+- **Việc nền trung thực hơn:** kết quả trống không còn tính là xong, thẻ việc trong chat và trang Nhiệm vụ báo vàng khi kết quả chưa được kiểm, việc Team dừng báo lỗi khi kế hoạch ghi sai thẻ giao việc. Claude ít mở luồng mới không cần thiết.
 
 ## [1.67.0] - 2026-11-24
 ### Cải thiện

@@ -10,7 +10,7 @@ Rotation is sequential: the first account switched on, signed in and not resting
 All accounts of a card are used before the next card in the usage order.
 Chat turns, background work, team turns and workflow steps all pick the account this way (team turns and workflow
 steps since 10/11/2026: before, they always ran on account 1, so a team kept answering "You've hit your weekly limit"
-while the card's other account had quota). The ChatGPT model list asks the same account (`current`, 23/11/2026), so the
+while the card's other account had quota). The ChatGPT model list asks the same account (`current`), so the
 picker shows the models of the account that will answer.
 
 What an extra account does NOT carry (stated plainly in the guide): the plan usage meters, image generation and
@@ -439,7 +439,7 @@ def current(m: dict, provider: str) -> str:
     """The account a run on this provider uses now: MAIN when account 1 runs, when the card has no extra account, or
     when no account can run (the turn then reports the provider's own error, as before).
 
-    `apply` points engines with it and the ChatGPT model list asks the same account (2026-11-23), so the picker always
+    `apply` points engines with it and the ChatGPT model list asks the same account, so the picker always
     shows the models of the account that will answer. Before, the list always came from account 1: with account 1
     (Free) switched off and a Plus account on, the picker offered 3 models while the turns ran on the Plus account."""
     if not in_use(provider) or not has_extra(m, provider):

@@ -714,7 +714,7 @@ def list_models(account_key=None):
     ``account_key``: the plan account to ask (``plan_accounts``). None asks the account a Codex run uses now
     (``plan_accounts.current``), so the picker shows the models of the account that will answer.
 
-    2026-11-23 (owner's report, "the Models page shows only 3 GPT models"): this always asked account 1. It wrote
+    Bug fixed: this always asked account 1. It wrote
     account 1's tokens into the shared ~/.codex and asked the app-server there, even with account 1 (Free) switched
     off and a Plus account on. Every refresh of the picker then wrote the Free list (3 models) back over the Plus list
     (10). An extra account is now asked in its own login folder, and the shared folder is left alone.

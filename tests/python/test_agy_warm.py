@@ -1,4 +1,4 @@
-"""Antigravity chat turns on a warm agy that resumes its conversation (agy_warm.py, 2026-11-24).
+"""Antigravity chat turns on a warm agy that resumes its conversation (agy_warm.py).
 
     python tests/python/test_agy_warm.py
 

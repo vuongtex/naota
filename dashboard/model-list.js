@@ -71,7 +71,7 @@
     }
     return load(pid);
   }
-  /** Ask the server again NOW, whatever is in hand, and resolve with the fresh list (2026-11-23).
+  /** Ask the server again NOW, whatever is in hand, and resolve with the fresh list.
    *  The Models page picker used to open on `peek` and asked only when nothing was in hand, so a list kept
    *  from earlier (3 models of the account that was switched off) stayed on screen for good. A picker that
    *  must show what is true now draws what `peek` has and redraws with this. A request already on its way

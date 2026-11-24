@@ -1,4 +1,4 @@
-"""Antigravity chat turns over `agy acp`, which streams the model's thinking (agy_acp.py, 2026-11-24).
+"""Antigravity chat turns over `agy acp`, which streams the model's thinking (agy_acp.py).
 
     python tests/python/test_agy_acp.py
 

@@ -90,7 +90,7 @@
     return ten || tw("app.step_unknown");
   }
 
-  /* ---------- The model's thinking (Antigravity over agy acp, server/agy_acp.py, 24/11/2026) ----------
+  /* ---------- The model's thinking (Antigravity over agy acp, server/agy_acp.py) ----------
      agy sends a summary of what the model is weighing every few seconds while the answer is not written yet: 12 to 18
      seconds on Gemini Flash High, which the chat used to show as an empty wait. Each summary is one step of the block,
      read in full when the block is opened; the chip and the folded line show its first sentence. Thinking is not a

@@ -1,4 +1,4 @@
-"""Antigravity chat turns over `agy acp` (Agent Client Protocol), kept warm between turns (2026-11-24).
+"""Antigravity chat turns over `agy acp` (Agent Client Protocol), kept warm between turns.
 
 Why ACP and not `--input-format stream-json` (agy_warm.py). Measured on agy 1.5.15, Windows, gemini-3.8-flash-high:
 the stream-json output sends NOTHING while the model thinks (its output struct has no thinking field, and the

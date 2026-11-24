@@ -1,4 +1,4 @@
-"""A stand-in for `agy acp` (the Agent Client Protocol server of agy 1.5.15, measured 2026-11-24).
+"""A stand-in for `agy acp` (the Agent Client Protocol server of agy 1.5.15).
 
 Used by test_agy_acp.py. It answers the way the real binary does:
 - JSON-RPC 2.0, one object per line; `initialize` first, then session/new or session/resume;

@@ -515,7 +515,7 @@ async def generate_chatgpt(prompt: str, aspect_ratio: str = "square", quality: s
 async def _live_models(account_key: str) -> list:
     """Danh sách model live của tài khoản (Codex app-server / backend). Hỏng thì [].
 
-    `account_key` is the plan account this image is being made on, so the list is that account's own (2026-11-23)."""
+    `account_key` is the plan account this image is being made on, so the list is that account's own."""
     import asyncio
     try:
         ids = await asyncio.to_thread(openai_oauth.list_models, account_key)
