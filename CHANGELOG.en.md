@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.68.0] - 2026-11-25
+### Improved
+- In progress: porting bản nguồn mới: Antigravity, ChatGPT, việc nền.
+
 ## [1.67.0] - 2026-11-24
 ### Improved
 - **Naota restarts about 13 seconds faster.** The Docker image now ships its code precompiled, so an update no longer leaves you waiting before you can use it.

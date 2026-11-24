@@ -6,6 +6,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.68.0] - 2026-11-25
+### Cải thiện
+- Đang làm: lấy bản nguồn mới: Antigravity, ChatGPT, việc nền.
+
 ## [1.67.0] - 2026-11-24
 ### Cải thiện
 - **Naota khởi động lại nhanh hơn khoảng 13 giây.** Bản cài bằng Docker đã biên dịch sẵn mã, nên sau mỗi lần cập nhật không còn phải chờ lâu mới dùng được.
