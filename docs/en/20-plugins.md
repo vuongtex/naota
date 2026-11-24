@@ -338,6 +338,15 @@ tools Naota already has, that door carries five tools only the outside AI sees (
 | `naota_chat_result` | Read the answer when Naota takes long | Any |
 | `naota_chat_note` | Save a note of the outside chat: what the owner said and decided | Draft, Full |
 | `naota_sync_setup` | Turn on Naota Sync on a coding agent's machine: returns one install command the AI runs | Draft, Full |
+| `naota_brains` | List the brains: name, path, the default brain, the brain used last | Any |
+
+- **Picking the brain:** claude.ai cannot send a header, so it cannot pick a brain that way. Every Gate
+  tool that reads or writes a brain (files, notes, tasks, reminders...) takes an optional `brain`: a brain's name
+  (case and accents ignored) or its path, matched only against the brains on this machine; an unknown name is refused
+  with the list of valid names. Without `brain` the Gate uses the **Default brain for Naota Gate** the owner picks on
+  the Naota Gate card of the Connections page; "Brain used last" keeps the old behaviour (the brain of the chat touched
+  last). Every write result says which brain it used, and the Gate's instructions tell the AI to ask the owner which
+  brain before writing when there are several. The rules live in `server/gate_brain.py`.
 
 - **A posted message runs exactly like a typed one:** it goes through the dashboard's own chat loop, so the answer
   streams on every open tab, has a Stop button, is saved to History, written to `memory/conversations` and fed to

@@ -1414,8 +1414,9 @@ function handleMessage(data) {
     try { if (window.NaotaBackground) window.NaotaBackground.refresh(); } catch (e) {}
     return;
   }
-  if (data.type === "steer_ack" || data.type === "steer_read" || data.type === "steer_turn") {
+  if (data.type === "steer_ack" || data.type === "steer_read" || data.type === "steer_turn" || data.type === "steer_dropped") {
     // a message sent while Naota works was received, read by the running turn, or is now its own turn.
+    // steer_dropped: Stop ended the turn it waited for, so it will not run by itself (server _start_steer_turn).
     try { trangThaiBoSung(data); } catch (e) {}
     // The running turn took the message in, so its answer now covers it: move that answer below it.
     if (data.type === "steer_read" && isActive && t) { try { moveTurnBelow(t); } catch (e) {} }
@@ -3102,7 +3103,10 @@ function trangThaiBoSung(data) {
   } else {
     // The running /goal round read the owner's message: its verdict now covers it (chat-lenh.js boSungDaDoc).
     if (data.type === "steer_read") { try { if (window.NaotaLenh) window.NaotaLenh.boSungDaDoc(data.session_id); } catch (e) {} }
-    (data.ids || []).forEach(id => ghi(_boSungEl["s" + id], data.type === "steer_read" ? "app.steer_read" : "app.steer_turn"));
+    const key = data.type === "steer_read" ? "app.steer_read" : data.type === "steer_dropped" ? "app.steer_dropped" : "app.steer_turn";
+    (data.ids || []).forEach(id => ghi(_boSungEl["s" + id], key));
+    // A message that waited without a steer id (too many queued) is named by the client_id it was sent with.
+    (data.client_ids || []).forEach(c => ghi(_boSungEl[c], key));
   }
 }
 // A message sent while Naota works was read by the running turn (steer_read). The step block and answer
@@ -3537,7 +3541,24 @@ async function doiGhim(msgEl, btn) {
   if (!ok) { datGhim(msgEl, !on); alert(loi || window.t("cact.pin_failed")); return; }
   const entry = (msgEl._jr && msgEl._jr.entry) || convo.find(x => x && x.role === "naota" && String(x.mid) === String(mid));
   if (entry) { entry.pinned = on; persistSession(); }
+  // The pin bar above the chat (chat-pins.js) reads the list again once the server has it.
+  try { chatArea.dispatchEvent(new CustomEvent("nt-pins-saved")); } catch (e) {}
 }
+// What the pin bar above the chat (chat-pins.js) needs from here:
+// the open chat, its older messages (a tap on a pin not loaded yet pages back to it) and the pin mark on a bubble when
+// the bar unpins or moves a pin.
+window.NaotaChatPinHost = {
+  sid: () => savedSessionId,
+  hasOlder: () => !!(_tinCu && _tinCu.con && _tinCu.sid === savedSessionId),
+  busy: () => !!(_tinCu && _tinCu.dangTai),
+  loadOlder: () => taiTinCu(),
+  mark(mid, on) {
+    const el = [...chatArea.querySelectorAll(".msg-naota[data-mid]")].find(x => String(x.dataset.mid) === String(mid));
+    if (el) datGhim(el, on);
+    const entry = (el && el._jr && el._jr.entry) || convo.find(x => x && x.role === "naota" && String(x.mid) === String(mid));
+    if (entry) { entry.pinned = on; persistSession(); }
+  },
+};
 // read one answer aloud, whatever the "read answers aloud" setting says (force). Pressing again while it is
 // still reading stops it. The button shows a stop square while that answer is being read.
 let _docTin = null;

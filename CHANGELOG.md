@@ -6,6 +6,15 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.70.0] - 2026-11-25
+### Thêm mới
+- **Ghim tin nhắn lên đầu cuộc chat, như Zalo.** Thanh ghim nằm trên khung chat ở trang Chatbot, Cộng sự và Trò chuyện; bấm một tin ghim là nhảy tới đúng tin đó. Trên điện thoại nhấn giữ tin để ghim.
+- **Chọn bộ não mặc định cho Naota Gate** ở trang Kết nối, để ghi chép từ claude.ai hay ChatGPT không lạc sang bộ não bạn vừa đụng tới. Có nhiều bộ não thì AI bên ngoài hỏi bạn trước khi ghi.
+
+### Sửa lỗi
+- **Bấm Dừng là dừng hẳn:** tin gõ thêm trong lúc Naota đang trả lời không tự chạy thành lượt mới, tin vẫn nằm đó để gửi lại.
+- **Nhiều cộng sự cùng làm chỉ còn một hàng**, và hết dải trống dưới ô nhập trên điện thoại.
+
 ## [1.69.0] - 2026-11-25
 ### Thêm mới
 - **Gửi ảnh và file cho khách ngay trong hộp thư** bằng nút + ở ô trả lời, qua đúng kênh của khách (tối đa 25 MB mỗi file). Nhờ Naota trong chat "gửi khách bảng giá" là Naota lấy file trong bộ não gửi đi.
