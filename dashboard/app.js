@@ -1479,6 +1479,15 @@ function handleMessage(data) {
       const _plan = (data.plan && window.NaotaSteps && window.NaotaSteps.planLine) ? window.NaotaSteps.planLine(t && t.buoc) : "";
       showActivity(escapeHtml(_plan || _nhan));
     }
+  } else if (data.type === "thinking") {
+    // A summary of the model's thinking (Antigravity over agy acp, server/agy_acp.py): one more step of the block, and
+    // the chip says what the model is weighing until the answer starts streaming.
+    if (t && window.NaotaSteps) t.buoc = window.NaotaSteps.nhan(t.buoc, data);
+    emitTurnProgress(sid);
+    if (isActive) {
+      veKhoiBuoc(t, true);
+      if (t && !t.bubble && window.NaotaSteps) showActivity(Icons.msg("brain", window.NaotaSteps.nhanDong(data)));
+    }
   } else if (data.type === "tool_result") {
     if (t && window.NaotaSteps) t.buoc = window.NaotaSteps.nhan(t.buoc, data);
     emitTurnProgress(sid);

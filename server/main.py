@@ -253,6 +253,7 @@ import agent_notify  # unread and mute for private partner chats
 import steer_inbox  # messages the owner sends while a turn runs
 import codex_steer  # Codex chat turns on app-server take those messages mid-way
 import warm_pool  # engine processes kept warm between the owner's chat turns
+import agy_warm  # Antigravity chat turns on a warm agy that resumes its conversation
 import claude_warm  # Claude Code chat turns on a warm process
 import codex_realtime  # ChatGPT Live: một Codex app-server sống lâu, realtime trên gói ChatGPT
 import voice_call     # nút mic là gọi Naota: tự chọn ChatGPT Live / Live API / Cơ bản
@@ -4733,14 +4734,29 @@ async def _cli_sub_doc(g, prompt, model):
     """Một lượt engine CLI (Antigravity hoặc Grok) -> hợp đồng sự kiện của `_api_stream`.
 
     Dùng chung được vì hai engine đã phát cùng một hợp đồng {tool_call, final, usage, error};
-    viết lại là hai bản dễ lệch nhau."""
+    viết lại là hai bản dễ lệch nhau.
+
+    The engines' `delta` pieces go out as `text` as they come, the way
+    `_claude_sub_doc` streams Claude Code. Before, this path dropped them and even a one-line
+    answer appeared only once the CLI had exited. `final` then only adds what the pieces did not
+    carry (a warning the engine appends at the end), never the whole answer a second time."""
     yield {"type": "meta", "model": model}
+    streamed = ""
     async for ev in g.query(prompt):
         et = ev.get("type")
-        if et == "final":
+        if et == "delta":
             txt = ev.get("content") or ""
             if txt:
+                streamed += txt
                 yield {"type": "text", "content": txt}
+        elif et == "final":
+            txt = ev.get("content") or ""
+            if txt and not streamed:
+                yield {"type": "text", "content": txt}
+            elif txt:
+                shown = streamed.strip()
+                if txt.startswith(shown) and txt[len(shown):].strip():
+                    yield {"type": "text", "content": txt[len(shown):]}
         elif et == "tool_call":
             yield {"type": "tool_call", "tool": ev.get("name") or "",
                    "detail": tool_label.chi_tiet(ev), **turn_plan.fields(ev),
@@ -5990,12 +6006,16 @@ def _cli_do_sau_khac(cli, mod, reasoning, message):
 
     Chốt chặn ĐẦU TIÊN cho ca "model tự mang mức nghĩ trong tên" (Antigravity:
     `gemini-3.8-flash-medium`): với model đó, cờ `--effort` đúng cú pháp vẫn làm CLI thoát mã 1
-    kèm "conflicts with --effort", mất trọn lượt chat. Nên hỏi module trước, và rơi về câu nhắc
-    trong prompt y như mọi bản CLI không có cờ - chọn model coi như đã chọn mức nghĩ rồi.
+    kèm "conflicts with --effort", mất trọn lượt chat. Nên hỏi module trước.
+
+    Such a model gets the message untouched: picking
+    `gemini-4-hydrogen-high` already picked the depth, and the old fallback that appended the
+    "think it through" line on top tripled its thinking tokens (428 -> 1,492) and pushed the first
+    word from 5.4 s to 11.6 s, even for an owner who chose -low or -medium to go fast.
     """
     khoa = getattr(mod, "model_khoa_effort", None)
     if khoa and khoa(getattr(cli, "model", "") or ""):
-        return _nhac_suy_nghi(reasoning, message)
+        return message
     co = _co_effort_lui(mod, reasoning)
     if co:
         try:
@@ -6178,6 +6198,7 @@ def _apply_antigravity_hub(cli, vault_root=None, mode="full"):
             headers["X-Naota-Vault"] = str(root)
         hub = antigravity_cli.hub_entry(mcp_hub.hub_url(), headers)
     antigravity_cli.ghi_mcp_settings(root, hub)
+    cli.hub_entry = hub      # agy acp gets it on the session, not from the shared HOME file (agy_acp.mcp_servers)
     try:
         cli.mcp_config = mcp_hub.antigravity_config_path(mode, root) if hub else None
     except Exception as e:
@@ -6843,6 +6864,7 @@ async def antigravity_logout():
     except Exception as e:  # noqa: BLE001
         return {"ok": False, "error": f"{type(e).__name__}: {e}"}
     antigravity_cli.forget_status()
+    warm_pool.POOL.drop_kind(agy_warm.KIND)   # a warm agy keeps the sign-in it started with
     _PROV_MODELS_CACHE.pop("antigravity-cli", None)
     _PIN_LIMITED.pop("antigravity-cli", None)
     try:
@@ -6857,6 +6879,7 @@ async def antigravity_reconnect():
     """Switch the Antigravity card back on and ask `agy` again whether it is signed in."""
     await asyncio.to_thread(cfgmod.update_settings, {"model": {antigravity_cli._OFF_KEY: False}})
     antigravity_cli.forget_status()
+    warm_pool.POOL.drop_kind(agy_warm.KIND)   # a warm agy keeps the sign-in it started with
     _PROV_MODELS_CACHE.pop("antigravity-cli", None)
     d = await asyncio.to_thread(antigravity_cli.auth_status, True)
     return {"ok": True, "connected": bool(d.get("connected")), "error": d.get("error", "")}
@@ -8767,7 +8790,8 @@ async def _fetch_provider_models(provider, m):
     if provider == "openai-oauth":
         # app-server là subprocess đồng bộ; chạy ở worker để request FastAPI
         # khác không đứng hình trong lúc Codex nạp catalog.
-        return await asyncio.to_thread(openai_oauth.list_models, openai_oauth.valid_creds())
+        # The account a Codex run uses now, not account 1: see openai_oauth.list_models.
+        return await asyncio.to_thread(openai_oauth.list_models, plan_accounts.current(m, provider))
     if provider == "grok-cli":
         # Chạy ở worker: `list_models` có thể đẻ tiến trình con (`grok --help` để dò cờ, rồi
         # `grok models` nếu bản này có) và mất vài giây.
@@ -8837,7 +8861,7 @@ def _remember_catalog(cfg, d, ids):
         print(f"[models] không ghi được catalog {key}: {e}", file=sys.stderr)
 
 
-def _vi_sao_khong_co_model(provider: str, m: dict, cause: str = "") -> str:
+def _why_no_models(provider: str, m: dict, cause: str = "") -> str:
     """Vì sao provider này không trả về model nào - viết cho NGƯỜI ĐỌC, không phải log.
 
     Hầu hết đường lấy model hỏng theo kiểu IM LẶNG: hàm trả None chứ không ném lỗi, nên phía
@@ -8848,7 +8872,8 @@ def _vi_sao_khong_co_model(provider: str, m: dict, cause: str = "") -> str:
     """
     d = _provider_def(provider) or {}
     if provider == "openai-oauth":
-        if not (openai_oauth.valid_creds() or {}).get("access_token"):
+        # The sign-in of the account the list was asked from, not always account 1's.
+        if not (openai_oauth.valid_creds_for(plan_accounts.current(m, provider)) or {}).get("access_token"):
             return localefmt.chu("Chưa kết nối ChatGPT (hoặc phiên đăng nhập đã hết hạn) - "
                                  "đăng nhập lại ở thẻ ChatGPT.",
                                  "ChatGPT is not connected (or the sign-in expired) - "
@@ -8919,8 +8944,11 @@ async def provider_models_index(provider: str, refresh: bool = False) -> dict:
     fallback = _gop_giu_thu_tu(d.get("default_models", []),
                                cat.get(d.get("catalog_key", "")) or [])
     now = time.time()
+    # ChatGPT's list belongs to one plan account: a list kept while another account ran is not reused
+    # once the owner switches accounts or one rests out of quota. Every other provider keeps "" here.
+    account = plan_accounts.current(m, provider) if provider == "openai-oauth" else ""
     c = _PROV_MODELS_CACHE.get(provider)
-    if not refresh and c and (now - c["ts"]) < 600 and c.get("ids"):
+    if not refresh and c and (now - c["ts"]) < 600 and c.get("ids") and c.get("account", "") == account:
         return {"models": c["ids"], "live": True, "cached": True}
     is_gateway = provider in adv_keys.PROVIDERS
     asked_base = (m.get(adv_keys._SPEC[provider]["legacy"] + "_base") or "") if is_gateway else ""
@@ -8944,17 +8972,17 @@ async def provider_models_index(provider: str, refresh: bool = False) -> dict:
         moved = (m_now.get(adv_keys._SPEC[provider]["legacy"] + "_base") or "") not in (
             asked_base, *[u[1] for u in _openai_list_urls(asked_base)])
         if ids and not moved:
-            _PROV_MODELS_CACHE[provider] = {"ids": ids, "ts": now}
+            _PROV_MODELS_CACHE[provider] = {"ids": ids, "ts": now, "account": account}
             _remember_catalog(cfg, d, ids)
         if ids:
             return {"models": ids, "live": True}
-        return {"models": fallback, "live": False, "error": _vi_sao_khong_co_model(provider, m_now, cause)}
+        return {"models": fallback, "live": False, "error": _why_no_models(provider, m_now, cause)}
     if ids:
-        _PROV_MODELS_CACHE[provider] = {"ids": ids, "ts": now}
+        _PROV_MODELS_CACHE[provider] = {"ids": ids, "ts": now, "account": account}
         _remember_catalog(cfg, d, ids)
         return {"models": ids, "live": True}
     return {"models": fallback, "live": False,
-            "error": last_err or _vi_sao_khong_co_model(provider, m)}
+            "error": last_err or _why_no_models(provider, m)}
 
 
 @app.get("/provider/models")
@@ -15343,7 +15371,9 @@ def khoi_viec(viec) -> str:
     `strip_control_blocks` bóc nó cho Telegram/Zalo/hòm thư như mọi khối NAOTA_* khác."""
     if not isinstance(viec, dict):
         return ""
-    gon = {k: str(viec.get(k) or "")[:200] for k in ("kind", "status", "title", "id", "call") if viec.get(k)}
+    # `acceptance_check`: "unverified" turns the card's green "done" into a warning in dashboard/chat-viec.js.
+    gon = {k: str(viec.get(k) or "")[:200]
+           for k in ("kind", "status", "title", "id", "call", "acceptance_check") if viec.get(k)}
     if not gon:
         return ""
     return "<!-- NAOTA_VIEC: " + json.dumps(gon, ensure_ascii=False).replace("-->", "- ->") + " -->"
@@ -16863,6 +16893,9 @@ async def _nhan_nuoi_tien_trinh(tag: str, brain: str, owner_chat: str, final_tex
         # Còn nhóm sống thì đợi một nhịp ân hạn: tiến trình phụ của engine (MCP stdio) hay nán
         # lại vài trăm mili giây rồi mới thoát; nhận nuôi ngay là báo nhầm. Không có gì sống
         # thì không đợi, lượt thường không chậm thêm chút nào.
+        # An engine that answered before exiting (Antigravity) is waited for first, so its own
+        # shutdown is never taken for left-behind work. The answer is already on screen by now.
+        await asyncio.to_thread(tien_trinh_nen.wait_engine_exit, tag)
         if tien_trinh_nen.co_nhom_song(tag):
             await asyncio.sleep(2.0)
         hua = bool(background_status.detect_promise(final_text or ""))
@@ -21813,14 +21846,20 @@ async def _chat_socket(ws):
                 steer_inbox.INBOX.set_live(conv_sid, False)   # one-shot CLI, messages wait for the end
                 # ===== Gói Google qua ANTIGRAVITY CLI (`agy`) - tool native + MCP hub =====
                 #
-                # CỐ Ý chưa nối lại mạch hội thoại của CLI như nhánh Gemini/Codex ngay trên.
-                # `agy` có `--conversation <uuid>`, nhưng chưa ai đo được nó trên máy thật, mà
-                # lưu một id sai vào SQLite thì lượt sau nối vào mạch không tồn tại và hỏng câm.
-                # Nên mỗi lượt mở mạch mới và mồi lại bằng transcript đã lưu - tốn token hơn
-                # nhưng KHÔNG mất ngữ cảnh. Đo được cờ đó rồi thì nâng lên đúng khuôn Gemini.
+                # agy 1.5.15, measured: the chat resumes agy's own conversation
+                # on a process kept warm between turns: `agy acp`, which also streams the model's thinking
+                # (agy_acp.py), else the stream-json mode (agy_warm.py, `--conversation`), both in warm_pool. The
+                # instructions and the transcript go only into the FIRST message of a thread; a continued
+                # thread gets the per-turn facts and the new message. agy opens a new conversation without
+                # a word for an id it does not know, so agy_warm checks the id in `init` before sending and
+                # falls back to the whole context. NAOTA_AGY_RESUME=0 restores one process per turn.
                 actual_model = api_model or None
+                # Stable prompt for plain chats, as on the Claude Code lane: the clock and the
+                # session line travel in the per-turn header, since a continued thread keeps its first
+                # message's prompt.
+                _a_stable = not _persona
                 sysprompt, _sub_plan = await _subscription_system_prompt(
-                    "antigravity-cli", actual_model or "", kind)
+                    "antigravity-cli", actual_model or "", kind, stable=_a_stable)
                 acli = antigravity_cli.AntigravityCLI(cwd=_cwd_luot_chat(_row0, brain), model=actual_model,
                                                       tag=turn_tag, instructions=sysprompt)
                 acli.mode = _muc_quyen_luot_chat(_row0, user_message)
@@ -21839,29 +21878,78 @@ async def _chat_socket(ws):
                         "model": actual_model or "", "session_id": conv_sid,
                         **_ctx_frame(runtime_trace, _ctx_in, _ctx_cache)}))
                 else:
+                    _a_thread = ((_row0.get(sessions.AGY_THREAD_COLUMN) or "").strip()
+                               if agy_warm.enabled() else "")
+                    if _a_thread and compaction.nen_mach_thue_bao(
+                            _row0.get("last_input_tokens"), msg_count=_row0.get("msg_count"),
+                            rotated_at=_row0.get("thread_rotated_msg")):
+                        _a_thread = ""
+                        await asyncio.to_thread(store.clear_agy_conversation_id, conv_sid)
+                        await asyncio.to_thread(store.mark_thread_rotated, conv_sid)
+                        _CONTEXT_RUNTIME.record_runtime_event(
+                            runtime_trace, "thread.rotated",
+                            {"engine": "antigravity-cli",
+                             "last_input_tokens": int(_row0.get("last_input_tokens") or 0),
+                             "threshold": compaction.SUBSCRIPTION_THREAD_MAX_TOKENS})
+                        _first_out["rotated"] = True
+                        await ws.send_text(json.dumps({
+                            "type": "tool_call", "tool": "naota_nen_mach",
+                            "content": localefmt.chu("⚙ Mạch hội thoại đã dài, Naota mở mạch mới.",
+                                                     "⚙ The conversation thread got long, Naota started a new one.")}))
+                    acli.session_id = _a_thread or None
+                    acli.stream_turns = True
+                    acli.warm_key = conv_sid     # the process stays for the next turn (warm_pool)
                     _a_cur = _cli_do_sau_khac(acli, antigravity_cli, reasoning, user_message)
                     _a_raw = [{"role": _m["role"], "content": _m["content"]}
                               for _m in (await asyncio.to_thread(store.get_messages, conv_sid))[:-1]
                               if _m["role"] in ("user", "assistant") and _m.get("content")]
-                    # Ngân sách RIÊNG cho agy (xem compaction.AGY_BOOTSTRAP_MAX_CHARS): gói này
-                    # gửi lại nguyên mỗi lượt, và trên Windows nó thành file ngữ cảnh mà model
-                    # phải tự đọc - dài quá là đọc cụt rồi trả lời câu hỏi cũ.
+                    # Ngân sách RIÊNG cho agy (xem compaction.AGY_BOOTSTRAP_MAX_CHARS): a new thread (and
+                    # the one-shot fallback) carries this whole package; on Windows the one-shot path turns
+                    # it into a context file the model must read itself.
                     _a_prompt = compaction.bootstrap_prompt(
                         _a_raw, _a_cur, max_chars=compaction.AGY_BOOTSTRAP_MAX_CHARS,
                         summary=_row0.get("compact_summary") or "")
+                    if _a_stable:
+                        # First message of a thread: every per-turn fact plus the plan's turn context.
+                        _a_head = "\n".join(x for x in (
+                            _turn_facts_header(brain, conv_sid or "", _lang_qd.lang, first=True),
+                            getattr(_sub_plan, "turn_context", "") or "") if x)
+                        _a_prompt = (_a_head + "\n" + _a_prompt) if _a_head else _a_prompt
+                        _a_next = _turn_facts_header(brain, conv_sid or "", _lang_qd.lang, first=False)
+                        acli.resume_prompt = (_a_next + "\n" + _a_cur) if _a_next else _a_cur
+                    else:
+                        # An agent chat keeps its own prompt with its own clock: a continued thread only
+                        # needs the send time in front of the message.
+                        acli.resume_prompt = _gio_luot_noi_mach(acli, _a_cur, _lang_qd.lang)
                     _CONTEXT_RUNTIME.observe_payload(
                         runtime_trace,
                         [{"role": "system", "content": sysprompt},
-                         {"role": "user", "content": _a_prompt}],
+                         {"role": "user", "content": acli.resume_prompt if _a_thread else _a_prompt}],
                         provider="antigravity-cli", model=actual_model or "")
                     async for ev in acli.query(_a_prompt):
                         et = ev.get("type")
+                        if et == "session":
+                            # The stream path says whether a warm process served the turn and, if not, why.
+                            _note_warm({"warm": ev.get("warm"), "cold": ev.get("cold")})
+                            continue
+                        if "warm" not in _first_out:
+                            _note_warm({"warm": False, "cold": "one_shot_process"})
+                        _note_first_output("antigravity-cli", _first_out.get("warm"))
                         if et == "tool_call":
                             await ws.send_text(json.dumps({
                                 "type": "tool_call", "tool": ev.get("name", ""),
                                 "detail": tool_label.chi_tiet(ev), **turn_plan.fields(ev),
                                 "content": localefmt.chu(f"⚙ Đang gọi: {ev.get('name', '')}",
                                                          f"⚙ Calling: {ev.get('name', '')}")}))
+                        elif et == "tool_result":
+                            # Marks the step done; without it every step kept spinning until the turn ended.
+                            await ws.send_text(json.dumps({"type": "tool_result",
+                                                           "content": str(ev.get("content") or "")[:200]}))
+                        elif et == "thinking":
+                            # A summary of the model's thinking (agy acp, agy_acp.py), shown in the steps block
+                            # while the answer is not written yet. Never read aloud, never part of the answer.
+                            if ev.get("content"):
+                                await ws.send_text(json.dumps({"type": "thinking", "content": ev["content"]}))
                         elif et == "delta":
                             # chữ xem trước, hiện ngay từng mẩu; `final` mới là câu trả lời.
                             if ev.get("content"):
@@ -21870,10 +21958,21 @@ async def _chat_socket(ws):
                         elif et == "final":
                             final_text = ev.get("content") or ""
                         elif et == "usage":
-                            await asyncio.to_thread(store.set_last_input_tokens, conv_sid, int(ev.get("input_tokens") or 0))
+                            # The thread's size at the turn's last model call (input + cached), which the
+                            # rotation check above reads on the next turn.
+                            await asyncio.to_thread(
+                                store.set_last_input_tokens, conv_sid,
+                                int(ev.get("context_tokens") or 0)
+                                or int(ev.get("input_tokens") or 0) + int(ev.get("cached") or 0))
                         elif et == "error":
                             await ws.send_text(_limit_frame(
                                 ev.get("content") or "", "antigravity-cli", actual_model or ""))
+                    # Keep the thread only when it answered on the stream path; a one-shot or failed turn
+                    # leaves the next one to open a new thread with the whole context.
+                    if getattr(acli, "resumable", False) and acli.session_id:
+                        await asyncio.to_thread(store.set_agy_conversation_id, conv_sid, acli.session_id)
+                    elif _a_thread:
+                        await asyncio.to_thread(store.clear_agy_conversation_id, conv_sid)
                     final_text = _chuan_hoa_link_file(_brain_root(brain), final_text)
                     await ws.send_text(json.dumps({
                         "type": "response", "content": final_text, "engine": "antigravity-cli",
@@ -22462,8 +22561,9 @@ async def _chat_socket(ws):
                 # Cùng luật với Codex: mạch phình quá ngưỡng thì thôi --resume, mở mạch mới.
                 # Claude Code cũng tự quản transcript nên Naota chỉ có đúng con số token vào
                 # của lượt trước làm dấu hiệu.
+                _claude_context = compaction.subscription_context_tokens(_row0, "claude-code")
                 _cli_xoay_mach = bool(cli.session_id) and compaction.nen_mach_thue_bao(
-                    _row0.get("last_input_tokens"), msg_count=_row0.get("msg_count"),
+                    _claude_context, msg_count=_row0.get("msg_count"),
                     rotated_at=_row0.get("thread_rotated_msg"))
                 if _cli_xoay_mach:
                     cli.session_id = None
@@ -22472,16 +22572,17 @@ async def _chat_socket(ws):
                     _CONTEXT_RUNTIME.record_runtime_event(
                         runtime_trace, "thread.rotated",
                         {"engine": "claude-code",
-                         "last_input_tokens": int(_row0.get("last_input_tokens") or 0),
+                         "last_input_tokens": _claude_context,
+                         "basis": "last_request" if _row0.get("last_context_provider") == "claude-code" else "turn_total",
                          "threshold": compaction.SUBSCRIPTION_THREAD_MAX_TOKENS})
                     await ws.send_text(json.dumps({
                         "type": "tool_call", "tool": "naota_nen_mach",
                         "content": localefmt.chu(
                             "⚙ Mạch hội thoại đã dài "
-                            f"({int(_row0.get('last_input_tokens') or 0):,} token mỗi lượt), "
+                            f"({_claude_context:,} token), "
                             "Naota mở mạch mới.",
                             "⚙ The conversation thread got long "
-                            f"({int(_row0.get('last_input_tokens') or 0):,} tokens per turn), "
+                            f"({_claude_context:,} tokens), "
                             "Naota started a new one."),
                     }))
                 # Stable prompt: plain chats only. An agent DM keeps its own prompt, which has
@@ -22541,8 +22642,13 @@ async def _chat_socket(ws):
                     """Một lần gọi `claude`. Trả True nếu mạch cũ không còn (resume trượt)."""
                     nonlocal final_text, _streamed, _cli_sid, _cost, _ctx_in, _ctx_cache, _cli_err
                     resume_failed = False
+                    last_request_input = 0
+                    await asyncio.to_thread(store.clear_last_context_input_tokens, conv_sid, "claude-code")
                     async for event in claude_warm.query(cli, prompt, conv_sid):
                         etype = event["type"]
+                        if etype == "request_context":
+                            last_request_input = event.get("input_tokens", 0)
+                            continue
                         if etype == "warm":
                             _note_warm(event)
                             continue
@@ -22574,6 +22680,8 @@ async def _chat_socket(ws):
                             _cost = event.get("cost_usd")
                             if _cli_sid:
                                 store.set_cli_session_id(conv_sid, _cli_sid)
+                                if last_request_input > 0 and not event.get("is_error") and not event.get("resume_failed"):
+                                    await asyncio.to_thread(store.set_last_context_input_tokens, conv_sid, last_request_input, "claude-code")
                                 # this chat may be kept warm across a short break (off by default).
                                 try:
                                     if claude_auth.on_plan():
@@ -22745,7 +22853,7 @@ async def _chat_socket(ws):
                 # for one opened ahead on a new thread (same slot, old one closed first, no extra RAM).
                 try:
                     _row_end = await asyncio.to_thread(store.get_session, conv_sid) or {}
-                    if compaction.next_turn_rotates(_row_end.get("last_input_tokens"), _row_end.get("msg_count"),
+                    if prov == "anthropic-cli" and compaction.next_turn_rotates(compaction.subscription_context_tokens(_row_end, "claude-code"), _row_end.get("msg_count"),
                                                     _row_end.get("thread_rotated_msg")):
                         await claude_warm.prepare_new_thread(conv_sid)
                 except Exception as _e:  # noqa: BLE001 - a missed head start only costs the seconds it would save

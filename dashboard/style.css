@@ -1561,6 +1561,11 @@ li.task-done > .dv-ttext { text-decoration: line-through; text-decoration-color:
 .steps-sum-now:not(:empty)::before { content: "· "; }
 /* Bước cuối đang chạy: đậm hơn một chút để mắt biết đang đứng ở đâu trong danh sách. */
 .steps-list .step-live { color: var(--text2); }
+/* The model's thinking (Antigravity, agy_acp.py): a paragraph worth reading once the block is opened, so it wraps
+   instead of being cut to one line, in italics to set it apart from the tool steps. */
+.steps-list .step-think {
+  white-space: normal; overflow: visible; font-style: italic; line-height: 1.45; max-width: 640px;
+}
 /* The turn's plan (chat-steps.js planHtml): the engine's own checklist, open even while the step list is folded.
    Larger than the steps around it because this is the part people read, on a phone too. */
 .steps-plan {
@@ -4371,7 +4376,7 @@ div.cb-quyen > svg { flex: none; margin-top: 2px; }
    việc của giọng nói là chữ nghiêng mờ 12.5px. Nay: một dòng đầu có icon trạng thái, tên việc
    và nút mở trang Việc; viền trái mang màu trạng thái; chữ tối thiểu 16px cho điện thoại. */
 .msg-viec .bubble { border-left: 3px solid var(--ok-line); }
-.msg-viec.viec-blocked .bubble, .msg-viec.viec-timeout .bubble { border-left-color: var(--warn-line); }
+.msg-viec.viec-blocked .bubble, .msg-viec.viec-timeout .bubble, .msg-viec.viec-unverified .bubble { border-left-color: var(--warn-line); }
 .msg-viec.viec-failed .bubble { border-left-color: var(--red); }
 .msg-viec.viec-cancelled .bubble { border-left-color: var(--hairline); }
 .msg-viec.viec-hoi .bubble { border-left-color: var(--link-ink); }
@@ -4491,7 +4496,7 @@ div.cb-quyen > svg { flex: none; margin-top: 2px; }
   font-family: var(--font); font-size: 16px; line-height: 1.4;
 }
 .viec-head .viec-ico { display: inline-flex; color: var(--green); }
-.viec-blocked .viec-head .viec-ico, .viec-timeout .viec-head .viec-ico { color: var(--warn-ink); }
+.viec-blocked .viec-head .viec-ico, .viec-timeout .viec-head .viec-ico, .viec-unverified .viec-head .viec-ico { color: var(--warn-ink); }
 .viec-failed .viec-head .viec-ico { color: var(--red); }
 .viec-cancelled .viec-head .viec-ico { color: var(--text3); }
 .viec-head .viec-ico svg { width: 18px; height: 18px; }
