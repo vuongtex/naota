@@ -1889,7 +1889,9 @@ def record_customer_message(cfg: dict, meta: dict, text: str) -> None:
             sender_name=meta.get("user_name") or meta.get("username") or "",
             message_type=conversations.loai_tin_tu_chu(text), text=text,
             external_message_id=str(meta.get("message_id") or ""),
-            metadata={"username": meta.get("username") or ""}))
+            metadata={"username": meta.get("username") or ""},
+            # What the channel keeps on the whole conversation (the post a comment sits under).
+            conversation_metadata=meta.get("conversation_metadata") or {}))
     except Exception as e:
         print(f"[chatbot conversations] {type(e).__name__}: {e}", file=sys.stderr)
 
@@ -2020,13 +2022,44 @@ def bot_doc_files(cfg: dict) -> tuple:
     import agent_assets
     out = []
     for f in agent_assets.doc(meta or {}).get("files") or []:
-        try:
-            rel = (agent_root / str(f.get("path") or "")).resolve().relative_to(root).as_posix()
-        except (OSError, ValueError):
-            continue        # outside the bot's brain (an Agent kept in another brain): not readable by this bot
+        rel = agent_doc_rel(agent_root, root, str(f.get("path") or ""))
         if rel and rel != ".":
             out.append(rel)
     return tuple(out)
+
+
+def agent_doc_rel(agent_root: Path, root: Path, stored: str) -> str:
+    """Where one file of an Agent's Documents section lies in the bot's brain `root`, as a path relative to it, or ""
+    when it lies outside (an Agent kept in another brain: not readable by this bot). Both roots are resolved.
+
+    The Documents drawer stores a path from the BROWSE CEILING (`main._files_ceiling`), which on a computer without a
+    login is the whole drive: an Agent in "D:/du an/brains/Brain Default" lists "du an/brains/Brain Default/wiki/x.md".
+    Read from the brain, that file does not exist, so the bot had no document and told customers it had no information.
+    So when the path does not lead to something from the Agent's brain, the part after the brain
+    folder's own name is tried: the same file whatever the ceiling was, even in a brain copied somewhere else. What
+    matches must still lie inside the bot's brain."""
+    import unicodedata
+    raw = str(stored or "").strip().replace("\\", "/")
+
+    def inside(p: Path) -> str:
+        try:
+            return p.resolve().relative_to(root).as_posix()
+        except (OSError, ValueError):
+            return ""
+
+    direct = agent_root / raw
+    rel = inside(direct)
+    if rel and direct.exists():
+        return rel
+    name = unicodedata.normalize("NFC", agent_root.name).casefold()
+    parts = [x for x in raw.split("/") if x]
+    for i, part in enumerate(parts[:-1]):
+        if name and unicodedata.normalize("NFC", part).casefold() == name:
+            found = agent_root.joinpath(*parts[i + 1:])
+            hit = inside(found)
+            if hit and found.exists():
+                return hit
+    return rel
 
 
 def bot_doc_files_by_id(bot_id: str) -> tuple:
@@ -2154,6 +2187,21 @@ def _compose_started(on_compose) -> None:
         on_compose()
     except Exception as e:      # noqa: BLE001
         print(f"[chatbot] báo bắt đầu soạn lỗi: {type(e).__name__}: {e}", file=sys.stderr)
+
+
+def drop_engine_files(out):
+    """The engine's answer without the files it gathered by itself.
+
+    The owner's engine path lists every file the turn wrote or named (`channel_context.collect_turn_files`) so the
+    owner's Telegram gets them. A dedicated bot must not inherit that list, at any level and in any chat (a customer's,
+    or the owner's own chat raised to "full" by an exception): "whatever the turn happened to write" is work logs,
+    scripts and drafts, and with a stranger steering the model it is a leak path. What the chat receives is decided
+    after this, by `bot_images.pick`, from the images the Agent embedded in its reply. A string (a failed turn) and a
+    dict without files pass unchanged."""
+    if isinstance(out, dict) and out.get("files"):
+        out = dict(out)
+        out["files"] = []
+    return out
 
 
 def _make_answer_fn(bot_id: str):
@@ -2325,6 +2373,12 @@ def _make_answer_fn(bot_id: str):
             # Không gửi gì cho khách (xem CAU_LUOT_HONG). Phần dưới vẫn ghi nhật ký,
             # đếm bí, báo người trực; cuối hàm trả im lặng.
             out = {"text": "", "files": []}
+        # A bot sends ONLY the images its Agent embeds in the reply (`bot_images.pick` below), never the
+        # files the engine gathered on its own. A turn at "full" (the bot, or one chat raised by an exception) runs the
+        # owner's engine path, which lists every file written during the turn (work logs, scripts in /tmp, draft
+        # images) for the owner's Telegram; on a bot channel that list is a leak, and Zalo rejected the non-images with
+        # "Gửi Zalo lỗi ... (N ảnh)".
+        out = drop_engine_files(out)
 
         dap = (out or {}).get("text") or ""
         # The Agent's own reaction (`[CAM_XUC:<name>]`): the marker always leaves the text, so it never reaches a
@@ -2407,7 +2461,7 @@ def _make_answer_fn(bot_id: str):
             if anh:
                 out = dict(out or {})
                 out["text"] = dap
-                out["files"] = list(out.get("files") or []) + anh
+                out["files"] = anh      # the only files a bot chat ever receives (see `drop_engine_files`)
         # Several short messages (bot_split): the channel that sends them separately keeps the marker; any
         # other channel gets one message with blank lines. The bot log and the inbox always record the joined text.
         dap_ghi = dap
@@ -2470,7 +2524,8 @@ def _make_answer_fn(bot_id: str):
                 conversations.save_draft(cid_draft, dap_ghi, conversations.last_customer_message_id(cid_draft))
             return {"text": "", "files": [], "im_lang": True, "draft": True}
         # Câu bot nói vào Hộp thư hội thoại, cạnh tin khách. Lượt gãy thì `dap` rỗng nên không ghi gì: khách không nhận tin nào.
-        receipt_row = record_bot_message(
+        # `_defer_delivery`: the channel's transport records the reply itself, once the provider accepted it.
+        receipt_row = 0 if (meta or {}).get("_defer_delivery") else record_bot_message(
             cfg, meta or {}, dap_ghi, error=loi_ky_thuat, files=(out or {}).get("files"),
             zalo_sending=(kenh_luot == "zalo_personal" and not loi_ky_thuat))
         if goi_nguoi:
@@ -3106,7 +3161,13 @@ def start_bot(bot_id: str) -> tuple[bool, str]:
             **chung,
         )
         tb.account_id = aid
-        tb.start()
+        tb.naota_bot_id = bot_id    # NOT `bot_id`: Telegram and Slack transports use that for the platform's own id
+        try:
+            tb.start()
+        except ValueError as e:     # a transport may refuse a bad account mapping at start: skip that account
+            loi.append(str(e) or localefmt.chu(f"Không khởi động được tài khoản {nhan_kenh}",
+                                               f"Could not start the {nhan_kenh} account"))
+            continue
         pollers[aid] = tb
     if not pollers:
         return False, "; ".join(loi) or localefmt.chu(f"Chưa có token {nhan_kenh} cho bot này",
@@ -3154,7 +3215,9 @@ def stop_bot(bot_id: str) -> bool:
 
 
 def _trang_thai_poller(tb) -> dict:
-    song = bool(tb._task and not tb._task.done())
+    # A webhook transport has no polling task: it is alive while `webhook_active` says so.
+    task = getattr(tb, "_task", None)
+    song = bool(getattr(tb, "webhook_active", False) or (task and not task.done()))
     tt = getattr(tb, "status", "off")
     state = ("error" if tt in ("error", "conflict") else
              "running" if (song and tt == "polling") else
@@ -3220,7 +3283,8 @@ def sync_all() -> dict:
             stop_bot(bid)
     ok, loi = 0, {}
     for bid in muon:
-        if bid in _RUNNING and any(tb._task and not tb._task.done()
+        if bid in _RUNNING and any(getattr(tb, "webhook_active", False) or
+                                   (getattr(tb, "_task", None) and not tb._task.done())
                                    for tb in _RUNNING[bid].get("pollers", {}).values()):
             ok += 1
             continue

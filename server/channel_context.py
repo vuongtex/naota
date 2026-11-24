@@ -167,6 +167,8 @@ def build_channel_block(source: str, meta: dict = None, telegram_running: bool =
         "sits behind `naota_search_tools`: find it, then call it through `naota_run_tool`; do not "
         "conclude it cannot be done. Once added, SAY CLEARLY that it is on the Connections page, whether "
         "it is on or off, and at which permission level.",
+        "- A Naota tool that Codex refuses (\"requires approval\") is fixed in Naota, not by you: never write a "
+        "`mcp_servers.naota` entry into `~/.codex/config.toml`; one without `url` stops Codex from loading.",
     ]
     if source == "telegram":
         who = (meta.get("user_name") or "").strip() or "user"

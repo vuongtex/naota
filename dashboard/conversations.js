@@ -63,10 +63,9 @@
   var _host = null, _timer = null, _tab = "inbox";
   var _items = [], _stats = {}, _dauVet = "";
   var _kenhLoc = "", _botLoc = "", _q = "";
+  var _files = {};                      // conversation id -> images or files picked with + and not sent yet
+  var MAX_FILE = 25 * 1024 * 1024;      // the server's limit (routes/conversations.py MAX_SENT_FILE)
   var _privFor = 0;                     // id of the comment thread whose composer is set to "Message privately"
-  var _statusLoc = "", _typeLoc = "";   // bộ lọc, lưu ở trình duyệt qua NaotaConvFilters
-  var _contactLoc = "";     // "1" = only chats where the customer left a phone number or email
-  // Chatbot v5 (chatbot-v5-spec): who is handling the chat (the quick filters), the ticked
   // The mic of the reply box ("thêm nút chép lời để nói bằng giọng nói rồi chép lại, khỏi phải gõ").
   // dictate.js does the listening; the state lives here because the 5-second redraw rebuilds the box.
   var _dict = null, _dictState = "idle", _dictBase = "", _dictHeard = "", _dictConv = 0, _dictSend = false;
@@ -181,6 +180,22 @@
     return x.indexOf("cmt:") === 0 ? "fbc" : x.indexOf("igc:") === 0 ? "igc" : x.indexOf("ig:") === 0 ? "ig" : "";
   }
   function isComment(c) { var k = chatKind(c); return k === "fbc" || k === "igc" || k === "thc"; }
+  // The post a comment thread sits under (as Pancake shows it): a card under the head with the post's
+  // picture and first words, opening the post on Facebook or Instagram. The server keeps it in `metadata.post`.
+  function postCardHtml(c) {
+    var p = isComment(c) && c.metadata && c.metadata.post;
+    if (!p || !(p.url || p.text || p.image)) return "";
+    var url = /^https:\/\//.test(String(p.url || "")) ? String(p.url) : "";
+    var img = /^https:\/\//.test(String(p.image || "")) ? String(p.image) : "";
+    var inner =
+      '<span class="ib-post-img">' + ic("file-text") + (img ? '<img src="' + esc(img) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : "") + '</span>' +
+      '<span class="ib-post-t"><small>' + esc(window.t("ht.post_under")) + '</small>' +
+        '<span class="ib-post-x">' + esc(p.text || window.t("ht.post_open")) + '</span></span>' +
+      (url ? '<span class="ib-post-go">' + ic("external-link") + '</span>' : "");
+    return url
+      ? '<a class="ib-post" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer" title="' + esc(window.t("ht.post_open")) + '">' + inner + '</a>'
+      : '<div class="ib-post">' + inner + '</div>';
+  }
   // Only a private direct-message chat has one customer, so only it has a customer profile. The server says which
   // (`profile_chat`, see conversations.is_profile_chat): a group and a comment thread do not.
   function hasProfile(c) { return !!(c && c.profile_chat); }
@@ -1472,7 +1487,8 @@
     var c = _conv || {}, u = _msgs[_msgs.length - 1] || {};
     return JSON.stringify([c.id, c.mode, c.bot_id, c.bot_name, c.title, c.customer_name, c.channel, c.chat_type, c.account_name,
       c.tags || [], c.contact || "", c.note || "", c.profile_at || 0, c.who, c.who_code, c.ai_allowed, c.ai_pending, c.draft || null, c.reply_when,
-      c.yield_min, !!(c.metadata && c.metadata.blocked), !!(c.metadata && c.metadata.left), _silence, _running, u.sender_type]);
+      c.yield_min, !!(c.metadata && c.metadata.blocked), !!(c.metadata && c.metadata.left), _silence, _running, u.sender_type,
+      (c.metadata && c.metadata.post) || null]);
   }
 
   // Chèn tin mới vào cuối khung, trước dòng "Bot im" nếu có. Đang ở đáy thì trượt theo tin mới; đang đọc tin cũ thì đứng yên.
@@ -1577,6 +1593,7 @@
         '<button type="button" class="s-btn-ghost ib-info-btn" aria-expanded="' + infoOpen() + '" aria-label="' + esc(window.t("ib.info_t")) +
           '" title="' + esc(window.t("ib.info_t")) + '">' + ic("info") + '</button>' +
       '</div>' +
+      postCardHtml(c) +
       '<div class="ib-aibar w-' + who + '"' + (calm ? " hidden" : "") + '>' +
         '<span class="ib-say"><span class="ib-dot w-' + who + '"></span><span><b>' + esc(V ? V.whoLabel(who) : "") + ':</b> ' +
           esc(V ? V.whoSentence(c) : "") + '</span></span>' +
@@ -1585,6 +1602,8 @@
       '<div class="ht-msgs">' + nutTinCu() + _msgs.map(renderMessage).join("") + renderSilenceLine(c) + '</div>' +
       (guiDuoc ? veCompose(c) : '<div class="ht-foot">' + esc(window.t("ht.kenh_khong_gui", { kenh: nhanKenh(c.channel) })) + '</div>') +
       '<div class="ib-msheet"' + (_msheet && threeModes ? "" : " hidden") + '>' + (_msheet && threeModes && V ? V.modeSheetHtml(c, ic) : "") + '</div>';
+    var postImg = box.querySelector(".ib-post-img img");
+    if (postImg) postImg.onerror = function () { postImg.remove(); };
     box.querySelector(".ht-back").onclick = dongThread;
     box.querySelector(".ib-info-btn").onclick = function () { setInfo(!infoOpen()); };
     box.querySelector(".ib-htag-add").onclick = function () { _tagPop = true; _tagEdit = 0; _tagErr = ""; setInfo(true); };
@@ -1655,6 +1674,14 @@
       ta.oninput = grow;
       if (nhapDo) grow();
       box.querySelector(".ht-send").onclick = function () { gui(c); };
+      var plus = box.querySelector(".ib-plus"), plusIn = box.querySelector(".ib-plus-in");
+      if (plus && plusIn) {
+        plus.onclick = function () { plusIn.click(); };
+        plusIn.onchange = function () { addFiles(c, plusIn.files); };
+      }
+      box.querySelectorAll(".ib-file-x").forEach(function (b) {
+        b.onclick = function () { dropFile(c, Number(b.getAttribute("data-i")) || 0); };
+      });
       box.querySelectorAll(".ht-priv-o").forEach(function (b) {
         b.onclick = function () {
           var on = b.getAttribute("data-priv") === "1";
@@ -2421,6 +2448,42 @@
 
   // Ô trả lời khách: Gửi (gửi nguyên văn) và A.I. trả lời (chữ trong ô là lệnh cho A.I.). Nói rõ trước khi bấm gửi: gửi từ đây
   // là TIẾP QUẢN (bot đang trực sẽ im ở cuộc này), và với kênh tài khoản cá nhân thì tin đi dưới tên chính bạn.
+  // The + button: pick images or files, see them above the box, Send sends them with the typed words as
+  // the caption of the first one. A Facebook comment takes an image, an Instagram comment and a private reply nothing.
+  function fileMode(c, priv) {
+    var k = chatKind(c);
+    if (priv || k === "igc" || k === "thc" || !nangLuc(c.channel, "gui_file")) return "";
+    return k === "fbc" ? "image" : "any";
+  }
+  function pendingFiles(c) { return (c && _files[c.id]) || []; }
+  function filesHtml(c) {
+    var ds = pendingFiles(c);
+    if (!ds.length) return "";
+    return '<div class="ib-files">' + ds.map(function (f, i) {
+      var img = /^image\//.test(f.file.type || "") && f.url;
+      return '<span class="ib-file" title="' + esc(f.file.name) + '">' +
+        (img ? '<img src="' + esc(f.url) + '" alt="">' : '<span class="ib-file-ico">' + ic("paperclip") + '</span><span class="ib-file-n">' + esc(f.file.name) + '</span>') +
+        '<button type="button" class="ib-file-x" data-i="' + i + '" aria-label="' + esc(window.t("ht.file_remove")) + '">' + ic("x") + '</button></span>';
+    }).join("") + '</div>';
+  }
+  function addFiles(c, list) {
+    var ds = _files[c.id] || (_files[c.id] = []);
+    var big = [];
+    Array.prototype.forEach.call(list || [], function (f) {
+      if (f.size > MAX_FILE) { big.push(f.name); return; }
+      ds.push({ file: f, url: /^image\//.test(f.type || "") && window.URL && URL.createObjectURL ? URL.createObjectURL(f) : "" });
+    });
+    if (big.length) alert(window.t("ht.file_big", { ten: big.join(", "), mb: MAX_FILE / 1048576 }));
+    _dauVetTin = "";
+    veThread();
+  }
+  function dropFile(c, i) {
+    var ds = _files[c.id] || [];
+    var f = ds.splice(i, 1)[0];
+    if (f && f.url && window.URL && URL.revokeObjectURL) URL.revokeObjectURL(f.url);
+    if (!ds.length) delete _files[c.id];
+    veThread();
+  }
   function veCompose(c) {
     var V = window.NaotaInboxV5, k = kenhCua(c.channel), t = window.t;
     var laBot = !!c.bot_id;
@@ -2439,13 +2502,18 @@
     var writing = (_aiBusy === "ask" || _aiBusy === "redo") && _aiWork && _aiWork.conv === c.id;
     var cmt = canPrivate(c), priv = cmt && _privFor === c.id;
     if (priv) ph = t("ht.priv_ph");
+    var fm = fileMode(c, priv);
     return '<div class="ht-compose' + (draft || writing ? " has-draft" : "") + '">' + noteHtml() +
       (cmt ? privToggleHtml(priv, c) : "") +
       '<div class="ib-cbox">' +
       (writing && V ? V.workingHtml(aiWorkView(), ic) : draft && V ? V.draftHtml(draft, busy || (_aiBusy ? "x" : ""), ic) : "") +
+      filesHtml(c) +
       '<div class="ib-cin">' +
         '<textarea rows="1" placeholder="' + esc(ph) + '" aria-label="' + esc(t("ib.cin_aria")) + '"></textarea>' +
         micHtml(c) +
+        (fm ? '<button type="button" class="s-btn-ghost ib-plus" title="' + esc(t(fm === "image" ? "ht.file_add_img" : "ht.file_add")) +
+          '" aria-label="' + esc(t(fm === "image" ? "ht.file_add_img" : "ht.file_add")) + '">' + ic("plus") + '</button>' +
+          '<input type="file" class="ib-plus-in" hidden multiple' + (fm === "image" ? ' accept="image/*"' : "") + '>' : "") +
         (laBot && !priv ? '<button type="button" class="s-btn-ghost ib-ask"' + (_aiBusy ? " disabled" : "") + ' title="' + esc(t("ib.ai_reply_t")) +
           '" aria-label="' + esc(t("ib.ai_reply")) + '">' +
           (_aiBusy === "ask" ? spin() : ic("sparkles")) + '<span>' + esc(t(_aiBusy === "ask" ? "ib.ai_busy" : "ib.ai_reply")) + '</span></button>' : "") +
@@ -2474,15 +2542,26 @@
     var nut = box && box.querySelector(".ht-send");
     if (!ta || _dangGui) return;
     var txt = ta.value.trim();
-    if (!txt) return;
+    var ds = fileMode(c, canPrivate(c) && _privFor === c.id) ? pendingFiles(c).slice() : [];
+    if (!txt && !ds.length) return;
     _dangGui = true;
     ta.disabled = true; if (nut) nut.disabled = true;
     try {
-      if (canPrivate(c) && _privFor === c.id) {
+      // Picked files first, one by one; the typed words ride as the caption of the first, so nothing is sent twice.
+      while (ds.length) {
+        var f = ds[0];
+        await api("/conversations/" + c.id + "/send-file", { method: "POST", body: fd({ file: f.file, text: txt }) });
+        txt = ""; ta.value = "";
+        ds.shift();
+        var left = _files[c.id] || [];
+        if (left[0] === f) { left.shift(); if (f.url && window.URL && URL.revokeObjectURL) URL.revokeObjectURL(f.url); }
+        if (!left.length) delete _files[c.id];
+      }
+      if (txt && canPrivate(c) && _privFor === c.id) {
         await api("/conversations/" + c.id + "/private-reply", { method: "POST", body: fd({ text: txt }) });
         // One private message per comment: back to public replies, so the next Send does not hit Meta's limit.
         _privFor = 0;
-      } else {
+      } else if (txt) {
         await api("/conversations/" + c.id + "/reply", { method: "POST", body: fd({ text: txt }) });
       }
       ta.value = "";
