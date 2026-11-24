@@ -4,6 +4,15 @@
 
 NAOTA release history. Newest first.
 
+## [1.69.0] - 2026-11-25
+### Added
+- **Send images and files to customers from the inbox** with the + button in the reply box, through the customer's own channel (up to 25 MB a file). Ask Naota in chat to "send the customer the price list" and it sends the file from the brain.
+- **Facebook and Instagram comment threads show their post** under the chat head. A pack from the Naota Store can add new inbox channels, and its install screen says what the channel may do.
+- **Naota hears voice messages when it reads personal Zalo history.**
+
+### Fixed
+- **Zalo bots misbehave less:** no stray work files, no 10 minutes of silence after a long answer, photos and voice messages no longer arrive as empty files, and Zalo OA sees the photos customers send. Stats no longer count Naota's own messages as manual replies, and Codex reaches Naota's tools again.
+
 ## [1.68.0] - 2026-11-25
 ### Improved
 - **Antigravity answers much faster.** Each chat keeps a process ready and resumes its own conversation, so from the second turn the first word arrives in 2 to 3 seconds. While you wait you see what the model is thinking, and every step says what it is doing.

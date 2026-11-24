@@ -26,6 +26,7 @@ import asyncio
 import dataclasses
 import glob
 import hashlib
+import inspect
 import ipaddress
 # `sys` phải nằm ở ĐẦU file: rải rác trong file có chỗ `import sys` cục bộ, nhưng cũng có chỗ
 # dùng sys.stderr mà quên import - và vì chúng nằm trong nhánh `except` (đường ghi log lỗi),
@@ -6108,6 +6109,10 @@ def _write_codex_profile():
     bản Naota chạy chung một $HOME không ghi đè profile của nhau - xem chú thích ở hàm đó."""
     if _hub_enabled():
         return mcp_hub.codex_profile("full")
+    # Hub off: deliberately NO `default_tools_approval_mode` here (unlike mcp_hub.codex_profile). These servers
+    # are called straight from Codex, with no hub to enforce X-Naota-Mode, so Codex's own approval check is the only
+    # thing that keeps a sandboxed suggest/auto job from outside actions. A job at full runs Codex with no sandbox,
+    # where Codex asks no approval, so it still reaches them.
     path = mcp_hub.codex_profile_path()
     lines, seen = [], set()
     for s in mcp_store.servers_for_client():
@@ -18053,6 +18058,9 @@ async def _start_scheduler():
         _threading.Thread(target=_cat_nhom_cu_nen, daemon=True, name="cat-nhom-cu").start()
     except Exception as e:
         print(f"[conversations cắt nhóm] {type(e).__name__}: {e}", file=__import__('sys').stderr)
+    # A model reading zalo_get_history hears its voice messages with the same ears (zalo_voice_history).
+    import zalo_voice_history
+    zalo_voice_history.HEAR = _stt_nghe
     try:
         # Bot chuyên trách: nối bộ giám sát rồi bật những con đang để BẬT. Nối ở đây chứ không
         # để module tự import main - vòng import là thứ byte-compile không thấy, chỉ chết lúc
@@ -27695,10 +27703,11 @@ def _tg_ket(clean_out, files, canh_bao="", loi=(), khach=False):
 
     `khach=True` (a full-access dedicated bot): the person reading is a CUSTOMER, not the owner.
     The system warning and the mid-turn error then go to `canh_bao`, which the bot log shows the owner,
-    instead of being glued to the reply ("⚠ Có lỗi giữa lượt: ..." in a customer group)."""
+    instead of being glued to the reply ("⚠ Có lỗi giữa lượt: ..." in a customer group). It also carries no files
+   : a bot chat receives only the images its Agent embeds, picked later by `chatbot_runtime`."""
     if khach:
         ghi_chu = [str(canh_bao or "").strip()] + (["Có lỗi giữa lượt: " + str(loi[0])] if loi else [])
-        ket = {"text": clean_out or "", "files": files or []}
+        ket = {"text": clean_out or "", "files": []}
         if any(ghi_chu):
             ket["canh_bao"] = " · ".join(x for x in ghi_chu if x)[:500]
         return ket
@@ -28710,7 +28719,10 @@ async def _tg_answer_engine(text, meta, progress, *, chat_id, sess, brain, mcfg,
             await _nuot_codex(compaction.codex_bootstrap_prompt(_raw, _hien_tai))
         if not out:
             return "⚠ " + (loi[0] if loi else "Codex không trả về nội dung nào.")
-        files = channel_context.collect_turn_files(
+        # A dedicated bot at "full" gathers no files, in a customer's chat or the owner's own: the turn's
+        # working files are not for that chat, and leaving the reply's `![](...)` in place lets `chatbot_runtime` send
+        # only the images the Agent embedded.
+        files = [] if _bot_full else channel_context.collect_turn_files(
             out, written, t0, cwd=_brain_root(brain), exclude=sess["sent"],
             vault_root=_brain_root(brain),
         )
@@ -28786,7 +28798,8 @@ async def _tg_answer_engine(text, meta, progress, *, chat_id, sess, brain, mcfg,
         _tg_compact_bg(sess, prov, api_key, api_model)
         # MCP đa-model có thể tạo ảnh/file dù engine không có tool Write native. Thu đường dẫn
         # Markdown giống nhánh Codex/Claude để OpenRouter cũng gửi media thật qua Telegram.
-        files = channel_context.collect_turn_files(
+        # Not for a dedicated bot at "full" (see the Codex branch).
+        files = [] if _bot_full else channel_context.collect_turn_files(
             out, [], t0, cwd=_brain_root(brain), exclude=sess["sent"],
             vault_root=_brain_root(brain),
         )
@@ -28894,9 +28907,9 @@ async def _tg_answer_engine(text, meta, progress, *, chat_id, sess, brain, mcfg,
         # File sinh ra trong lượt → bot gửi đính kèm SAU câu trả lời (xem telegram_bot._handle_turn).
         # vault_root = brain phiên này: ảnh Naota tạo nhúng dạng ![](attachments/x.png) (path tương
         # đối) được resolve về gốc vault để tự đính kèm về ĐÚNG người đang chat, khỏi phải curl.
-        files = channel_context.collect_turn_files(out, written, t0,
-                                                   cwd=_brain_root(brain), exclude=sess["sent"],
-                                                   vault_root=_brain_root(brain))
+        # Not for a dedicated bot at "full" (see the Codex branch).
+        files = [] if _bot_full else channel_context.collect_turn_files(
+            out, written, t0, cwd=_brain_root(brain), exclude=sess["sent"], vault_root=_brain_root(brain))
         # Lọc SAU collect_turn_files: hàm đó dò đường dẫn file trong text gốc, lọc trước là mất dấu.
         clean_out = channel_context.strip_attached_media(
             channel_context.strip_control_blocks(out), files, _brain_root(brain)
@@ -30188,6 +30201,26 @@ async def channels_webhook_info(request: Request, channel: str = ""):
                     "HTTPS rồi mở lại form này để lấy đúng địa chỉ.",
                     "WeChat can only call a public address on port 443 (https) or 80. Open Naota through its "
                     "HTTPS domain, then reopen this form to get the right address.")}
+    # Optional channel hook (pack channels): `webhook_info(base_url, params) -> dict`, sync or async. A dict with
+    # "ok": False is an error; its "status" (default 400) is the HTTP status. The route itself stays owner-only.
+    hook = getattr(channels.module(kenh), "webhook_info", None) if kenh != "messenger" else None
+    if callable(hook):
+        base = web_security.external_base(
+            request.url.scheme, request.url.netloc,
+            request.headers.get("x-forwarded-proto", ""), request.headers.get("x-forwarded-host", ""))
+        try:
+            r = hook(base, dict(request.query_params))
+            if inspect.isawaitable(r):
+                r = await r
+        except Exception as e:  # noqa: BLE001
+            print(f"[webhook-info] {kenh}: {type(e).__name__}: {e}", file=sys.stderr)
+            r = {"ok": False, "error": localefmt.chu("Kênh này chưa trả được địa chỉ webhook",
+                                                     "This channel could not give its webhook address"), "status": 502}
+        r = dict(r or {})
+        if r.get("ok") is False:
+            return JSONResponse(r, status_code=int(r.pop("status", 400) or 400))
+        r.pop("status", None)
+        return {"ok": True, **r}
     if kenh != "messenger":
         return JSONResponse({"ok": False, "error": localefmt.chu("Kênh này không dùng webhook",
                                                                  "This channel does not use a webhook")},

@@ -6,6 +6,15 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.69.0] - 2026-11-25
+### Thêm mới
+- **Gửi ảnh và file cho khách ngay trong hộp thư** bằng nút + ở ô trả lời, qua đúng kênh của khách (tối đa 25 MB mỗi file). Nhờ Naota trong chat "gửi khách bảng giá" là Naota lấy file trong bộ não gửi đi.
+- **Cuộc bình luận Facebook và Instagram hiện bài viết gốc** ngay dưới đầu khung chat. Gói trong Chợ ứng dụng thêm được kênh hộp thư mới, màn cài nói rõ kênh được làm gì.
+- **Naota nghe được tin thoại khi đọc lịch sử Zalo cá nhân.**
+
+### Sửa lỗi
+- **Bot Zalo bớt lỗi:** không gửi nhầm file làm việc, không im 10 phút sau câu trả lời dài, ảnh và tin thoại không còn thành file rỗng, Zalo OA xem được ảnh khách gửi. Thống kê không tính tin Naota tự gửi là trả lời tay, và Codex gọi được công cụ của Naota trở lại.
+
 ## [1.68.0] - 2026-11-25
 ### Cải thiện
 - **Antigravity trả lời nhanh hơn hẳn.** Mỗi cuộc chat giữ sẵn một tiến trình và nối tiếp đúng mạch, nên từ lượt thứ hai chữ đầu về sau 2 đến 3 giây. Trong lúc chờ, bạn thấy model đang nghĩ gì, và từng bước ghi rõ việc đang làm.

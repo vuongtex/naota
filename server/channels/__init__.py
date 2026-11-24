@@ -37,6 +37,11 @@ Ba LOẠI kênh (`kind`), khác nhau ở cách có tài khoản chứ không ở
 Thêm một kênh = thêm một file ở đây + một dòng trong `_MODULES` + một logo trong icons.js.
 Không sửa gì khác.
 
+Channels from a Store pack: a pack lists `provides.channels: [channels/<name>.py]` in its manifest. The module
+follows the same contract as a core channel, so `_MODULES` does not change. A pack channel loads
+after the core ones, only from an ENABLED pack whose code passed the install gate (`packs.code_allowed`), and
+never replaces a channel id that already exists: on any problem it is MISSING, never half-loaded.
+
 Optional module attributes (internal API channel):
     GENERATED_KEY = True          the account secret is a key Naota generates on Save and shows once (no pasted token);
                                   the module provides `new_key()`, `key_meta(raw)`, `default_settings()`
@@ -49,6 +54,8 @@ Optional module attributes (internal API channel):
 from __future__ import annotations
 
 import importlib
+import importlib.util
+import re
 import sys
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
@@ -83,6 +90,8 @@ class KenhSpec:
     # Bản tiếng Anh của chữ hiện ra (`nhan`, `lay_token`, `tom_tat`). Thiếu thì lấy ở
     # `_EN_MAC_DINH` theo id, rồi mới tới bản tiếng Việt.
     en: Dict[str, str] = field(default_factory=dict)
+    # Id of the Store pack that added this channel ("" for core channels).
+    pack: str = ""
 
     def nl(self, khoa: str) -> bool:
         return bool(self.nang_luc.get(khoa, NANG_LUC_MAC_DINH.get(khoa, False)))
@@ -113,17 +122,22 @@ _EN_MAC_DINH: Dict[str, Dict[str, str]] = {
 }
 
 _DS: Optional[Dict[str, KenhSpec]] = None
+_DS_SIG: Optional[str] = None
 _MOD: Dict[str, object] = {}
 
 
 def _nap() -> Dict[str, KenhSpec]:
-    global _DS
-    if _DS is not None:
+    global _DS, _DS_SIG
+    sig = _packs_signature()
+    if _DS is not None and _DS_SIG == sig:
         return _DS
+    _DS_SIG = sig
     ds: Dict[str, KenhSpec] = {}
-    for ten in _MODULES:
+    mods: dict = {}
+    sources = [(ten, "") for ten in _MODULES] + _pack_channel_files()
+    for ten, pid in sources:
         try:
-            m = importlib.import_module(ten)
+            m = _load_pack_module(ten, pid) if pid else importlib.import_module(ten)
         except Exception as e:      # một kênh hỏng KHÔNG được kéo cả sổ chết
             print(f"[channels] không nạp được {ten}: {type(e).__name__}: {e}", file=sys.stderr)
             continue
@@ -131,6 +145,11 @@ def _nap() -> Dict[str, KenhSpec]:
         if not isinstance(spec, KenhSpec) or spec.kind not in KIND or not spec.id:
             print(f"[channels] {ten} không có SPEC hợp lệ, bỏ qua", file=sys.stderr)
             continue
+        if pid:
+            if spec.id in ds:
+                print(f"[channels] pack {pid}: channel '{spec.id}' already exists, skipped", file=sys.stderr)
+                continue
+            spec.pack = pid
         nl = dict(NANG_LUC_MAC_DINH)
         nl.update(spec.nang_luc or {})
         # Hai năng lực suy ra từ chính module, không tin lời khai: có hàm mới có năng lực.
@@ -146,9 +165,61 @@ def _nap() -> Dict[str, KenhSpec]:
         if not spec.logo:
             spec.logo = spec.id
         ds[spec.id] = spec
-        _MOD[spec.id] = m
+        mods[spec.id] = m
+    # Swap both at once: a channel of a pack that was just removed must not linger in _MOD.
+    _MOD.clear()
+    _MOD.update(mods)
     _DS = ds
     return ds
+
+
+def _packs_signature() -> str:
+    try:
+        import packs
+        return str(packs.signature())
+    except Exception:  # noqa: BLE001
+        return ""
+
+
+def _pack_channel_files() -> list:
+    """[(file path, pack id)] of pack channels allowed to run. Never raises."""
+    try:
+        import packs
+        ra = []
+        for pid, path in packs.channel_files():
+            ok, reason = packs.code_allowed(pid)
+            if not ok:
+                print(f"[channels] pack {pid}: channel {path.name} not loaded: {reason}", file=sys.stderr)
+                continue
+            ra.append((str(path), pid))
+        return ra
+    except Exception as e:  # noqa: BLE001
+        print(f"[channels] could not read pack channels: {type(e).__name__}: {e}", file=sys.stderr)
+        return []
+
+
+def _load_pack_module(path: str, pid: str):
+    """Import one pack channel file as `channels._pack_<pack>_<name>` (stable name, so a reload replaces it)."""
+    from pathlib import Path
+    ten = "channels._pack_" + re.sub(r"[^a-z0-9_]", "_", pid) + "_" + Path(path).stem
+    spec = importlib.util.spec_from_file_location(ten, path)
+    if spec is None or spec.loader is None:
+        raise ImportError(path)
+    m = importlib.util.module_from_spec(spec)
+    sys.modules[ten] = m
+    try:
+        spec.loader.exec_module(m)
+    except BaseException:
+        sys.modules.pop(ten, None)
+        raise
+    return m
+
+
+def reload_registry() -> None:
+    """Forget the registry so the next read rebuilds it (a pack was installed, removed, switched)."""
+    global _DS, _DS_SIG
+    _DS, _DS_SIG = None, None
+    _MOD.clear()
 
 
 def danh_sach() -> List[KenhSpec]:
@@ -232,6 +303,7 @@ def cho_giao_dien() -> List[dict]:
     for s in danh_sach():
         out.append({
             "id": s.id, "nhan": _chu_spec(s, "nhan"), "kind": s.kind, "logo": s.logo, "mau": s.mau,
+            "pack": s.pack,
             "lay_token": _chu_spec(s, "lay_token"), "tom_tat": _chu_spec(s, "tom_tat"),
             "tien_to_ten": s.tien_to_ten,
             "nang_luc": dict(s.nang_luc),
@@ -276,6 +348,31 @@ async def gui(kenh: str, tk: dict, chat_id: str, text: str, chat_type: str = "pr
         return False, f"{s.nhan} chưa gửi được tin từ Naota"
     try:
         return await m.gui(tk, str(chat_id), str(text or ""), chat_type or "private", **extra)
+    except Exception as e:
+        return False, f"{type(e).__name__}: {e}"
+
+
+def can_send_file(channel: str) -> bool:
+    """True when `send_file` can carry an image or file on this channel: the `gui_file` capability AND a module
+    `send_file`. Asked before anything is stored or sent (the inbox route, the `inbox_reply` tool)."""
+    s = spec(channel)
+    return bool(s and s.nl("gui_file") and hasattr(module(channel), "send_file"))
+
+
+async def send_file(kenh: str, tk: dict, chat_id: str, path: str, caption: str = "", chat_type: str = "private"):
+    """Send one image or file through a channel (the inbox's + button). `(ok, error)`.
+
+    Only a channel with the `gui_file` capability AND a module `send_file(tk, chat_id, path, caption, chat_type)`."""
+    import localefmt
+    s = spec(kenh)
+    m = module(kenh)
+    if not s or not m:
+        return False, localefmt.chu(f"kênh '{kenh}' không có trong sổ đăng ký", f"channel '{kenh}' is not in the registry")
+    if not can_send_file(kenh):
+        return False, localefmt.chu(f"{s.nhan} chưa gửi được ảnh hay file từ Naota",
+                                    f"{s.nhan} cannot send images or files from Naota yet")
+    try:
+        return await m.send_file(tk, str(chat_id), str(path), str(caption or ""), chat_type or "private")
     except Exception as e:
         return False, f"{type(e).__name__}: {e}"
 
