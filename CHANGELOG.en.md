@@ -4,6 +4,15 @@
 
 NAOTA release history. Newest first.
 
+## [1.70.0] - 2026-11-25
+### Added
+- **Pin messages to the top of a chat, like Zalo.** A pin bar sits above the chat on the Chatbot, Partners and Chat pages; tapping a pin jumps to that message. On a phone, press and hold a message to pin it.
+- **Pick the default brain for Naota Gate** on the Connections page, so notes from claude.ai or ChatGPT no longer land in the brain you touched last. With several brains, the outside AI asks you before writing.
+
+### Fixed
+- **Stop really stops:** messages typed while Naota was answering no longer start a new turn by themselves, and they stay in the chat to send again.
+- **Several partners at work fold into one row**, and the empty band under the input on phones is gone.
+
 ## [1.69.0] - 2026-11-25
 ### Added
 - **Send images and files to customers from the inbox** with the + button in the reply box, through the customer's own channel (up to 25 MB a file). Ask Naota in chat to "send the customer the price list" and it sends the file from the brain.

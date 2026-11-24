@@ -6813,6 +6813,9 @@
       // Connected Facebook Pages (messenger-connect.js), one card in this same list, drawn only once a Page is
       // connected. It used to be a section of its own further down, with the form open in the page.
       + '<div class="prov-list" id="mcpMessenger"></div>'
+      // The Naota Gate card (gate-brain.js): the brain the Gate uses when ChatGPT or Claude names none. Drawn
+      // only while the Naota Gate package is installed.
+      + '<div class="prov-list" id="mcpGate"></div>'
       + '<div class="mp-empty" id="connNone" hidden>' + esc(window.t("cs.cn_conn_search_none")) + '</div></div>'
       // Lối đi tiếp, đặt ngay dưới danh sách. Không có nó thì tab này là ngõ cụt với
       // người chưa đấu gì: họ nhìn một ô trống mà không biết bước kế tiếp ở đâu.
@@ -6861,6 +6864,7 @@
     window.NaotaConnModal = { open: connModal, head: mHead, close: closeConnModal };
     if (window.NaotaMessenger) window.NaotaMessenger.mount(document.getElementById("mcpMessenger"));
     if (window.NaotaGithubRepos) window.NaotaGithubRepos.mount(document.getElementById("mcpGithub"));
+    if (window.NaotaGateBrain) window.NaotaGateBrain.mount(document.getElementById("mcpGate"));
     el.querySelectorAll("#catGrid [data-msc-open]").forEach(b => b.onclick = () => {
       if (window.NaotaMessenger && window.NaotaMessenger.openForm) window.NaotaMessenger.openForm(null);
     });
@@ -6963,6 +6967,13 @@
         const okM = !q || msg.textContent.toLowerCase().includes(q);
         msg.style.display = okM ? "" : "none";
         if (okM && q && msg.textContent.trim()) hits++;
+      }
+      // The Naota Gate card follows the same rule.
+      const gate = document.getElementById("mcpGate");
+      if (gate) {
+        const okG = !q || gate.textContent.toLowerCase().includes(q);
+        gate.style.display = okG ? "" : "none";
+        if (okG && q && gate.textContent.trim()) hits++;
       }
       const tab = document.getElementById("mcpTabDaNoi");
       if (tab) tab.classList.toggle("searching", !!q);
