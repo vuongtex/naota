@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.71.0] - 2026-11-26
+### Added
+- **Open one Inbox conversation from a link.** A report with a `#ht=<conversation id>` link now takes you straight to that customer's chat.
+
 ## [1.70.0] - 2026-11-25
 ### Added
 - **Pin messages to the top of a chat, like Zalo.** A pin bar sits above the chat on the Chatbot, Partners and Chat pages; tapping a pin jumps to that message. On a phone, press and hold a message to pin it.
