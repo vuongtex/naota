@@ -2,7 +2,7 @@
 
        node tests/js/test_deep_link_conv.js
 
-   Owner 2026-11-25: a report listing customers who wait for an answer should carry a button that opens that
+   A report listing customers who wait for an answer should carry a button that opens that
    customer's chat. Runs console.js's deepLinkConv, chat-render.js's link rule and conversations.js's moTu. */
 const fs = require("fs");
 const path = require("path");

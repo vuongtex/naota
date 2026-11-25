@@ -5,8 +5,8 @@
 NAOTA release history. Newest first.
 
 ## [1.71.0] - 2026-11-26
-### Improved
-- In progress: porting Mở thẳng một cuộc hội thoại Hộp thư từ link.
+### Added
+- **Open one Inbox conversation from a link.** A report with a `#ht=<conversation id>` link now takes you straight to that customer's chat.
 
 ## [1.70.0] - 2026-11-25
 ### Added
