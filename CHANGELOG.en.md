@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.71.0] - 2026-11-26
+### Improved
+- In progress: porting Mở thẳng một cuộc hội thoại Hộp thư từ link.
+
 ## [1.70.0] - 2026-11-25
 ### Added
 - **Pin messages to the top of a chat, like Zalo.** A pin bar sits above the chat on the Chatbot, Partners and Chat pages; tapping a pin jumps to that message. On a phone, press and hold a message to pin it.

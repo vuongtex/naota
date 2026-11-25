@@ -6,6 +6,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.71.0] - 2026-11-26
+### Cải thiện
+- Đang làm: lấy Mở thẳng một cuộc hội thoại Hộp thư từ link.
+
 ## [1.70.0] - 2026-11-25
 ### Thêm mới
 - **Ghim tin nhắn lên đầu cuộc chat, như Zalo.** Thanh ghim nằm trên khung chat ở trang Chatbot, Cộng sự và Trò chuyện; bấm một tin ghim là nhảy tới đúng tin đó. Trên điện thoại nhấn giữ tin để ghim.
