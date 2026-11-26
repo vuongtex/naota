@@ -6,6 +6,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.72.0] - 2026-11-26
+### Sửa lỗi
+- (đang viết)
+
 ## [1.71.0] - 2026-11-26
 ### Thêm mới
 - **Mở thẳng một cuộc trò chuyện trong Hộp thư.** Báo cáo có link `#ht=<mã hội thoại>` thì bấm vào là tới đúng cuộc trò chuyện của khách, không phải tự tìm.
