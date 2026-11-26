@@ -6,6 +6,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.73.0] - 2026-11-27
+### Cải thiện
+- Đang làm: lấy bản nguồn mới: tên khách Zalo OA và Messenger, model riêng từng cửa sổ chat, Windows giữ cổng, thanh công cụ trợ lý một hàng.
+
 ## [1.72.0] - 2026-11-26
 ### Sửa lỗi
 - **Không bao giờ đăng một bài hai lần.** Bài có chữ giống hệt bài vừa lên cùng kênh, cùng trang trong 24 giờ thì Naota từ chối đăng lại, dù lệnh đến từ việc lặp, lịch hẹn hay khung chat. Đổi mỗi hashtag cũng vẫn tính là trùng. Bình luận và tin nhắn trả lời khách không bị chặn. Đăng hỏng thì đăng lại được ngay.
