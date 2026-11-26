@@ -1,0 +1,13 @@
+name: Chống đăng trùng
+name_en: "Duplicate post guard"
+slug: chong-dang-trung
+version: 1.0.0
+description: Chặn đăng lại một bài có chữ giống hệt bài vừa đăng lên cùng kênh, cùng trang trong 24 giờ, dù lệnh đến từ việc lặp, lịch nhắc hay khung chat. Bình luận và tin nhắn không bị chặn.
+description_en: "Blocks publishing a post whose text matches one already published to the same channel and account in the last 24 hours, whether a loop, a reminder or a chat asked for it. Comments and messages are never blocked."
+author: Naota (bundled)
+enabled: true
+min_mode: readonly
+tools: []
+hooks:
+  - pre_tool_call
+  - post_tool_call

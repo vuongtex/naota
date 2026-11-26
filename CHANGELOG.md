@@ -8,7 +8,7 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 ## [1.72.0] - 2026-11-26
 ### Sửa lỗi
-- (đang viết)
+- **Không bao giờ đăng một bài hai lần.** Bài có chữ giống hệt bài vừa lên cùng kênh, cùng trang trong 24 giờ thì Naota từ chối đăng lại, dù lệnh đến từ việc lặp, lịch hẹn hay khung chat. Đổi mỗi hashtag cũng vẫn tính là trùng. Bình luận và tin nhắn trả lời khách không bị chặn. Đăng hỏng thì đăng lại được ngay.
 
 ## [1.71.0] - 2026-11-26
 ### Thêm mới
