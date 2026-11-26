@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.72.0] - 2026-11-26
+### Fixed
+- **A post is never published twice.** If a post has the same text as one that went live on the same channel and account in the last 24 hours, Naota refuses to publish it again, whether a loop, a reminder or a chat asked. Changing only the hashtags still counts as the same post. Comments and replies to customers are never blocked. A failed post can be retried right away.
+
 ## [1.71.0] - 2026-11-26
 ### Added
 - **Open one Inbox conversation from a link.** A report with a `#ht=<conversation id>` link now takes you straight to that customer's chat.
