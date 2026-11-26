@@ -6,6 +6,25 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.73.0] - 2026-11-27
+### Sửa lỗi
+- **Mỗi cửa sổ chat giữ model và mức suy nghĩ riêng.** Đổi ở cửa sổ này không còn kéo cửa sổ khác, trang Models hay file của trợ lý đổi theo. Chat riêng với trợ lý chạy theo mức của chính cửa sổ đó, chưa chọn thì theo cài đặt của trợ lý.
+- **Chọn model trong khung chat không còn đảo Thứ tự dùng.** Trước đây thẻ vừa chọn tự nhảy lên đầu thành model chính. Giờ thứ tự chỉ đổi ở trang Models, và việc chỉ chuyển xuống thẻ dự phòng bên dưới khi thẻ trên hết lượt.
+- **Việc nền đi đúng Thứ tự dùng.** Bắt đầu từ model việc nền đã cài; hết lượt thì xuống model chính, rồi dự phòng 1, 2... Trước đây model chính bị đẩy xuống cuối.
+- **Khi một thẻ hết lượt, thẻ chạy thay dùng đúng mức suy nghĩ đã đặt cho nó** ở trang Models, trong chat, chat trợ lý, team và chatbot.
+- **Trợ lý làm việc tự động giữ đúng mức suy nghĩ của mình.** Lượt team trên ChatGPT, Grok Build, Antigravity trước đây bỏ qua mức này; bước workflow chạy model API trước đây tắt hẳn suy nghĩ; chatbot trước đây theo mức của thẻ model thay vì của trợ lý.
+- **Việc Kanban giao cho trợ lý chạy bằng model và mức suy nghĩ của trợ lý đó**, không còn chạy model việc nền ở mức "thấp".
+- **Chat cũ với trợ lý theo model hiện tại của trợ lý.** Trước đây mỗi cuộc chat giữ model chụp lúc mở, đổi model ở cài đặt trợ lý không ảnh hưởng. Model bạn tự chọn trong một cửa sổ vẫn được giữ.
+- **Lượt ChatGPT không còn trả về bong bóng rỗng không lý do.** Codex dừng giữa chừng hay báo lỗi rồi im thì Naota nói rõ; model trả lời rỗng thì Naota hỏi lại một lần, vẫn rỗng thì gợi ý đổi model.
+- **Tài liệu Messenger:** nói đúng dấu hiệu app Meta chưa có quyền nâng cao (chỉ thấy tin Nhân viên, tên khách là dãy số), kèm mẫu hồ sơ xét duyệt `pages_messaging`.
+- **Thanh nút trang Cộng sự trên điện thoại gọn còn một dòng.** Bỏ nút "Hội thoại mới" trùng với nút + ở đầu trang, nút "Tài liệu & Đã học" chỉ còn cái ghim, nút thu gọn bên phải không rớt xuống dòng riêng nữa.
+- **Nút + ở đầu trang mở cuộc mới của đúng trợ lý đang chọn** khi đang ở trang Cộng sự.
+- **Naota trên Windows không còn tự "mất kết nối" phải khởi động lại.** Trước đây một kết nối bị rớt giữa chừng, hay gặp lúc máy vừa thức dậy, làm máy chủ ngừng nhận kết nối mới dù vẫn đang chạy.
+- **Bớt khựng khi dùng Grok.** Bước hỏi phiên bản Grok không còn làm cả ứng dụng đứng hình vài giây.
+- **Giữ lại 5 file log gần nhất** khi khởi động lại trên Windows, để còn dấu vết khi cần tìm lỗi.
+- **Hội thoại Zalo OA trong Hộp thư hiện tên khách, không còn chỉ là mã số.** Trước đây chỉ cần một lần hỏi tên Zalo bị từ chối là Naota nhớ tên rỗng tới khi khởi động lại. Giờ Naota thử lại sau 10 phút, lấy tên từ lịch sử tin nhắn của OA khi Zalo không cho đọc hồ sơ khách, và tự điền tên cho các hội thoại cũ lúc bot khởi động. Tên chủ đã tự đặt thì giữ nguyên.
+- **Cuộc chat do Page hoặc OA mở trước (tin trả lời tự động, tin chào, tin từ quảng cáo) hiện tên khách, không còn là dãy số.** Áp dụng cho Messenger và Zalo OA. Các cuộc cũ đang hiện dãy số được tự điền tên khi bot khởi động.
+
 ## [1.72.0] - 2026-11-26
 ### Sửa lỗi
 - **Không bao giờ đăng một bài hai lần.** Bài có chữ giống hệt bài vừa lên cùng kênh, cùng trang trong 24 giờ thì Naota từ chối đăng lại, dù lệnh đến từ việc lặp, lịch hẹn hay khung chat. Đổi mỗi hashtag cũng vẫn tính là trùng. Bình luận và tin nhắn trả lời khách không bị chặn. Đăng hỏng thì đăng lại được ngay.
