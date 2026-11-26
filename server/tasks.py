@@ -287,7 +287,7 @@ class TasksDeps:
     # việc giao cho một trợ lý (nút Giao việc ở tab Công việc) chạy với vai của trợ lý đó. (root, slug) -> đoạn
     # lời nhắc vai trò, rỗng khi không có. Engine, quyền và trần của Kanban giữ nguyên.
     agent_persona: Optional[Callable[[str, str, str], str]] = None
-    # 25/11/2026: {provider, model, reasoning} a job assigned to an assistant runs on (the assistant's own model and
+    #: {provider, model, reasoning} a job assigned to an assistant runs on (the assistant's own model and
     # level), or None to keep the background model. `fn(root, slug, key)`; main._agent_job_spec.
     agent_job_spec: Optional[Callable[..., Optional[dict]]] = None
     # Background router with an explicit first step: `fn(cli, mode, tag, spec)`; main._aux_swap_spec.
@@ -864,7 +864,7 @@ class TasksFeature:
     @staticmethod
     def _assigned_agent(task: dict) -> tuple:
         """(slug, key or None) of the assistant a job is given to, ("", None) for none. Owner's pick (`agent:` key)
-        first, then the specifier's routing (0.411.0)."""
+        first, then the specifier's routing."""
         key = str(task.get("idempotency_key") or "")
         if key.startswith("agent:"):
             parts = key[len("agent:"):].split(":")
@@ -944,7 +944,7 @@ class TasksFeature:
             if mcp_file:
                 cli.mcp_config = mcp_file
                 cli.mcp_strict = True
-        # 25/11/2026 (owner: an assistant working on its own uses ITS model and level): the work step of a job given to
+        # (an assistant working on its own uses ITS model and level): the work step of a job given to
         # an assistant runs on that assistant's model at its level, then the usage order's fallbacks at their own
         # settings. The specifier and the acceptance check stay on the background model.
         spec = self._agent_spec(task) if tag_suffix == "execute" else None
@@ -1394,7 +1394,7 @@ plainly that acting on its own is allowed; otherwise auto, so the kernel stops i
 
         cli = self._base_cli(task, tools, mode, "execute")
         if (task.get("metadata") or {}).get("effort") == "light" and not getattr(cli, "naota_agent_spec", None):
-            # An assistant's job keeps the assistant's own level (25/11/2026); only a plain job is made lighter.
+            # An assistant's job keeps the assistant's own level; only a plain job is made lighter.
             self._lighten(cli)
         # `disallowed` rỗng ở mức full: gán một danh sách rỗng vẫn khác gán None ở chỗ khác
         # trong mã, nên đặt None cho rõ ý "không chặn gì". Đặt `["Task"]` như ba mức dưới là

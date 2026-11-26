@@ -1,4 +1,4 @@
-"""Chats the Page or the OA opened show the customer's name, not a bare id (25/11/2026).
+"""Chats the Page or the OA opened show the customer's name, not a bare id.
 
     python tests/run.py inbox_bare_id_names      (no network)
 

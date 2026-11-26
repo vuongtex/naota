@@ -916,7 +916,7 @@ class MessengerBot(HangLuot):
         words = "\n".join([t for t in notes if t] + ([text] if text else [])).strip()
         if not words and not files:
             return
-        # 25/11/2026: the Page's own messages (auto replies, greetings, ad replies) open a chat before the customer
+        # The Page's own messages (auto replies, greetings, ad replies) open a chat before the customer
         # writes, and it showed as a bare PSID: the customer's name goes with the message.
         try:
             name = await self._name_of(client, chat)
@@ -1141,7 +1141,7 @@ class MessengerBot(HangLuot):
                 _IG_REGISTRY.pop(self.ig_id, None)
 
     async def backfill_names(self, client=None, limit: int = 150) -> int:
-        """Name the people this Page's inbox shows as a bare PSID (25/11/2026): chats the Page opened with an auto reply
+        """Name the people this Page's inbox shows as a bare PSID: chats the Page opened with an auto reply
         or a greeting before the customer wrote, and customers whose name lookup failed. Once at start, a short pause
         between lookups so Graph is not flooded; a miss is tried again later by `_name_of`'s cool-down. Returns how
         many got a name."""

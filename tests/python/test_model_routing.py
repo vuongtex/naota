@@ -4,7 +4,7 @@
 
 Spec: model-routing-spec. The owner settled every rule on the Models page mockup; this file pins
 the ones the server owns: migration from older settings, MAIN = top card, key rotation, the background order with each
-then the usage order from the top (MAIN first since 25/11/2026), each card on its own model, and the nearest effort level.
+then the usage order from the top (MAIN first now), each card on its own model, and the nearest effort level.
 """
 from _paths import ROOT, SERVER  # noqa: E402,F401
 import asyncio
@@ -129,7 +129,7 @@ m = {"order": ["anthropic-cli", "openai-oauth", "groq"],
 check("a plan provider appears once when asked (quota belongs to the account)",
       [s["provider"] for s in R.background_chain(m, once=("anthropic-cli",))] == ["anthropic-cli", "openai-oauth", "groq"])
 steps = R.background_chain(m)
-# 25/11/2026 (owner): the background model first, then the usage order from the top (MAIN was last before).
+# the background model first, then the usage order from the top (MAIN was last before).
 check("background model first, then the usage order from the top: MAIN, fallback 1, fallback 2",
       [(s["provider"], s["step"]) for s in steps] == [("anthropic-cli", "background"), ("anthropic-cli", "main"),
                                                      ("openai-oauth", "fallback"), ("groq", "fallback")], steps)

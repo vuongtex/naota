@@ -1145,7 +1145,7 @@ class GrokCLI:
         except Exception:
             tep = None
         # Warm the `--help` cache in a worker thread: `_build_args` asks it for every flag, and a cold cache
-        # runs `grok --help` right here, which froze the event loop for seconds (2026-11-25).
+        # runs `grok --help` right here, which froze the event loop for seconds.
         await asyncio.to_thread(_help_text)
         args = self._build_args(prompt_file=tep, prompt_argv=full)
         chan = _chan_moi()

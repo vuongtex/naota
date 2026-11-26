@@ -1,4 +1,4 @@
-"""A ChatGPT (Codex) turn never ends as an empty bubble with no reason (25/11/2026).
+"""A ChatGPT (Codex) turn never ends as an empty bubble with no reason.
 
     python tests/run.py codex_empty_turn      (no network: a fake Codex CLI prints JSONL)
 

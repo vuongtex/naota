@@ -2528,7 +2528,7 @@ body.has-rail .hud { margin-left: var(--rail-w); width: calc(100% - var(--rail-w
 .ws-id .agent-avatar { flex:none; }
 @media (max-width:1200px) { .ws-right { width:310px; } }
 /* Hàng nút đứng trước tiêu đề trong DOM; icon nhỏ và tên luôn cùng một dòng. */
-/* 2026-11-26 (owner: "có nút cộng là hội thoại mới rồi... chỉ cần hiện cái ghim"): wherever the phone header shows
+/*: wherever the phone header shows
    its + (same 860px breakpoint as .new-chat-btn above), the bar drops its own "New conversation" button and the
    documents button shrinks to the paperclip, so the bar is one row: list toggle, paperclip, panel toggle at the right
    edge. workspace.js points the header + at this page's new conversation while the page is open. */

@@ -2,7 +2,7 @@
 
     python tests/run.py accept_guard        (no network, no grok binary needed)
 
-Two halves of one incident (2026-11-25): the event loop froze for a few seconds, a browser gave up on a pending
+Two halves of one incident: the event loop froze for a few seconds, a browser gave up on a pending
 connection, the accept failed with WinError 64 and asyncio closed the listening port. The process stayed alive but
 refused every new connection until it was restarted.
 

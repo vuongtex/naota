@@ -1,4 +1,4 @@
-"""Zalo OA customer names (25/11/2026): every OA chat in the inbox showed a bare user id.
+"""Zalo OA customer names: every OA chat in the inbox showed a bare user id.
 
     python tests/run.py zalo_oa_names      (no network: Zalo is faked)
 

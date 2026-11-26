@@ -113,7 +113,7 @@ check("GET /model/fast-state returns the remembered states",
 # 3. Wiring: both chat entry points set the per-turn choice next to the thinking level, and call the helpers.
 src = open(os.path.join(SERVER, "main.py"), encoding="utf-8").read()
 check("dashboard and Telegram turns set fast_mode next to the thinking level",
-      # 25/11/2026: the level comes from _session_reasoning (dashboard) and _bot_turn_reasoning (Telegram, bots).
+      # The level comes from _session_reasoning (dashboard) and _bot_turn_reasoning (Telegram, bots).
       "reasoning = _session_reasoning(mcfg," in src and "reasoning = _bot_turn_reasoning(mcfg, prov, bot, agent)" in src
       and src.count("fast_mode.use(mcfg.get(\"fast\") is True") >= 2)
 check("Codex call sites apply the tier right after the effort", src.count("_codex_fast(ccli)") >= 2)

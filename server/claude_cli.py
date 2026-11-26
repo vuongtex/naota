@@ -2247,7 +2247,7 @@ class CodexCLI:
         loop = asyncio.get_running_loop()
         queue: asyncio.Queue = asyncio.Queue()
         SENTINEL = object()
-        exit_info = {"rc": None}   # the process's exit code, read when the stream ends (25/11/2026)
+        exit_info = {"rc": None}   # the process's exit code, read when the stream ends
 
         def reader_thread():
             proc = None
@@ -2354,7 +2354,7 @@ class CodexCLI:
                 proc.wait()
                 st.join(timeout=2)
                 exit_info["rc"] = proc.returncode
-                # 25/11/2026: a non-zero exit is an error also with nothing on stderr (before, the chat then showed
+                # A non-zero exit is an error also with nothing on stderr (before, the chat then showed
                 # "(no content returned)"). A process killed by a signal (Stop, a cancelled turn) stays quiet as before.
                 if proc.returncode not in (0, None) and not tinfo["timed_out"] \
                         and (stderr_lines or proc.returncode > 0):
@@ -2387,7 +2387,7 @@ class CodexCLI:
             item = await queue.get()
             if item is SENTINEL:
                 if not ended and (exit_info["rc"] or 0) >= 0:
-                    # 25/11/2026: Codex went away without ending the turn and without an error (exit 0 before the
+                    # Codex went away without ending the turn and without an error (exit 0 before the
                     # end event). Say so instead of leaving an empty bubble.
                     yield {"type": "error", "content": localefmt.chu(
                         "Codex dừng giữa chừng, chưa trả lời và không báo lỗi. Thử gửi lại; vẫn vậy thì đổi model "

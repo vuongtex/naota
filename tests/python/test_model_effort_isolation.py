@@ -1,8 +1,8 @@
-"""Model and effort stay where the owner set them (25/11/2026).
+"""Model and effort stay where the owner set them.
 
     python tests/run.py model_effort_isolation      (no network, no model call)
 
-Owner: "khi agent hay chatbot làm việc tự động dù tự làm hay làm việc trong team thì sử dụng đúng model và mức suy nghĩ
+"khi agent hay chatbot làm việc tự động dù tự làm hay làm việc trong team thì sử dụng đúng model và mức suy nghĩ
 theo cài đặt của agent", "khi chat riêng với agent thì phải sử dụng model và mức suy nghĩ theo cửa sổ chat của chat đó",
 "model và suy nghĩ của các cửa sổ chat không nhảy chồng chéo sang cửa sổ chat khác", "khi 1 kênh model bị limit thì
 suy nghĩ sử dụng theo cài đặt ở model", "cài đặt ưu tiên của các kênh model không được tự ý đảo thứ tự".

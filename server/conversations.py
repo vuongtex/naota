@@ -1180,7 +1180,7 @@ def nameless_customers(channel: str, account_id: str, limit: int = 300) -> List[
     """User ids of this account's people the inbox shows as a bare id, latest first: customers stored without a name,
     and private chats with no title and no named customer (a chat the Page or OA opened before the customer wrote).
     Only all-digit ids (Messenger PSIDs, Zalo user ids), never a comment thread. The Zalo OA and Messenger bots name
-    them at start (25/11/2026)."""
+    them at start."""
     tk = _tai_khoan_id(channel, account_id)
     n = max(1, int(limit))
     with _lock:

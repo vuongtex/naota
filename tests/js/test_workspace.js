@@ -666,7 +666,7 @@ check("studio.js editAgent nhan host + onSaved", /function editAgent\(a, opts\)/
   const i = css.indexOf("@media (max-width:600px) {");
   check("tim duoc khoi man dien thoai cua trang Cong su", i !== -1);
   const khoi = css.slice(i, i + 900);
-  // 2026-11-26 (chủ dự án): hàng nút gọn lại MỘT dòng thay vì xuống dòng. Header điện thoại đã có
+  // hàng nút gọn lại MỘT dòng thay vì xuống dòng. Header điện thoại đã có
   // nút + (hội thoại mới) nên nút "Hội thoại mới" của thanh ẩn đi, nút tài liệu chỉ còn cái ghim, và
   // nút mở cột phải không còn rớt xuống dòng riêng. Tên cộng sự vẫn ở hàng riêng (.ws-id) bên dưới.
   const j = css.indexOf("@media (max-width:860px) {\n  .ws-bar");

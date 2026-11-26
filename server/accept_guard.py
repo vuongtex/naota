@@ -1,4 +1,4 @@
-"""Keep the port listening after a failed accept on Windows (2026-11-25).
+"""Keep the port listening after a failed accept on Windows.
 
 When a browser drops a connection while it is being accepted, asyncio's proactor loop gets an OSError (WinError 64) and
 CLOSES the listening socket: the process lives on but refuses every new connection until it is restarted. Here a failed

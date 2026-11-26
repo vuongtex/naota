@@ -202,7 +202,7 @@ CREATE TABLE IF NOT EXISTS project_repos (
 PROJECT_REPOS_MAX = 10           # repos per project: each chat of the project gets a worktree of every one
 
 # 2026-11-06: when the owner last had each chat on screen (red unread dot in every history list). Its own table for the
-# 25/11/2026: what one chat window chose for itself, beside the model pin (owner: "model và suy nghĩ của các cửa sổ
+# What one chat window chose for itself, beside the model pin ("model và suy nghĩ của các cửa sổ
 # chat không nhảy chồng chéo sang cửa sổ chat khác"). Its own table for the same reason as session_read below: a new
 # column on `sessions` stops the qualified native trial context (improvement_trial_sql_context is hash-pinned).
 #   pinned_reasoning: the window's effort; NULL = its setting (the assistant's level, else the card's).

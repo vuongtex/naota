@@ -58,12 +58,12 @@ check("the assistant editor has a reasoning select, medium by default, saved wit
 check("from a team the editor has Message privately", st.includes("opts.chatButton && a && a.slug") &&
   tj.includes("St.editAgent({ slug: slug }, { chatButton: true,") && tj.includes('data-agent-chat="'));
 const mp = read("model-picker.js");
-// 25/11/2026 (owner): the chip starts from the assistant's level but sets THIS window's own level only.
+// the chip starts from the assistant's level but sets THIS window's own level only.
 check("in an assistant's chat the effort chip shows the assistant's level and sets the window's own",
   mp.includes("agentEff = d && d.agent_slug ?") && mp.includes("(agentEff ? agentEff.level : state.reasoning)")
   && mp.includes("await pinEffort(sid, v)") && !mp.includes("saveAgentEffort"));
-// 0.285.0 (owner 22/10/2026): choosing a model in any assistant's chat pins that chat only, never the main chat's model.
-// 25/11/2026: no chat touches the main model any more (it reordered the usage order).
+// Choosing a model in any assistant's chat pins that chat only, never the main chat's model.
+// No chat touches the main model any more (it reordered the usage order).
 check("in an assistant's chat a model choice does not touch the main chat's model",
   !mp.includes("saveModel({ main:") && mp.includes("await pinToSession(sid, prov, model);"));
 check("an assistant's chat with its own model can go back to following the main chat's model",

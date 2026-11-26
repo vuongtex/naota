@@ -374,7 +374,7 @@ def background_chain(m: dict, connected=None, first: dict = None, once=()) -> li
     config when the card has none). Same provider + model only once; providers in `once` (plans, whose quota belongs
     to the account, not to the model) only once at all.
 
-    25/11/2026 (owner): "việc nền đúng thứ tự nhưng phải bắt đầu từ cài đặt việc nền". Until then (spec 2.4.3) MAIN
+    "việc nền đúng thứ tự nhưng phải bắt đầu từ cài đặt việc nền". Until then (spec 2.4.3) MAIN
     came LAST on its starting config, so a background job whose model ran out skipped the owner's main card and its
     settings and went straight to fallback 1."""
     o = order(m, connected)
@@ -383,11 +383,11 @@ def background_chain(m: dict, connected=None, first: dict = None, once=()) -> li
     for i, p in enumerate(o):
         card = profile(m, p)
         if card["model"]:
-            # A card runs what the owner picked on it (issue 1334: the starting config of a plan card is an empty model,
+            # A card runs what the owner picked on it (the starting config of a plan card is an empty model,
             # and with it the CLI ran its own default, usually its most expensive model, whatever the card said).
             d = card
         else:
-            # Nothing picked: the provider's starting config; settings from before 0.350.0 never recorded one, so the
+            # Nothing picked: the provider's starting config; settings from earlier never recorded one, so the
             # card's own profile stands in (an empty model would not run on an API card).
             d = default_profile(m, p) if p in known else card
         steps.append({"provider": p, "model": d["model"], "reasoning": d["reasoning"],

@@ -84,8 +84,8 @@ check("picker tick, effort lock, Fast bolt, plan ring and /model use the running
   /selected: shown\(\),/.test(mp) && /const effM = shown\(\);/.test(mp)
   && /function renderFast\(\) \{\s*const eff = shown\(\);/.test(mp) && /function fastTitle\(on\) \{\s*const eff = shown\(\);/.test(mp)
   && /hienTai: function \(\) \{\s*const eff = shown\(\);/.test(mp) && /function effMount\(\) \{[\s\S]{0,300}?const eff = shown\(\);/.test(mp));
-// Owner, 05/11/2026: "Effort cũng theo model dự phòng luôn".
-// 25/11/2026 (owner): a fallback card always shows and runs its own setting, an assistant's chat included; otherwise the
+// "Effort cũng theo model dự phòng luôn".
+// a fallback card always shows and runs its own setting, an assistant's chat included; otherwise the
 // window's own effort, then the assistant's level or the card's.
 check("Effort chip and slider show the fallback card's own level, else the window's own, else its default",
   /const shownEffort = \(\) => \(onFallback\(\) \? route\.reasoning : sessionEff \|\| pendingEff\s*\|\| \(agentEff \? agentEff\.level : state\.reasoning\)\);/.test(mp)

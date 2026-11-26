@@ -95,7 +95,7 @@ _AUTH_FINAL_MAX = 400   # câu lỗi đăng nhập luôn ngắn; final dài là 
 CONNECTED_IDS = None
 
 # Effort of one Codex / Grok Build / Antigravity link, `fn(engine, provider, level)` (main._link_effort, set by main at
-# import). 25/11/2026: those links ran at the CLI's own default whatever effort the step asked for (an assistant's own
+# import).: those links ran at the CLI's own default whatever effort the step asked for (an assistant's own
 # level, or a fallback card's setting). None when this module runs alone: such links keep their default, as before.
 LINK_EFFORT = None
 
@@ -1399,7 +1399,7 @@ def swap(cli, mode: str = None, tag: str = None, spec: dict = None,
     """Engine Claude đã dựng -> ROUTER việc nền (model-routing-spec part 2.4).
 
     Order: the background model (or `spec`, e.g. an assistant's own model) -> fallback 1, 2, ... of the Models page
-    usage order, each on the model picked on its card. 25/11/2026: the usage order is walked from the top (MAIN, then
+    usage order, each on the model picked on its card.: the usage order is walked from the top (MAIN, then
     fallback 1, 2, ...), each card at its own model and effort; MAIN used to come last. An API card contributes
     one link per usable key. The chain is the same at every permission level: a link that already called a tool and
     then broke stops the chain (_FallbackChain), so nothing is sent twice. Earlier the chain was fixed

@@ -604,7 +604,7 @@
         '<div class="ws-main">' +
           '<div class="ws-bar">' +
             '<button type="button" class="ws-ico" id="wsLeftBtn" title="' + esc(t("ws.toggle_list")) + '">' + ic("panel-left") + '</button>' +
-            // 2026-11-26 (owner): on a phone the button is the paperclip alone, so the label also lives in title/aria-label.
+            // on a phone the button is the paperclip alone, so the label also lives in title/aria-label.
             '<button type="button" class="ws-btn" id="wsFiles" title="' + esc(nhanNutTaiLieu()) + '" aria-label="' + esc(nhanNutTaiLieu()) + '">' +
               ic("paperclip") + ' <span class="ws-files-lbl">' + esc(nhanNutTaiLieu()) + '</span></button>' +
             '<button type="button" class="ws-btn" id="wsNewChat">' + esc(t("sess.new_chat")) + '</button>' +
@@ -1045,7 +1045,7 @@
     veTrai(); veGiua(dangChon());
   }
 
-  // 2026-11-26 (owner): on a phone the header already has a + (#newChatBtn, mobile-chat.js), so the bar's own
+  // on a phone the header already has a + (#newChatBtn, mobile-chat.js), so the bar's own
   // "New conversation" button is hidden there (console.css). That + only clicks the hidden #resetBtn, which opens
   // nothing on this page, so while this page is showing it starts a new conversation with the chosen assistant or
   // workflow instead. Bound once, in the capture phase, and inert on every other page.

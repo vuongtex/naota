@@ -36,11 +36,11 @@
   let pinLimited = 0;      // the pinned plan is out of quota until this epoch; the chat runs on the main model
   let pinSid = null;       // phiên mà sessionPin đang nói về (chống vẽ nhầm khi đổi phiên nhanh)
   let pendingPin = null;   // model chọn khi CHƯA có phiên (chat trống) - áp ngay khi mint id
-  // Effort of the open chat window (owner, 25/11/2026: windows never change each other). null = it follows its setting
+  // Effort of the open chat window (windows never change each other). null = it follows its setting
   // (the assistant's own level in an assistant's chat, the card's effort otherwise).
   let sessionEff = null;
   let pendingEff = null;   // effort chosen before the chat has an id, applied when it gets one
-  // Owner, 05/11/2026: where the chat in front REALLY runs (server `_route_view`): {provider, model, name, fallback,
+  // where the chat in front REALLY runs (server `_route_view`): {provider, model, name, fallback,
   // reason, until, limited:{provider: epoch}, selected_*}. From /sessions/{id}/meta or /chat/route, then from the
   // "route" frame each turn sends. null = unknown, the chip shows the chosen model as before.
   let route = null;
@@ -77,14 +77,14 @@
   const curBrain = () => { try { return (window.NaotaSessions && window.NaotaSessions.brain()) || ""; } catch (e) { return ""; } };
   // Model ĐANG HIỆU LỰC cho khung chat trước mặt: ghim của phiên thắng mặc định chung.
   const effective = () => sessionPin || pendingPin || state.main;
-  // What the composer SHOWS (owner, 05/11/2026: "khung chat bị chuyển thì phải chuyển luôn model ở khung đang chat"): the
+  // What the composer SHOWS ("khung chat bị chuyển thì phải chuyển luôn model ở khung đang chat"): the
   // fallback card really answering, else the chosen model. Chip, picker tick, effort lock, Fast bolt, plan ring and
   // `/model` all follow it. The choice itself (`effective`) is kept, so the chat goes back to it once its quota returns.
   const shown = () => (route && route.fallback ? { provider: route.provider, model: route.model || "" } : effective());
   // The Effort the chip shows and the slider sets ("Effort cũng theo model dự phòng luôn"): an
   // assistant's own level in its chat, the fallback card's own level while one answers, else the chosen card's.
   const onFallback = () => !!(route && route.fallback && route.reasoning);
-  // 25/11/2026: a fallback card always shows its own setting; otherwise this window's effort, then its default.
+  // A fallback card always shows its own setting; otherwise this window's effort, then its default.
   const shownEffort = () => (onFallback() ? route.reasoning : sessionEff || pendingEff
     || (agentEff ? agentEff.level : state.reasoning));
 
@@ -404,7 +404,7 @@
       await loadState(); renderBar();   // that card may be MAIN, whose effort is the chat's main level
       return;
     }
-    // 25/11/2026: this window only. The Models page, the assistant's file and every other chat stay as they are.
+    // This window only. The Models page, the assistant's file and every other chat stay as they are.
     const sid = curSid();
     if (sid) { sessionEff = v; pendingEff = null; renderBar(); await pinEffort(sid, v); }
     else { pendingEff = v; renderBar(); }
@@ -613,7 +613,7 @@
   async function chonModel(prov, model) {
     // In an assistant's chat (any partner, Naota Core) the choice pins THAT chat only. It
     // used to also rewrite the main chat's model. An assistant chat with no pin follows the main chat's model.
-    // 25/11/2026 (owner: "cài đặt ưu tiên của các kênh model không được tự ý đảo thứ tự", and windows never change each
+    // ("cài đặt ưu tiên của các kênh model không được tự ý đảo thứ tự", and windows never change each
     // other): the pick pins THIS chat only. It no longer rewrites MAIN, which moved the picked card to the top of the
     // Models page usage order and changed every chat that had no pin of its own.
     const sid = curSid();

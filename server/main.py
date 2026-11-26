@@ -65,7 +65,7 @@ os.environ.setdefault("NAOTA_CLAUDE_TOOL_TIMEOUT", "0")
 # No WebSocket compression, whatever started uvicorn (ws_compat explains the Safari drops it prevents).
 import ws_compat  # noqa: E402
 ws_compat.disable_deflate()
-# 2026-11-25: on Windows a dropped connection no longer closes the listening port (accept_guard).
+# On Windows a dropped connection no longer closes the listening port (accept_guard).
 import accept_guard  # noqa: E402
 accept_guard.install()
 
@@ -1298,7 +1298,7 @@ def _lang_turn_text(message: str) -> str:
 def _background_lang_decision():
     """`lang.resolve_background`: the task's own language. Never raises (a broken setting = follow the task).
 
-    No Settings pin since 2026-11-15 (owner: the language setting is the interface's only); `ui_lang` only names
+    No Settings pin since 2026-11-15 (the language setting is the interface's only); `ui_lang` only names
     the language of the clock line and skill list."""
     try:
         lc = (cfgmod.read_settings() or {}).get("locale") or {}
@@ -3874,7 +3874,7 @@ def _chat_reasoning(mcfg, prov) -> str:
 
 
 def _session_reasoning(mcfg, row, prov) -> str:
-    """Effort of one dashboard chat turn running on `prov` (owner, 25/11/2026). In order:
+    """Effort of one dashboard chat turn running on `prov`. In order:
 
     1. `prov` is not the card the chat chose (that card is out of quota or cannot run): the effort set on the card
        that really answers, its Models page setting, whatever the chat or its assistant picked.
@@ -4268,7 +4268,7 @@ def _pin_limited_until(provider: str, now: float = None) -> float:
 
 def _agent_chat_row(row):
     """An assistant's chat whose model the owner never picked in that window follows the assistant's CURRENT model
-    (25/11/2026: "đổi model ở cài đặt cộng sự không cập nhật các cuộc chat đã mở"). Its stored pin is only a copy made
+    (: "đổi model ở cài đặt cộng sự không cập nhật các cuộc chat đã mở"). Its stored pin is only a copy made
     when the chat opened, or a stamp, so it is replaced here by the assistant's model, or cleared when the assistant is
     on "Default" (the chat then follows MAIN). A model the owner picked in the window, and every other chat, stay."""
     row = row or {}
@@ -4324,7 +4324,7 @@ def _chat_provider_for_session(mcfg, row):
 def _chat_selected(mcfg, row) -> dict:
     """{'provider','model'} the owner CHOSE for one chat, before any fallback: the chat's own pin (Naota Core's pin in
     a Core chat), else MAIN. `_chat_provider_for_session` says where the turn really runs; the two differ while the
-    chosen card is out of quota or cannot run (owner, 05/11/2026: the composer chip shows both)."""
+    chosen card is out of quota or cannot run (the composer chip shows both)."""
     row = _agent_chat_row(row or {})
     if naota_core.is_core_channel(row.get("channel")):
         pin = _core_pin(mcfg)
@@ -6101,7 +6101,7 @@ def _cli_do_sau_khac(cli, mod, reasoning, message):
 
 
 def _link_effort(eng, prov, level) -> bool:
-    """Set the effort of one Codex / Grok Build / Antigravity engine built for background or team work (25/11/2026).
+    """Set the effort of one Codex / Grok Build / Antigravity engine built for background or team work.
     Same rules as a chat turn: Codex takes the level from its model's own ladder (`_codex_effort`), Grok Build and
     Antigravity the highest flag their CLI declares at or below it, and an Antigravity model whose name carries its
     level gets nothing. True when a level was set; the engine otherwise keeps its default."""
@@ -14294,7 +14294,7 @@ def _workflow_agent_helpers(brain, tools, mode=None):
             # (nhà đã chọn chết giữa chừng thì lùi về Claude/bộ não chính, không chết lặng).
             # Gọi SAU khi đã gắn naota_vault/system_prompt vì _build_* đọc lại từ engine này.
             try:
-                # 25/11/2026: the assistant's own effort goes with its model. Before, a spec without `reasoning` ran the
+                # The assistant's own effort goes with its model. Before, a spec without `reasoning` ran the
                 # assistant's first link at "off" whatever level it set (aux_engine.swap); the fallback links still
                 # take the effort set on their own card.
                 return aux_engine.swap(c, tag="workflow", codex_profile=_write_codex_profile,
@@ -21665,7 +21665,7 @@ async def _chat_socket(ws):
                                                **_route_view(mcfg, _row0, (prov, kind, api_key, api_model))}))
             except Exception as _e:  # noqa: BLE001 - a missing chip update never stops a turn
                 print(f"[route frame] {type(_e).__name__}: {_e}", file=sys.stderr)
-            # 25/11/2026: the chat window's own effort, the assistant's, or the card's; a fallback card its own setting.
+            # The chat window's own effort, the assistant's, or the card's; a fallback card its own setting.
             reasoning = _session_reasoning(mcfg, {**(_row0 or {}), "brain": (_row0 or {}).get("brain") or brain}, prov)
             if effort in engine.REASONING_LEVELS:
                 reasoning = effort                      # this turn only; nothing saved changes
@@ -22207,7 +22207,7 @@ async def _chat_socket(ws):
                                      compaction.bootstrap_prompt(
                                          _codex_raw, _codex_current,
                                          summary=_row0.get("compact_summary") or ""))
-                    _codex_err = [False]   # an error was shown this turn (25/11/2026: no silent empty answer)
+                    _codex_err = [False]   # an error was shown this turn (: no silent empty answer)
 
                     async def _consume_codex(prompt, suppress_resume_error=False):
                         # _ctx_in PHẢI khai nonlocal: nó bị `+=` ngay dưới, mà thiếu dòng này
@@ -22306,7 +22306,7 @@ async def _chat_socket(ws):
                             summary=_row0.get("compact_summary") or "")
                         await _consume_codex(_fallback)
                     if not final_text and not _codex_err[0] and not ws.said.strip() and ccli.session_id:
-                        # 25/11/2026 (field report: GPT-6 astra after Claude ran out): Codex ended the turn cleanly
+                        # (field report: GPT-6 astra after Claude ran out): Codex ended the turn cleanly
                         # without one word. Ask once more in the same thread, as the Claude branch does.
                         print(f"[codex] {conv_sid}: turn ended with no text, asking once more", file=sys.stderr)
                         await _consume_codex(EMPTY_ANSWER_NUDGE)
@@ -24685,7 +24685,7 @@ async def sessions_message_pin(session_id: str, message_id: int, request: Reques
 # lặng lẽ giữa lượt thì không.
 PHIEN_TS_MAX_FILE = 200        # trần một cuộc, đủ cho cuộc dài nhất mà không đổ ra vô hạn
 PHIEN_TS_MAX_LINK = 200
-# 2026-11-19 (owner: "phần file với link trong nhóm cần phân trang"): the team's archive asks one kind a page at a time
+# 2026-11-19 ("phần file với link trong nhóm cần phân trang"): the team's archive asks one kind a page at a time
 # (`kind`, `q`, `offset`, `limit`), so it reaches every file and link, not only the newest 200 of the plain call.
 ASSET_KINDS = ("image", "file", "link")
 ASSET_PAGE_MAX = 100
@@ -25111,7 +25111,7 @@ def _sessions_meta_sync(session_id: str):
         _cp = _core_pin(cfgmod.read_settings().get("model", {}))
         sess["pinned_provider"], sess["pinned_model"] = _cp.get("provider") or None, _cp.get("model") or None
     else:
-        # 25/11/2026: an assistant's chat the owner never picked a model in shows the assistant's current model.
+        # An assistant's chat the owner never picked a model in shows the assistant's current model.
         _ar = _agent_chat_row(sess)
         sess["pinned_provider"], sess["pinned_model"] = _ar.get("pinned_provider") or None, _ar.get("pinned_model") or None
     pp = (sess.get("pinned_provider") or "").strip()
@@ -25212,7 +25212,7 @@ async def sessions_set_model(session_id: str, provider: str = Form(""),
 
 @app.post("/sessions/{session_id}/reasoning")
 async def sessions_set_reasoning(session_id: str, level: str = Form(""), brain: str = Form("")):
-    """Ghim mức suy nghĩ cho MỘT cửa sổ chat (rỗng = gỡ, theo lại cài đặt). Owner, 25/11/2026: "khi chat riêng với agent
+    """Ghim mức suy nghĩ cho MỘT cửa sổ chat (rỗng = gỡ, theo lại cài đặt). "khi chat riêng với agent
     thì phải sử dụng model và mức suy nghĩ theo cửa sổ chat của chat đó", và các cửa sổ không nhảy chéo sang nhau. Không
     đụng cài đặt chung, thẻ model hay file của trợ lý."""
     lv = (level or "").strip()
@@ -28441,11 +28441,11 @@ async def _bot_tra_loi_co_tool(text, *, sess, sysprompt, prov, api_key, api_mode
 
 
 def _bot_turn_reasoning(mcfg, prov, bot=None, agent=None) -> str:
-    """Effort of a Telegram / dedicated bot turn (25/11/2026, owner: a chatbot works "theo cài đặt của agent").
+    """Effort of a Telegram / dedicated bot turn (a chatbot works "theo cài đặt của agent").
 
     A turn that borrows an assistant (a dedicated bot's Agent, an agent turn) thinks at that assistant's own level while
     it runs on the assistant's model, or on the main model the assistant follows by choice. When that model cannot run
-    and another card stands in, the stand-in card's own setting applies. Every other turn: the card's effort (0.350.0)."""
+    and another card stands in, the stand-in card's own setting applies. Every other turn: the card's effort."""
     card = _chat_reasoning(mcfg, prov)
     a = ((bot or {}).get("agent") or agent or {}) if isinstance((bot or {}).get("agent") or agent or {}, dict) else {}
     slug = str(a.get("slug") or "").strip()
@@ -32803,7 +32803,7 @@ def _team_reasoning(eng, level, prompt, prov: str = ""):
     """A team turn thinks at the member's own level: Claude Code through its effort flag (or the old keyword),
     an API engine through its reasoning setting. Engines with neither keep their default. Returns the prompt to send.
 
-    25/11/2026: `prov` routes ChatGPT (Codex), Grok Build and Antigravity to their own effort setting. Before, Codex
+   : `prov` routes ChatGPT (Codex), Grok Build and Antigravity to their own effort setting. Before, Codex
     had neither attribute and ran at its default, and Grok/Antigravity got Claude Code's flag mapping."""
     if prov in ("openai-oauth", "grok-cli", "antigravity-cli"):
         _link_effort(eng, prov, level)
@@ -33029,7 +33029,7 @@ def _team_main(settings, tools: bool = False) -> dict:
 
 
 def _team_turn_level(info, used, settings) -> str:
-    """Effort of one team turn (25/11/2026). The member's own level while it runs on its own model, or on the main model
+    """Effort of one team turn. The member's own level while it runs on its own model, or on the main model
     it follows by choice. When its own model cannot run and the turn moved to another card (`choose_spec` note), or the
     main model it follows is out of quota and the next card stands in, that card's own Models page setting applies."""
     own = (info or {}).get("reasoning") or AGENT_REASONING_DEFAULT
@@ -34478,7 +34478,7 @@ tasks_feature.deps.agent_persona = _agent_persona
 
 
 def _agent_job_spec(root, slug, agent_key=None):
-    """{provider, model, reasoning} for the work of a Kanban job given to an assistant (25/11/2026, owner: an assistant
+    """{provider, model, reasoning} for the work of a Kanban job given to an assistant (an assistant
     working on its own uses the model and the level set on it). Its own model at its level (default medium); an
     assistant left on "Default" model keeps the background model, at its own level when it set one. None: the job
     runs as a plain Kanban job (no such assistant, or the slug now belongs to another assistant)."""

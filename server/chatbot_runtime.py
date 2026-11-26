@@ -1033,7 +1033,7 @@ async def record_staff_message(bot_id: str, tt: dict) -> int:
         if not cfg or not chat:
             return 0
         meta = {"chat_id": chat, "chat_type": "private", "account_id": str(tt.get("account_id") or ""),
-                # 25/11/2026: the customer's name the channel looked up, so a chat the Page/OA opened is not a bare id.
+                # The customer's name the channel looked up, so a chat the Page/OA opened is not a bare id.
                 "chat_title": str(tt.get("customer_name") or "").strip()[:200]}
         platform = str(tt.get("platform") or "")
         label = _STAFF_CHANNEL_LABEL.get(platform, platform)

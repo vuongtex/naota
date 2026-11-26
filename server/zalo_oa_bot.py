@@ -610,7 +610,7 @@ class ZaloOABot(HangLuot):
 
         `user/detail` first; when Zalo refuses it (OA package, app permission) or gives no name, the OA's recent
         messages with that person (`conversation`), which carry `from_display_name`. A name found is kept; a miss is
-        tried again after NAME_RETRY_S and logged with Zalo's code. Before 25/11/2026 one failed call was kept as an
+        tried again after NAME_RETRY_S and logged with Zalo's code. Before one failed call was kept as an
         empty name until a restart, so every Zalo OA chat in the inbox showed a bare user id."""
         uid = str(uid or "")
         if not uid:
@@ -882,7 +882,7 @@ class ZaloOABot(HangLuot):
         words = "\n".join([t for t in notes if t] + ([text] if text else [])).strip()
         if not words and not files:
             return
-        try:   # 25/11/2026: a chat the OA opened shows the customer's name, not the bare user id
+        try:   # A chat the OA opened shows the customer's name, not the bare user id
             name = await self._name_of(client, chat)
         except Exception:  # noqa: BLE001
             name = ""
