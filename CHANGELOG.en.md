@@ -4,6 +4,13 @@
 
 NAOTA release history. Newest first.
 
+## [1.75.0] - 2026-11-27
+### Fixed
+- **Connectors added on claude.ai (Gmail, Calendar, Drive...) work again while Claude Code runs on the long-lived token.** Claude Code gives a `claude setup-token` token model access only, never claude.ai connectors. Now, when the machine still has a full claude.ai sign-in, Naota runs on it so every connector loads, and keeps the token as the backup: once the sign-in ends, that turn runs again on the token and bots and background work keep going. The Claude Code card on the Models page says whether claude.ai connectors are on or off, with a Turn on claude.ai connectors button for a one-time sign-in.
+- **The ChatGPT browser sign-in asks for the same access as Codex.** It used to leave out ChatGPT apps and connectors, so Codex could not see them. Anyone who signed in this way signs in once more to get them.
+- **No more console errors after leaving the Tasks page or when the Skills panel is missing.** The Tasks auto-refresh stops cleanly once its page is closed, and the Skills panel exits early when its container is absent.
+- **NotebookLM no longer signs out after a few hours.** The session you paste is now kept in the connection's own file, readable only by your account, so the cookies Google rotates are saved. Existing connections switch over on their next start, with no need to paste again.
+
 ## [1.74.0] - 2026-11-27
 ### Added
 - **Pick the mic and speaker for calls.** In Settings, Voice, pick the mic and speaker right beside Test mic and Test speaker. If the picked device is unplugged, Naota falls back to the system default. iPhone and Safari choose the speaker themselves, so only the mic list shows there.
