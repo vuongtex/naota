@@ -6,6 +6,13 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.75.0] - 2026-11-27
+### Sửa lỗi
+- **Kết nối thêm trên claude.ai (Gmail, Lịch, Drive...) dùng lại được khi Claude Code chạy bằng token dài hạn.** Token từ `claude setup-token` chỉ được Claude Code cho quyền gọi model, không kéo được kết nối claude.ai. Nay nếu máy còn phiên đăng nhập claude.ai đầy đủ, Naota chạy bằng phiên đó để có đủ kết nối, còn token giữ làm dự phòng: phiên hết thì lượt đó tự chạy lại bằng token, bot và việc nền không dừng. Thẻ Claude Code ở trang Models nói rõ kết nối claude.ai đang bật hay tắt, kèm nút Bật kết nối claude.ai để đăng nhập lại một lần.
+- **Đăng nhập ChatGPT bằng trình duyệt xin đủ quyền như Codex.** Trước đây thiếu quyền dùng app và kết nối của ChatGPT nên Codex không thấy chúng. Ai đã đăng nhập theo đường này thì đăng nhập lại một lần để có đủ.
+- **Hết lỗi console khi rời trang Việc và trang Kỹ năng.** Bộ tự làm mới của trang Việc không còn chạy tiếp sau khi trang đã đóng, và trang Kỹ năng không còn lỗi khi khung hiển thị chưa có trên màn hình.
+- **NotebookLM không còn mất đăng nhập sau vài giờ.** Phiên bạn dán giờ được lưu vào file riêng của kết nối, chỉ máy bạn đọc được, nên cookie Google đổi định kỳ được giữ lại. Kết nối đang có tự chuyển sang cách này ở lần chạy tới, không cần dán lại.
+
 ## [1.74.0] - 2026-11-27
 ### Thêm mới
 - **Chọn mic và loa cho cuộc gọi.** Trong Cài đặt, mục Giọng nói, chọn mic và loa ngay cạnh nút Thử mic, Thử loa. Rút thiết bị đã chọn ra thì Naota tự dùng cái mặc định của máy. iPhone và Safari tự chọn loa nên chỉ có ô chọn mic.
