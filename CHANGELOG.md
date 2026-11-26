@@ -6,6 +6,26 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.74.0] - 2026-11-27
+### Thêm mới
+- **Chọn mic và loa cho cuộc gọi.** Trong Cài đặt, mục Giọng nói, chọn mic và loa ngay cạnh nút Thử mic, Thử loa. Rút thiết bị đã chọn ra thì Naota tự dùng cái mặc định của máy. iPhone và Safari tự chọn loa nên chỉ có ô chọn mic.
+- **Bot hỏi người phụ trách rồi báo lại khách.** Khách hỏi điều chỉ người thật biết (giá, còn hàng không, lịch trống, ngày giao), bot nhắn câu hỏi kèm một mã ngắn cho người phụ trách và báo khách là đang kiểm tra.
+- **Người phụ trách trả lời là khách nhận được ngay.** Trả lời vào tin của bot, hoặc nhắn kèm mã, bot tự báo lại khách đúng cuộc chat bằng giọng của bot và ghi vào Hộp thư. Câu hỏi 24 giờ chưa ai trả lời thì hết hạn.
+- **Chọn người phụ trách ở form bot.** Một ô mới, chọn từ các cuộc chat Zalo cá nhân hoặc Telegram mà bot đang trực. Bot cần ở mức Toàn quyền; chưa chọn ai thì bot chạy y như cũ.
+- **Bot nhớ mình đang chờ khách trả lời.** Bot hay nhân viên hỏi một khách trong nhóm, khách trả lời sau cả tiếng đồng hồ (kể cả không có dấu hỏi, như "7kg e ơi") thì bot vẫn biết đó là câu trả lời và xét để đáp lại.
+- **Bot nhắn nhiều tin ngắn trên Messenger, Zalo OA và Telegram,** như đã làm trên Zalo cá nhân. Bình luận dưới bài đăng vẫn là một câu trả lời.
+- **Chỉnh được khoảng cách giữa hai lần báo chuông** ở form bot (chế độ Tự đánh giá): để trống là 10 phút, đặt 0 thì lần nào cũng báo.
+### Sửa lỗi
+- **Bot nhớ đủ cả cuộc chat.** Tin nhân viên nhắn từ app Zalo OA, hộp thư Fanpage hay Hộp thư của Naota giờ bot đều đọc được, kể cả cuộc chat do nhân viên mở lời trước. Trước đây bot trả lời như chưa biết gì.
+- **Không còn gửi trùng.** Ảnh, file hay câu trả lời đã gửi qua công cụ trong lượt thì cuối lượt không gửi lại lần nữa, ở mọi kênh.
+- **Không còn mất chuông báo chủ.** Khách nhắn thêm câu khó trong lúc chờ thì Naota gom lại báo một lần khi hết quãng chờ, kèm số tin và tin mới nhất, trừ khi bạn đã trả lời khách rồi.
+- **Việc nền cần bạn thì hỏi bạn, không lặng lẽ chạy lại.** Bước quy trình kiểm mãi không đạt, hay quy trình đang chờ bạn duyệt, giờ thành một câu hỏi ở trang Nhiệm vụ và trên chuông. Bạn trả lời là việc chạy tiếp.
+- **Nhắc hẹn và loop tạo trong chat với trợ lý chạy bằng đúng model và mức suy nghĩ của trợ lý đó.** Lượt kiểm chứng của loop vẫn dùng model việc nền.
+- **ChatGPT biết các mức suy nghĩ ngay sau khi Naota khởi động lại**, không phải đợi mở trang Models.
+- **Naota trên Windows không ngốn CPU khi cổng nhận kết nối lỗi liên tục.** Mỗi lần lỗi Naota đợi một chút rồi mới thử lại.
+### Cải thiện
+- **Messenger báo khi tin của khách không về.** Page nhắn cho nhiều người mà Naota không nhận được tin nào của họ thì thẻ bot hiện cảnh báo: có thể Meta chỉ chuyển tin của người có vai trò trong app, cần xin quyền nâng cao cho pages_messaging. Cảnh báo tự tắt khi tin của một khách thường về tới.
+
 ## [1.73.0] - 2026-11-27
 ### Sửa lỗi
 - **Mỗi cửa sổ chat giữ model và mức suy nghĩ riêng.** Đổi ở cửa sổ này không còn kéo cửa sổ khác, trang Models hay file của trợ lý đổi theo. Chat riêng với trợ lý chạy theo mức của chính cửa sổ đó, chưa chọn thì theo cài đặt của trợ lý.
