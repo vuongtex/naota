@@ -4,6 +4,26 @@
 
 NAOTA release history. Newest first.
 
+## [1.74.0] - 2026-11-27
+### Added
+- **Pick the mic and speaker for calls.** In Settings, Voice, pick the mic and speaker right beside Test mic and Test speaker. If the picked device is unplugged, Naota falls back to the system default. iPhone and Safari choose the speaker themselves, so only the mic list shows there.
+- **A bot asks the staff contact, then tells the customer.** When a customer asks something only a person knows (a price, stock, a free slot, a delivery date), the bot sends the question with a short code to the staff contact and tells the customer it is checking.
+- **The staff answers, the customer hears back.** A reply to the bot's message, or a message with the code, is passed on by the bot to the right chat in its own voice and written to the inbox. A question unanswered for 24 hours expires.
+- **Pick the staff contact in the bot form.** One new field, picked from the personal Zalo or Telegram chats the bot serves. The bot needs Full power; with nobody picked the bot works exactly as before.
+- **Bots remember they are waiting for an answer.** When the bot or a staff member asks a customer something in a group and the answer comes an hour later (even a short one without a question mark), the bot still knows it is the answer and considers replying.
+- **Bots send several short messages on Messenger, Zalo OA and Telegram,** as they already did on personal Zalo. A reply under a post stays one reply.
+- **The gap between two owner bells is a setting** on the bot form (Auto-judge mode): blank means 10 minutes, 0 rings every time.
+### Fixed
+- **Bots remember the whole chat.** What staff write from the Zalo OA app, the Page inbox or the Naota inbox now reaches the bot, even in a chat the staff opened. Before, the bot answered as if it knew nothing.
+- **Nothing is sent twice.** A photo, file or answer a tool already sent during the turn is not sent again at the end of it, on every channel.
+- **Owner bells are no longer lost.** If the customer sends more hard messages while waiting, Naota rings once when the gap ends, with how many there were and the latest one, unless you already answered the customer.
+- **Background jobs that need you now ask you instead of retrying in silence.** A workflow step that keeps failing its check, or a workflow waiting for your approval, becomes a question on the Tasks page and in the bell. Answer it and the job carries on.
+- **Reminders and loops made in an assistant's chat run on that assistant's own model and thinking level.** A loop's check still runs on the background model.
+- **ChatGPT knows its thinking levels right after Naota restarts**, without waiting for the Models page.
+- **Naota on Windows no longer burns CPU when its port keeps failing to accept connections.** After each failure it waits a moment before trying again.
+### Improved
+- **Messenger tells you when customers' messages do not arrive.** When the Page writes to several people and none of their messages reach Naota, the bot card shows a warning: Meta may only be delivering messages from people with a role on the app, so request Advanced Access for pages_messaging. It clears itself once an ordinary customer's message arrives.
+
 ## [1.73.0] - 2026-11-27
 ### Fixed
 - **Each chat window keeps its own model and reasoning level.** Changing one no longer moves other windows, the Models page or the assistant's file. A chat with an assistant runs at that window's own level, else the assistant's setting.
