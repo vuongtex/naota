@@ -6,6 +6,10 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.76.0] - 2026-11-28
+### Cải thiện
+- Đang làm: lấy Muse joins the Models page, Python 3.15 starts again, Google Workspace through Google's own MCP servers.
+
 ## [1.75.0] - 2026-11-27
 ### Sửa lỗi
 - **Kết nối thêm trên claude.ai (Gmail, Lịch, Drive...) dùng lại được khi Claude Code chạy bằng token dài hạn.** Token từ `claude setup-token` chỉ được Claude Code cho quyền gọi model, không kéo được kết nối claude.ai. Nay nếu máy còn phiên đăng nhập claude.ai đầy đủ, Naota chạy bằng phiên đó để có đủ kết nối, còn token giữ làm dự phòng: phiên hết thì lượt đó tự chạy lại bằng token, bot và việc nền không dừng. Thẻ Claude Code ở trang Models nói rõ kết nối claude.ai đang bật hay tắt, kèm nút Bật kết nối claude.ai để đăng nhập lại một lần.

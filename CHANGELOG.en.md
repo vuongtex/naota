@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.76.0] - 2026-11-28
+### Improved
+- In progress: porting Muse joins the Models page, Python 3.15 starts again, Google Workspace through Google's own MCP servers.
+
 ## [1.75.0] - 2026-11-27
 ### Fixed
 - **Connectors added on claude.ai (Gmail, Calendar, Drive...) work again while Claude Code runs on the long-lived token.** Claude Code gives a `claude setup-token` token model access only, never claude.ai connectors. Now, when the machine still has a full claude.ai sign-in, Naota runs on it so every connector loads, and keeps the token as the backup: once the sign-in ends, that turn runs again on the token and bots and background work keep going. The Claude Code card on the Models page says whether claude.ai connectors are on or off, with a Turn on claude.ai connectors button for a one-time sign-in.
