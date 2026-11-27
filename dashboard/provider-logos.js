@@ -7,7 +7,7 @@
  *    copy of this software and associated documentation files, to deal in the Software without restriction, subject
  *    to including this copyright and permission notice. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
  *  - OpenRouter: Simple Icons 16.36.0, CC0 1.0 (https://simpleicons.org), its current two-arrow mark.
- *  - Muse: the mark the owner supplied on 26/11/2026, as a transparent PNG in dashboard/logos/muse.png.
+ *  - Muse: its mark, as a transparent PNG in dashboard/logos/muse.png.
  * The logos are the providers' trademarks, shown only to name the provider a card connects to.
  * One-colour logos use currentColor, so they follow the text colour in light and dark themes.
  */

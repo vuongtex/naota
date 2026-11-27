@@ -108,7 +108,7 @@ import model_routing   # provider order, per-card model/effort, several accounts
 import plan_limits     # the plan's 5-hour and weekly meters (side work pauses near the limit)
 import plan_accounts   # several accounts on one subscription plan card (Codex, Grok, Claude Code)
 import adv_keys   # gateway lists: Advanced API key (OpenAI route) and Claude Compatible (Anthropic route)
-import muse       # Muse (Meta, muse.ai) through Muse Gateway, tools through text (owner 26/11/2026)
+import muse       # Muse (Meta, muse.ai) through Muse Gateway, tools through text
 import mcp_store
 import mcp_client
 import mcp_catalog
@@ -2561,7 +2561,7 @@ PROVIDER_DEFS = [   # thứ tự = thứ tự hiển thị card ở trang Models
     # whatever /models returned or the model names the owner typed when connecting.
     {"id": "anthropic-compat", "label": "Anthropic Compatible", "kind": "api", "key_field": "anthropic_compat_key",
      "catalog_key": "anthropic-compat", "default_models": []},
-    # Owner 26/11/2026: Muse (Meta's app at muse.ai) as a fallback and background model, connected by pasting an
+    # Muse (Meta's app at muse.ai) as a fallback and background model, connected by pasting an
     # account's cookie on this page. It runs through Muse Gateway (server/muse.py): the accounts and their cookies
     # live in the gateway, Naota keeps only the gateway's address and admin key (`muse_base`, `muse_key`).
     {"id": "muse",          "label": "Muse",                    "kind": "api", "key_field": "muse_key",
@@ -25863,7 +25863,7 @@ async def openai_compat_connect(request: Request):
     return {"ok": True, "models": len(ids), "listed": bool(live), "id": g_id}
 
 
-# ---- Muse (owner 26/11/2026): a card on the Models page, connected by pasting a Muse account's cookie ----
+# ---- Muse: a card on the Models page, connected by pasting a Muse account's cookie ----
 # The accounts and their cookies live in Muse Gateway (server/muse.py); these routes only relay the owner's clicks to
 # its admin API and keep two things in settings: whether the card is connected (`muse_on`) and, for a gateway on
 # another machine or container, its address and admin key.

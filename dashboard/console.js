@@ -3961,7 +3961,7 @@
       const head = p.tu_cai === "failed" ? t("models.cli_auto_failed", { ten }) : t("models.cli_install");
       return `<div class="prov-steps"><div>${esc(head)}<br><code>${esc(p.cai_lenh || "")}</code></div></div>`;
     };
-    // Muse (owner 26/11/2026): connected by pasting a Muse account's cookie, like a plan card has accounts. The
+    // Muse: connected by pasting a Muse account's cookie, like a plan card has accounts. The
     // accounts and their cookies live in Muse Gateway (server/muse.py), so the list comes from the gateway; one model,
     // no Effort. Not connected: a name, the cookie, Connect, then "where is the cookie" and "gateway elsewhere" folded.
     const MUSE_IC = { ready: "circle-check", rest: "circle-alert", off: "pause" };

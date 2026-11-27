@@ -69,7 +69,7 @@ _KEY_FIELD = {
     "openai-compat": "openai_compat_key",
     # Anthropic-compatible gateway: usable once its base URL is set, like openai-compat.
     "anthropic-compat": "anthropic_compat_key",
-    # Muse (26/11/2026): the gateway's admin key, which may also come from the gateway's own config.json on this
+    # Muse: the gateway's admin key, which may also come from the gateway's own config.json on this
     # machine. Usable once the card is connected (`muse_on`), see `api_key_for`.
     "muse": "muse_key",
 }

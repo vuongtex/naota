@@ -1349,7 +1349,7 @@ def muse_chat_url() -> str:
 
 
 async def muse_stream(api_key, model, messages, reasoning="off"):
-    """Muse through Muse Gateway, no tools (owner 26/11/2026). The gateway has no reasoning setting and serves one
+    """Muse through Muse Gateway, no tools. The gateway has no reasoning setting and serves one
     model, and it needs the last message from the user (muse.gateway_messages folds trailing notes into one)."""
     import muse
     async for ev in _openai_compat_stream(muse_chat_url(), "Muse", api_key or "none", muse.MODEL,
@@ -2412,7 +2412,7 @@ async def _cc_tool_loop(url, headers, model, messages, mcp_tools, mcp_route, rea
       - a 400 about thinking itself (Naota history never stored `reasoning_content` for older
         turns) drops to thinking off for the rest of the turn instead of failing it.
 
-    transport (Muse, 26/11/2026): an httpx transport every round is sent through instead of the network. Muse Gateway
+    transport (Muse): an httpx transport every round is sent through instead of the network. Muse Gateway
     has no `tools` field, so `muse.ToolTextTransport` writes the tools into the prompt and reads the calls back out of
     the reply; this loop sees an ordinary OpenAI endpoint. Such a round is never streamed (the calls are only known
     once the whole reply is in)."""

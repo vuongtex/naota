@@ -507,7 +507,7 @@ def poll_health(port, timeout_s=90):
 
 
 # ─── Why the new version did not start ───
-# 27/11/2026: 0.646.0 died at startup on Python 3.15 (a TypeError in accept_guard). The updater rolled back, the old
+# A new version once died at startup on Python 3.15 (a TypeError in accept_guard). The updater rolled back, the old
 # server's start rotated or appended its log over the failed one, and the screen said only "the new version failed".
 # Nobody could tell why until someone ran the new version by hand. Now the failed start's own output is read BEFORE
 # rolling back: its last lines go into update.log and its error line onto the screen.

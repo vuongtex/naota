@@ -155,7 +155,7 @@ _DEFAULT = {
         # the shape of Claude Code's ANTHROPIC_BASE_URL (no /v1); Naota appends /v1/messages.
         "anthropic_compat_base": "",
         "anthropic_compat_key": "",
-        # Provider 'muse' (owner 26/11/2026): Muse through Muse Gateway (server/muse.py). The accounts and their cookies
+        # Provider 'muse': Muse through Muse Gateway (server/muse.py). The accounts and their cookies
         # live in the gateway; Naota keeps whether the card is connected, and for a gateway on another machine or
         # container its address and admin key (both empty = 127.0.0.1:8080 and the gateway's own config.json).
         "muse_on": False,

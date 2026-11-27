@@ -4,7 +4,7 @@
 
 No pytest, no network, no real git, pip or server: every command is a fake, as in test_update_lui_hong.
 
-Reported 27/11/2026: 0.646.0 died at startup on Python 3.15 (TypeError in accept_guard). The updater rolled back, the
+A new version once died at startup on Python 3.15 (TypeError in accept_guard). The updater rolled back, the
 old version's start rotated (Windows) or appended to (nohup, launchd) the same naota.log, and the screen said only
 "the new version failed". The user had to run the new version by hand in another folder to see the error. Now the
 updater reads the failed start's output before rolling back, keeps its last lines in update.log and puts the error

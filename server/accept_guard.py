@@ -6,7 +6,7 @@ accept is logged and the loop accepts again after a short backoff (doubling up t
 connection served); only a socket closed on purpose stops it. No effect off Windows.
 
 The patch replaces a private asyncio method, so its signature must match the running Python's. Python 3.15 added
-`context=` and every server died at startup with a TypeError (2026-11-27). Now `install()` compares the two signatures
+`context=` and every server died at startup with a TypeError. Now `install()` compares the two signatures
 first: a parameter this file does not know means a newer asyncio, and the guard stands aside (stock asyncio keeps
 serving, only without the retry) rather than drop an argument whose meaning it cannot know.
 """

@@ -1,7 +1,7 @@
 """Muse (Meta's AI app at muse.ai) as a model provider, through Muse Gateway.
 
-Owner 26/11/2026: "connect Muse like ChatGPT and Claude, paste it into the Models page, use it as a fallback, and let
-it run background work". Muse has no public API. Muse Gateway (a separate program, `muse serve`, by default on
+Muse connects like ChatGPT and Claude on the Models page, works as a fallback and runs background work. Muse
+has no public API. Muse Gateway (a separate program, `muse serve`, by default on
 127.0.0.1:8080) logs in with each Muse account's session cookie and serves an OpenAI-style API on /v1; it already
 pools its accounts (every request goes to the least busy enabled account). Naota talks to it over HTTP:
 
@@ -10,7 +10,7 @@ pools its accounts (every request goes to the least busy enabled account). Naota
 
 Tools through text. The gateway flattens a chat into one prompt for Muse and has no `tools` field, so on its own Muse
 could only answer in words and background work that needs a tool (write a file, read a connection) could not run. The
-owner chose to teach it (26/11/2026). `ToolTextTransport` sits under the shared OpenAI tool loop
+owner chose to teach it. `ToolTextTransport` sits under the shared OpenAI tool loop
 (`engine._cc_tool_loop`): it writes the request's tools into a short protocol in the system prompt, turns earlier tool
 calls and results into plain messages, and reads a <tool_calls> block in Muse's reply back into OpenAI `tool_calls`.
 Everything else (permission levels, the round cap, the loop guard) stays the loop's own.

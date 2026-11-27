@@ -1,4 +1,4 @@
-"""Muse as a model provider (owner 26/11/2026): a card on the Models page, connected by pasting a Muse account's
+"""Muse as a model provider: a card on the Models page, connected by pasting a Muse account's
 cookie, usable as a fallback and as the background model, through Muse Gateway (server/muse.py).
 
 Run:

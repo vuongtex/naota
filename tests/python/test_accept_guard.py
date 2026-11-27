@@ -9,7 +9,7 @@ refused every new connection until it was restarted.
 1. `accept_guard`: one failed accept must not close the listener (Windows only, skipped elsewhere).
 2. `GrokCLI.query`: `grok --help` must run in a worker thread, not on the event loop.
 
-And a third (2026-11-27): the guard swaps a private asyncio method, so on a Python whose asyncio passes an argument it
+And a third: the guard swaps a private asyncio method, so on a Python whose asyncio passes an argument it
 does not take (3.15 added `context=`) the server died at startup. Section 4 runs on every platform and every Python.
 """
 from _paths import ROOT, SERVER  # noqa: E402,F401
@@ -222,7 +222,7 @@ check("the log line is rate limited across those failures", len(_lines) == 1, le
 
 
 # ---- 4. The swapped method takes every argument this Python's asyncio passes (any platform) ----
-# 0.642.3 to 0.646.0 stopped every Windows server on Python 3.15 at startup: asyncio's Server._start_serving passes
+# An earlier guard stopped every Windows server on Python 3.15 at startup: asyncio's Server._start_serving passes
 # `context=`, the guard's copy did not take it, TypeError. install() now compares the signatures before swapping.
 import inspect                                    # noqa: E402
 from asyncio import base_events, proactor_events  # noqa: E402

@@ -375,7 +375,7 @@ button.ord-mi:hover, button.ord-mi:focus-visible { background: var(--bg3); }
    does not zoom in. An empty box the sign-in waits for, here or in the add-account sheet, turns red. */
 .prov-action .prov-acname { flex: 1 1 100%; max-width: 420px; font-size: 16px; }
 .prov-action .prov-acname + .gcard-btn { margin-left: 0; }
-/* Muse (26/11/2026): the pasted cookie is one long line, so its box takes the whole row, like the name above it. */
+/* Muse: the pasted cookie is one long line, so its box takes the whole row, like the name above it. */
 .prov-action .muse-cookie { flex: 1 1 100%; max-width: 420px; min-height: 88px; font-size: 16px; resize: vertical;
   font-family: inherit; }
 .prov-card .prov-help + .prov-help { margin-top: 2px; }

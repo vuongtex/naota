@@ -5,8 +5,15 @@
 NAOTA release history. Newest first.
 
 ## [1.76.0] - 2026-11-28
+### Added
+- **Meta's Muse has its own card on the Models page.** Open "Connect another provider", pick Muse, name the account, paste its cookie, press Connect Muse. Muse joins the usage order like ChatGPT or Claude, drag it in as a fallback or pick it as the background model.
+- **Several Muse accounts on one card.** One row per account: switch off or on, paste a new cookie when the session ends, remove. Needs Muse Gateway running on your machine or in Docker next to Naota.
+- **Muse can do background work.** Muse cannot call tools by itself, so Naota teaches it to call them in text: read and write brain files and use your connections like every other brain. This is an unofficial route, and accounts used this way may be locked by Muse.
+### Fixed
+- **Naota runs on Windows with Python 3.15 again.** Windows machines on Python 3.15 died at startup, so the Update button rolled back to the old version. The patch that keeps the port open on Windows now takes Python 3.15's new argument, and on a Python it does not know yet it stands aside so the server still starts.
+- **Machines patched by hand update normally.** If the updater reports a conflict in `server/accept_guard.py`, drop the local change to that file and press Update again.
 ### Improved
-- In progress: porting Muse joins the Models page, Python 3.15 starts again, Google Workspace through Google's own MCP servers.
+- **A failed update says why.** When the new version does not start, the updater reads that start's own log before rolling back, keeps its last lines in update.log and shows the error line on the Update screen, instead of only "the new version failed".
 
 ## [1.75.0] - 2026-11-27
 ### Fixed
