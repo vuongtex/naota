@@ -35,7 +35,7 @@ CLAUDE_MD_PATH = Path(__file__).resolve().parent.parent / "CLAUDE.md"
 # sha256 of the CLAUDE.md this contract was checked against. Changing CLAUDE.md fails
 # tests/python/test_background_prompt.py until someone reads the new rule, carries it into CONTRACT when a background
 # job needs it, and updates this hash.
-REVIEWED_CLAUDE_MD_SHA256 = "4723d0e6b4d5b6693b5223bfe1df4dfe6f25d77434be3be9cfdc2c9d1c75ab6b"
+REVIEWED_CLAUDE_MD_SHA256 = "ffa2f9f30acac0b4e948d06720a16b1629ff1d4cb21bbb922fa6dd7baa01b584"
 DEFAULT_BASIS_POINTS = 1000   # 10% of background jobs
 SALT = "background-prompt-v1"
 
@@ -102,7 +102,7 @@ step you came up with is not an order: write it in the result. Pick the smallest
 - Before creating, check for duplicates in `Naota/index.md`; update the old one instead of spawning a copy.
 - Load the `naota-builder` skill for the templates; do not write them from memory. Paths are FLAT at the brain root: \
 `agents/<slug>.md`, `workflows/<slug>.md`, `skills/<slug>/SKILL.md`; never `Naota/agents|workflows` (the app never \
-sees them there). Loops: `Naota/loops/<slug>.md`. `description` at most 150 characters; never leave `group` or \
+sees them there). Loops: `Naota/loops/<slug>.md`. `description` at most 1,024 characters; never leave `group` or \
 `tags` empty; slug lowercase ASCII with hyphens. A workflow needing a missing agent: create the agent first.
 - Loops and reminders: prefer `naota_schedule` op=create. Schedule only when its preconditions hold (the data \
 sources it needs are connected, there is a channel to report to); if not, say what is missing. A new loop gets \
