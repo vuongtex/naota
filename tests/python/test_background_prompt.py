@@ -106,7 +106,7 @@ for need, why in [
     ("[[NEEDS_INPUT]]", "a Kanban job's own way to ask"), ("does not ask", "a full reminder does not ask"),
     ("Naota/index.md", "duplicate check"), ("naota-builder", "templates from the skill"),
     ("`agents/<slug>.md`", "flat agent path"), ("never `Naota/agents|workflows`", "old path banned"),
-    ("150 characters", "description cap"), ("`enabled: false`", "new loop and plugin off"),
+    ("1,024 characters", "description cap"), ("`enabled: false`", "new loop and plugin off"),
     ("`naota_plugin`", "plugins through the tool"), ("`min_mode`", "plugin permission"),
     ("`owner_chat`", "loop result recipient"), ("`chat_id`", "job result recipient"),
     ("Data Cache", "cache rules"), ("zalo_send_message", "Zalo tools"), ("`threadId`", "Zalo thread check"),

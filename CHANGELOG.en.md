@@ -4,6 +4,20 @@
 
 NAOTA release history. Newest first.
 
+## [1.77.0] - 2026-11-28
+### Added
+- **Each assistant remembers the thinking level you pick in its chat.** Changing the level in a chat with an assistant also applies to new chats with it and to its chats with no level of their own. A window where you picked a level of its own keeps it. The assistant's background work keeps the level in its settings.
+- **Back to the assistant's settings in one tap.** The "Follow the model and thinking level set on the assistant" row in the model list clears both pins at once.
+- **Each assistant remembers the model you pick in its chat.** Changing the model in a chat with an assistant pins it for chatting with that assistant: new chats and old ones with it run that model. Its background work (reminders, loops, Kanban, team turns, workflows, bots) keeps the model in its settings. The model list has a "Follow the model set on the assistant" row to clear the pin.
+- **A new assistant gets a model that fits its work.** An assistant made in chat, installed from the Store, created on the Partners page or in a team chat and left on "Default" gets one from the first card of your usage order: a strong model for code, data and finance, a balanced one for marketing, sales and customer care, a light one for translation, notes and reminders. Claude picks between Opus, Sonnet and Haiku; ChatGPT, Antigravity and Grok Build pick from your account's own model list. The line under the answer names the model, and you can change it any time.
+- **A long chat resumed after more than an hour no longer re-reads its whole thread.** The Claude Code and ChatGPT prompt cache lives about an hour. Once it has gone cold and the old thread is at least twice the size of a fresh one seeded from the saved conversation, Naota starts a fresh thread and says so in one line in the chat, saving most of the tokens that would have been written again. A chat kept warm by cache keep-warm keeps its thread.
+- **The Usage page has a "Where Claude tokens go" table.** Counted from every Claude Code request logged on the machine: how many times and how many tokens were lost to a cold cache and to a model switch mid-chat, and the share of tokens in requests with more than 200k of context. Suggestions warn when the cold cache takes 5% or more of input tokens.
+### Improved
+- **Naota sees every skill.** The skill list in the prompt used to hold about 20 skills (a 44-skill brain hid 23). The prompt now names every skill, short and fixed, so the prompt cache keeps holding.
+- **Skills are picked by their whole description, no longer cut at 150 characters.** Each turn Naota ranks every skill against what you typed and gives the model the few that fit, with their whole description. Measured on two test sets: the right skill 95-96% of the time, against 23-64% before.
+- **A skill description can be up to 1,024 characters** (the Agent Skills standard), so skills from Anthropic or other stores work as written. The "Description too long" warning on the Skills page only shows past 1,024.
+- **Naota learns how you ask for a skill.** A request the suggestions missed, followed by that skill being used, finds it next time. The model can also search skills by the job through `naota_use_skill(find=...)`, the tool search and `naota_code`. Skill description trials (review of skill improvement proposals) now score with the new routing too.
+
 ## [1.76.0] - 2026-11-28
 ### Added
 - **Meta's Muse has its own card on the Models page.** Open "Connect another provider", pick Muse, name the account, paste its cookie, press Connect Muse. Muse joins the usage order like ChatGPT or Claude, drag it in as a fallback or pick it as the background model.

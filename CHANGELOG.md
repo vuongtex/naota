@@ -6,6 +6,20 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.77.0] - 2026-11-28
+### Thêm mới
+- **Mỗi trợ lý nhớ mức suy nghĩ bạn chọn khi chat.** Đổi mức suy nghĩ ở khung chat với một trợ lý là chat mới, và các chat chưa chọn mức riêng với trợ lý đó, cũng dùng mức này. Cửa sổ nào bạn đã chọn mức riêng thì giữ nguyên. Việc nền của trợ lý vẫn theo mức trong cài đặt.
+- **Một chạm về lại cài đặt của trợ lý.** Dòng "Theo model và mức suy nghĩ trong cài đặt của trợ lý" trong bảng chọn model gỡ cả hai ghim cùng lúc.
+- **Mỗi trợ lý nhớ model bạn chọn khi chat.** Đổi model ở khung chat với một trợ lý là trợ lý đó ghim luôn model ấy cho chat: mở chat mới hay quay lại chat cũ với trợ lý đều chạy model vừa chọn. Việc nền của trợ lý (nhắc hẹn, loop, Kanban, team, quy trình, bot) vẫn chạy model trong cài đặt. Bảng chọn model có dòng "Theo model trong cài đặt của trợ lý" để gỡ ghim.
+- **Trợ lý mới tự được chọn model hợp việc.** Trợ lý tạo trong chat, cài từ Chợ ứng dụng, tạo ở trang Cộng sự hay trong nhóm chat mà để "Mặc định" thì Naota chọn trên thẻ đầu tiên trong Thứ tự dùng: việc nặng như code, dữ liệu, tài chính dùng model mạnh; marketing, bán hàng, chăm sóc khách dùng model vừa; dịch, ghi chú, nhắc lịch dùng model nhẹ. Claude chọn giữa Opus, Sonnet, Haiku; ChatGPT, Antigravity và Grok Build chọn trong đúng danh sách model của tài khoản. Dòng báo dưới câu trả lời ghi rõ model đã chọn, đổi lại lúc nào cũng được.
+- **Chat dài quay lại sau hơn 1 giờ nghỉ không còn đọc lại cả mạch.** Bộ nhớ đệm của Claude Code và ChatGPT chỉ sống khoảng 1 giờ. Khi nó đã nguội và mạch cũ to gấp đôi trở lên so với một mạch mới mồi từ bản ghi hội thoại, Naota mở mạch mới và báo một dòng trong chat, đỡ được phần lớn số token phải ghi lại. Chat đang bật Giữ ấm bộ nhớ đệm thì giữ nguyên mạch.
+- **Trang Mức dùng có bảng "Vì sao tốn token (Claude)".** Đếm từ từng lượt gọi Claude Code đã ghi trên máy: số lần và số token mất vì cache nguội, vì đổi model giữa chat, và phần token nằm ở các lượt có ngữ cảnh trên 200k. Cache nguội ngốn từ 5% token vào trở lên thì phần Đề xuất cảnh báo.
+### Cải thiện
+- **Naota thấy đủ mọi skill.** Trước đây danh sách skill trong prompt chỉ chứa khoảng 20 skill (bộ não 44 skill thì 23 skill bị ẩn). Giờ prompt nêu tên mọi skill, gọn và cố định nên không làm mất cache.
+- **Chọn skill theo trọn mô tả, không còn cắt 150 ký tự.** Mỗi lượt Naota chấm mọi skill theo câu bạn vừa gõ, rồi đưa vài skill khớp nhất kèm mô tả đầy đủ cho model. Đo trên hai bộ thử: chọn đúng 95-96%, cách cũ 23-64%.
+- **Mô tả skill được dài tới 1.024 ký tự** (chuẩn Agent Skills), nên skill nhập từ Anthropic hay kho khác dùng nguyên văn. Cảnh báo "Mô tả dài quá" trên trang Kỹ năng chỉ còn hiện khi quá 1.024.
+- **Naota tự học cách bạn gọi skill.** Câu nào gợi ý bỏ sót mà sau đó skill vẫn được dùng thì lần sau nói tương tự là tìm ra ngay. Model cũng tìm được skill theo việc cần làm qua `naota_use_skill(find=...)`, tìm tool và `naota_code`. Phần thử mô tả skill (Duyệt đề xuất cải tiến skill) cũng chấm theo cách chọn mới.
+
 ## [1.76.0] - 2026-11-28
 ### Thêm mới
 - **Muse của Meta có thẻ riêng trên trang Models.** Mở "Kết nối thêm nhà cung cấp", chọn Muse, đặt tên, dán cookie tài khoản, bấm Kết nối Muse. Muse vào Thứ tự dùng như ChatGPT hay Claude, kéo làm dự phòng hoặc chọn làm Model việc nền.
