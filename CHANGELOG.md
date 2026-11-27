@@ -6,6 +6,21 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.78.0] - 2026-11-28
+### Thêm mới
+- **Kênh của gói có logo riêng.** Gói khai `logo_svg` là kênh hiện đúng logo ở trang Chatbot và Hội thoại. Logo được lọc sạch, chỉ giữ hình vẽ, bỏ script và liên kết ngoài.
+- **Form thêm tài khoản theo khai báo của gói.** Gói khai `TOKEN_FORM` (ô chữ, mật khẩu, danh sách chọn tải từ gói) thay cho một ô token trơn, có nút Tạo và Sao chép cho mã bí mật. Ô bí mật không bao giờ được đưa vào đường dẫn webhook. Form hiện ở cả lúc thêm lẫn lúc sửa tài khoản.
+- **Cảnh báo trả lời trùng.** Messenger đã trả lời Facebook và Instagram. Kênh của gói nối lại hai mạng đó thì các lựa chọn này để trống sẵn, chọn vào sẽ hiện cảnh báo rõ, và phải tích xác nhận mới lưu được. Máy chủ cũng chặn nếu chưa xác nhận. Tài khoản cũ vẫn lưu lại được, nhưng đổi sang tài khoản khác trên mạng đã có kênh lõi thì cũng phải xác nhận.
+### Sửa lỗi
+- **Lịch do việc nền tạo không còn chen vào cuộc trò chuyện chẳng liên quan.** Trước đây, khi một luồng việc nền (ví dụ xử lý đơn POSCake) tạo lịch nhắc trong lúc bạn đang chat chuyện khác, khung chat đó hiện các dòng "Đã tạo lịch · Hoàn tác", rồi tới giờ lại nhận cả thẻ "Nhắc hẹn". Giờ dòng "Đã tạo lịch" chỉ ghi những gì chính cuộc trò chuyện đó tạo, còn kết quả của lịch việc nền về hộp thư và Naota Core thay vì khung chat đang mở.
+- **Lịch tới giờ đã chạy hoặc bị tạm dừng không còn hiện thành "Đã gỡ lịch".** Chỉ lịch mà cuộc trò chuyện huỷ mới có dòng đó.
+- **Chấm đỏ chưa đọc của cộng sự khớp với lịch sử hội thoại.** Trước đây mở một hội thoại bất kỳ của cộng sự là số chưa đọc trên thẻ biến mất, trong khi các hội thoại khác của cộng sự đó vẫn còn chấm đỏ, và chấm đỏ ở mục Cộng sự trên menu trái không chỉ ra được cộng sự nào. Nay số trên thẻ đếm đúng các hội thoại còn chấm đỏ, kể cả cộng sự đang mở.
+- **Quy trình cũng có số chưa đọc**, và tab Cộng sự hoặc Quy trình có chấm đỏ khi bên trong có hội thoại chưa đọc.
+- **Cộng sự có tin chưa đọc được kéo lên nhóm "Chưa đọc"** ngay dưới nhóm đã ghim, không còn bị giấu trong nhóm đang thu gọn hay ở trang sau. Bộ lọc đang ẩn một mục chưa đọc thì nút lọc hiện chấm đỏ.
+- Chấm đỏ của mục Cộng sự trên menu trái không còn sáng vì hội thoại của cộng sự đã xoá hay của trang Coding cũ.
+### Cải thiện
+- **Thêm Fanpage không cần dán lại App secret.** Thẻ Facebook Messenger hiện các app đã dùng cho Trang đang nối. Bấm một app, để trống App secret rồi Đăng nhập Facebook là chọn thêm được Trang khác; Naota tự dùng App secret đã lưu. Danh sách chọn đánh dấu Trang đã nối và chỉ tick sẵn Trang mới, kèm hướng dẫn bấm Chỉnh sửa quyền truy cập khi Facebook chỉ trả lại Trang cũ.
+
 ## [1.77.0] - 2026-11-28
 ### Thêm mới
 - **Mỗi trợ lý nhớ mức suy nghĩ bạn chọn khi chat.** Đổi mức suy nghĩ ở khung chat với một trợ lý là chat mới, và các chat chưa chọn mức riêng với trợ lý đó, cũng dùng mức này. Cửa sổ nào bạn đã chọn mức riêng thì giữ nguyên. Việc nền của trợ lý vẫn theo mức trong cài đặt.

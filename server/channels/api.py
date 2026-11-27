@@ -50,6 +50,9 @@ from typing import Optional
 import localefmt
 from channels import KenhSpec
 
+# Your own systems call Naota directly: no social network behind it.
+NETWORKS = ()
+
 SPEC = KenhSpec(
     id="api", nhan="API nội bộ", kind="bot", logo="api", mau="#475569",
     lay_token=("Naota tự sinh khoá khi bạn bấm Lưu và chỉ hiện đúng một lần. Dán khoá đó vào máy chủ sẽ gọi bot "

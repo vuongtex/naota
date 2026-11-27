@@ -23555,7 +23555,9 @@ async def _chat_socket(ws):
                 except Exception as _e:  # noqa: BLE001
                     print(f"[memory receipt] {type(_e).__name__}: {_e}", file=sys.stderr)
                 try:
-                    _doi = await asyncio.to_thread(change_receipt.diff, _cap_snap, _brain_root(brain))
+                    # Only what THIS chat made; a loop or order flow running meanwhile is not its.
+                    _doi = await asyncio.to_thread(change_receipt.diff, _cap_snap, _brain_root(brain),
+                                                   f"{WEB_CHAT_PREFIX}{conv_sid}")
                     # An assistant Naota made in this turn without a model gets one that fits.
                     # The receipt line names the model, so the owner sees it and can change it.
                     for _it in _doi or []:
@@ -25067,8 +25069,37 @@ def sessions_unread_summary(brain: str = Query(None), skip: str = Query("")):
     """How many chats have a reply the owner has not read, per rail entry (owner, 2026-11-19: "answers of partners,
     chats and teams need no notification, a red dot on the menu is enough"). `chat`: chats of the Chat page;
     `workspace`: chats with a partner or a workflow (Partners page). Teams count on their own (`GET /teams/unread`).
-    `skip`: chats still running or open on screen, not counted (_unread_skip)."""
-    return {"ok": True, **get_store().unread_summary(_brain_keys(brain), skip=_unread_skip(skip))}
+    `skip`: chats still running or open on screen, not counted (_unread_skip).
+
+    `workspace` counts only the chats the Partners page can show a dot for (_partner_unread): the chats of
+    an assistant or a workflow that still exists in this brain. A dot left by a deleted assistant or an old Coding chat
+    lit the rail with nothing on the page to click."""
+    def _do():
+        out = get_store().unread_summary(_brain_keys(brain), skip=_unread_skip(skip))
+        pu = _partner_unread(brain, _unread_skip(skip))
+        out["workspace"] = sum(v["chats"] for kind in ("agents", "workflows") for v in pu[kind].values())
+        return out
+    return {"ok": True, **_do()}
+
+
+def _partner_unread(brain, skip=None) -> dict:
+    """{"agents": {slug: {chats, n}}, "workflows": {slug: {chats, n}}}: unread chats and replies per assistant and per
+    workflow of this brain, read from each chat's own read mark (SessionStore.channel_unread), so a row's count and the
+    red dots of its history always agree. Assistants and workflows whose file is gone are left out (no row to show)."""
+    root = _brain_key(brain)
+    out = {"agents": {}, "workflows": {}}
+    wf_dir = None
+    for ch, v in get_store().channel_unread(_brain_keys(brain), ("agent:", "workflow:"), skip=skip).items():
+        kind, slug = ch.split(":", 1)
+        if kind == "agent":
+            if naota_core.is_core_slug(slug) or _agent_md_path(root, slug):
+                out["agents"][slug] = v
+        elif skill_router.valid_file_slug(slug):
+            if wf_dir is None:
+                wf_dir = _workflows_dir(root)
+            if (wf_dir / f"{slug}.md").is_file():
+                out["workflows"][slug] = v
+    return out
 
 
 @app.get("/sessions/{session_id}")
@@ -31221,6 +31252,35 @@ def _ms_account_view(a: dict) -> dict:
             "bots": [{"id": b["id"], "name": b.get("name"), "enabled": bool(b.get("enabled"))} for b in bots]}
 
 
+def _ms_saved_apps(brain: str = "") -> list:
+    """The Meta apps already used by a connected Page that still hold their App secret: [{app_id, pages}].
+    The card offers them so adding another Page is one more Log in with Facebook, with no secret to paste again
+    Never carries the secret."""
+    apps: dict = {}
+    for a in channel_accounts.list_accounts(channel="messenger", brain=str(brain or "").strip()):
+        app_id = str((a.get("meta") or {}).get("app_id") or "").strip()
+        if not app_id or not _ms_saved_secret(app_id, [a]):
+            continue
+        apps.setdefault(app_id, {"app_id": app_id, "pages": []})["pages"].append(
+            (a.get("meta") or {}).get("bot_name") or a.get("label") or a.get("external_id") or "")
+    return list(apps.values())
+
+
+def _ms_saved_secret(app_id: str, accounts=None) -> str:
+    """The App secret stored with a connected Page of this app, or ''. Read server-side only, from the encrypted
+    channel-account token, so the owner signs in again without digging the secret out of the Meta app."""
+    app_id = str(app_id or "").strip()
+    if not app_id:
+        return ""
+    for a in (accounts if accounts is not None else channel_accounts.list_accounts(channel="messenger")):
+        if str((a.get("meta") or {}).get("app_id") or "").strip() != app_id:
+            continue
+        sec = messenger_bot.split_credentials(channel_accounts.get_token(a.get("id", ""))).get("app_secret", "")
+        if sec:
+            return sec
+    return ""
+
+
 def _ms_account_creds(account_id: str):
     a = channel_accounts.get_account(account_id)
     if not a or a.get("channel") != "messenger":
@@ -31268,6 +31328,7 @@ async def messenger_setup_info(request: Request, brain: str = ""):
     base = url[: -len("/messenger/webhook")]
     return {"ok": True, "webhook_url": url, "https": url.startswith("https://"),
             "verify_token": _ms_verify_token(), "accounts": [_ms_account_view(a) for a in accs],
+            "apps": _ms_saved_apps(brain),
             "oauth_redirect": base + messenger_oauth.CALLBACK_PATH, "privacy_url": base + messenger_oauth.PRIVACY_PATH}
 
 
@@ -31280,12 +31341,13 @@ async def messenger_connect(request: Request):
     except Exception:
         body = {}
     page_id = str(body.get("page_id") or "").strip()
-    res = await messenger_setup.connect(page_id, body.get("app_id"), body.get("app_secret"),
+    secret = str(body.get("app_secret") or "").strip() or _ms_saved_secret(body.get("app_id"))
+    res = await messenger_setup.connect(page_id, body.get("app_id"), secret,
                                         body.get("token"), _ms_webhook_url(request), _ms_verify_token())
     if not res.get("ok"):
         return JSONResponse({"ok": False, "error": res.get("error", ""), "step": res.get("step", "")},
                             status_code=400)
-    aid, loi, updated = _ms_save_account(request, page_id, body.get("app_id"), body.get("app_secret"), res,
+    aid, loi, updated = _ms_save_account(request, page_id, body.get("app_id"), secret, res,
                                          body.get("label"), body.get("brain"))
     if loi:
         return JSONResponse({"ok": False, "error": loi}, status_code=400)
@@ -31319,7 +31381,10 @@ async def messenger_oauth_start(request: Request):
         body = await request.json()
     except Exception:
         body = {}
-    res = await messenger_oauth.start(body.get("app_id"), body.get("app_secret"),
+    # Empty App secret with an App ID a connected Page already uses: reuse the stored secret, so "add another Page"
+    # is just signing in again. A typed secret always wins, so a rotated secret still works.
+    secret = str(body.get("app_secret") or "").strip() or _ms_saved_secret(body.get("app_id"))
+    res = await messenger_oauth.start(body.get("app_id"), secret,
                                       _ms_base(request) + messenger_oauth.CALLBACK_PATH,
                                       str(body.get("brain") or ""), str(body.get("label") or ""),
                                       instagram=bool(body.get("instagram")), insights=bool(body.get("insights")))
@@ -31352,7 +31417,13 @@ async def messenger_oauth_callback(state: str = Query(""), code: str = Query("")
 
 @app.get("/messenger/oauth/result")
 async def messenger_oauth_result(state: str = ""):
-    return messenger_oauth.result(state)
+    """The login's outcome, each Page marked `connected` when this Naota already has it, so the picker can tick
+    only the new ones."""
+    res = messenger_oauth.result(state)
+    if res.get("pages"):
+        res["pages"] = [dict(pg, connected=bool(channel_accounts.owner_of(str(pg.get("id") or ""), "messenger")))
+                        for pg in res["pages"]]
+    return res
 
 
 @app.post("/messenger/oauth/finish")
@@ -35333,24 +35404,35 @@ _AGENT_NOTIFY = agent_notify.AgentNotify(lambda: cfgmod.STATE_DIR)
 
 
 @app.get("/agents/unread")
-async def agents_unread(brain: str = "brain"):
-    """{slug: {n, last_at, muted_until}} for every partner of this brain that has a chat: the unread count on its row,
-    the time of its newest message (the list sorts by it, so a partner just written to moves to the top) and its mute."""
+async def agents_unread(brain: str = "brain", skip: str = ""):
+    """{slug: {n, chats, last_at, muted_until}} for every partner of this brain that has a chat: the unread replies on its
+    row, how many of its chats carry a red dot, the time of its newest message (the list sorts by it, so a partner just
+    written to moves to the top) and its mute. `workflows`: {slug: {n, chats}} for the workflow list.
+
+    The counts come from each chat's own read mark, the same one behind the dots of the
+    history column (_partner_unread). The old per-partner read mark (agent_notify.py) went to "all read" as soon as ANY
+    chat of the partner was opened, while its other chats kept their dots. `skip`: chats running or open on screen."""
     root = _brain_key(brain)
 
     def _do():
         store = get_store()
         slugs = [ch.split(":", 1)[1] for ch in store.moc_cap_nhat_theo_kenh(_brain_keys(brain), "agent:")]
         recs = _AGENT_NOTIFY.records(root, slugs)
-        act = store.agent_activity(_brain_keys(brain), {s: r["read_at"] for s, r in recs.items()})
-        return {"ok": True, "agents": {s: {"n": act.get(s, {}).get("n", 0), "last_at": act.get(s, {}).get("last_at", 0),
-                                           "muted_until": recs[s]["muted_until"]} for s in slugs}}
+        act = store.agent_activity(_brain_keys(brain), {s: 0 for s in slugs}, count=False)
+        pu = _partner_unread(brain, _unread_skip(skip))
+        agents = {}
+        for s in slugs:
+            u = pu["agents"].get(s) or {}
+            agents[s] = {"n": int(u.get("n") or 0), "chats": int(u.get("chats") or 0),
+                         "last_at": act.get(s, {}).get("last_at", 0), "muted_until": recs[s]["muted_until"]}
+        return {"ok": True, "agents": agents, "workflows": pu["workflows"]}
     return await asyncio.to_thread(_do)
 
 
 @app.post("/agents/opened")
 async def agents_opened(brain: str = Form("brain"), slug: str = Form(...)):
-    """The owner has this partner's chat open: its messages up to now are read. Other open tabs clear the count too."""
+    """Kept for dashboards from, which call it when a partner's chat opens. It no longer moves the
+    unread count (that comes from each chat's own read mark, see agents_unread); other open tabs just read it again."""
     slug = str(slug or "").strip()
     if not slug or "|" in slug:
         return {"ok": False, "error": "slug"}

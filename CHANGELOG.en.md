@@ -4,6 +4,21 @@
 
 NAOTA release history. Newest first.
 
+## [1.78.0] - 2026-11-28
+### Added
+- **Pack channels show their own logo.** A pack declaring `logo_svg` gets its logo on the Chatbot and Conversations pages. The SVG is sanitized: shapes only, no scripts or outside links.
+- **Account form declared by the pack.** A pack declaring `TOKEN_FORM` (text, password, and select fields loaded from the pack) replaces the plain token box, with Generate and Copy for secrets. Secret fields never go into the webhook URL. The form appears when adding and when editing an account.
+- **Duplicate reply warning.** Messenger already answers Facebook and Instagram. When a pack channel reaches either network again, those options start unselected, picking one shows a clear warning, and saving needs a ticked acknowledgement. The server refuses it too without the acknowledgement. Existing accounts can still be re-saved, but repointing one to another account on a covered network needs the acknowledgement too.
+### Fixed
+- **Schedules made by background work no longer show up in an unrelated chat.** Before, when a background flow (for example a POSCake order flow) created a reminder while you were chatting about something else, that chat got "Created schedule · Undo" lines and later the "Reminder" cards too. Now the "Created schedule" line lists only what that chat itself made, and a background job's reminder reports to the inbox and Naota Core instead of whichever chat is open.
+- **A schedule that fired or was paused no longer shows as "Removed schedule".** Only a schedule the chat cancelled gets that line.
+- **A partner's unread count matches its chat history.** Opening any one chat of a partner used to clear the count on its card while its other chats kept their red dots, and the Partners dot on the left menu pointed at nothing you could find. The card now counts exactly the chats that still show a dot, the partner on screen included.
+- **Workflows get an unread count too**, and the Partners or Workflows tab shows a red dot when something inside is unread.
+- **Partners with unread replies move to an "Unread" block** right under the pinned ones, never hidden in a folded group or on a later page. When the filter hides an unread row, the filter button shows a red dot.
+- The Partners dot on the left menu no longer lights up for chats of a deleted partner or of the old Coding page.
+### Improved
+- **Add a Page without pasting the App secret again.** The Facebook Messenger card lists the apps your connected Pages already use. Click one, leave the App secret empty and Log in with Facebook to pick more Pages; Naota reuses the saved App secret. The picker marks Pages already connected and only ticks the new ones, with a hint to click Edit previous settings when Facebook returns only the old Pages.
+
 ## [1.77.0] - 2026-11-28
 ### Added
 - **Each assistant remembers the thinking level you pick in its chat.** Changing the level in a chat with an assistant also applies to new chats with it and to its chats with no level of their own. A window where you picked a level of its own keeps it. The assistant's background work keeps the level in its settings.
