@@ -4,6 +4,10 @@
 
 NAOTA release history. Newest first.
 
+## [1.79.0] - 2026-11-29
+### Improved
+- In progress: porting đổi tên chat từ hộp thư, chuông bot mở chat khách.
+
 ## [1.78.0] - 2026-11-28
 ### Added
 - **Pack channels show their own logo.** A pack declaring `logo_svg` gets its logo on the Chatbot and Conversations pages. The SVG is sanitized: shapes only, no scripts or outside links.
