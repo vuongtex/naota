@@ -4,6 +4,19 @@
 
 NAOTA release history. Newest first.
 
+## [1.81.0] - 2026-11-29
+### Added
+- **Assistant memory is searched as needed.** An assistant with a large memory no longer loads the whole file on every turn. Always loaded: the opening text, the owner rules section, sections named as rules, and sections ending with "(always)", plus a map of what the memory holds. The rest and the attached documents are searched for each message (private chat on every engine, Telegram, CLI, workflow steps, team turns), and the assistant looks up more with the new `naota_recall` tool. A 3 MB memory still costs about 1,500 characters of prompt and a search takes under 40 ms. A memory under 12,000 characters works exactly as before.
+- **Learning at write time.** Each new memory passage is read once in the background by a cheap model, which adds the questions it answers and other words for its subject, so a question in different words still finds it. Capped per day, switched off with `agent_recall.enrich: false`.
+- **The assistant's Learned tab** shows that its memory is searched as needed, and warns when the always-loaded rules have grown too long and should be merged.
+### Fixed
+- **Antigravity no longer loses the question when the context is long.** An assistant with a large memory (tens of KB) on Antigravity used to reply "your request was cut off, please resend it" to a short question, because `agy` cuts the end of the first message, exactly where the question sits. A long first message now also carries the latest question at the top, so the model sees it and answers whatever gets cut.
+- **The bot form shows every connected channel.** Picking channels when creating or editing a chatbot used to list only the open brain's channels, so a Page or bot connected in another brain could not be picked. Every brain now lists every channel; a channel another bot already answers still shows greyed out with that bot and its brain. Ticking another brain's channel into a bot moves the channel to the bot's brain, so that brain's inbox shows the chats the bot answers.
+- **Every brain sees every connected Page.** The Facebook Messenger and Threads card on the Connections page used to list only the accounts of the open brain, so one brain showed some Pages and another brain showed others. Every brain now lists the same Pages, Threads accounts and saved apps. A newly connected Page is still saved under the open brain.
+- **A tidier draft box in Conversations.** When you told Naota how to answer, the draft box repeated your whole instruction in its title, which took almost half a phone screen. The title now only says Naota followed your instruction; hover it to see the instruction.
+### Improved
+- **Naota's memory index updates incrementally.** Adding or editing one memory reads only that file instead of rebuilding everything (5,000 memories: from 2.8 s to 0.3 s), and a query typed without diacritics now also matches the Vietnamese letter d with a stroke.
+
 ## [1.80.0] - 2026-11-29
 ### Added
 - **Naota reads Facebook Page and post insights** (views, viewers, engagement, follows, clicks) through the Pages connected on the Facebook Messenger card, no separate connection needed. Tick "Read post insights" when connecting the Page.

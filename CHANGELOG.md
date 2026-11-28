@@ -6,6 +6,19 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.81.0] - 2026-11-29
+### Thêm mới
+- **Trí nhớ cộng sự tìm theo nhu cầu.** Cộng sự có bộ nhớ lớn không còn nạp nguyên file vào mỗi lượt. Luôn nạp: phần mở đầu, mục "Luật chủ dặn", mục tên bắt đầu bằng "Luật" hay "Quy tắc", mục tên kết thúc bằng "(luôn nạp)", kèm một bản đồ những gì có trong trí nhớ. Phần còn lại và tài liệu đính kèm được tìm theo từng tin nhắn (chat riêng mọi engine, Telegram, CLI, bước quy trình, lượt nhóm), và trợ lý tự tra thêm bằng công cụ mới `naota_recall`. Trí nhớ 3 MB vẫn chỉ tốn khoảng 1.500 ký tự trong prompt, mỗi lần tìm dưới 40 mili giây. Bộ nhớ dưới 12.000 ký tự chạy y như cũ.
+- **Học lúc ghi.** Mỗi đoạn trí nhớ mới được model nền rẻ đọc ngầm một lần, ghi thêm câu hỏi nó trả lời và các cách gọi khác, nên hỏi bằng từ khác vẫn tìm ra. Có trần số lượt mỗi ngày, tắt được bằng `agent_recall.enrich: false`.
+- **Tab "Đã học" của cộng sự** hiện trí nhớ đang được tìm theo nhu cầu, và cảnh báo khi luật luôn nạp đã quá dài cần gộp lại.
+### Sửa lỗi
+- **Antigravity không còn mất câu hỏi khi ngữ cảnh quá dài.** Cộng sự có bộ nhớ lớn (vài chục KB) chạy bằng Antigravity từng trả lời "yêu cầu bị cắt mất, gửi lại giúp em" dù câu hỏi rất ngắn, vì `agy` cắt phần cuối tin nhắn đầu, đúng chỗ câu hỏi nằm. Nay tin nhắn dài thì câu hỏi mới nhất được chép thêm lên đầu, nên cắt kiểu gì model vẫn thấy và trả lời luôn.
+- **Sửa bot thấy đủ mọi kênh đã nối.** Phần chọn kênh khi tạo hoặc sửa chatbot trước đây chỉ hiện kênh của brain đang mở, nên Fanpage hay bot nối ở brain khác không chọn được. Giờ brain nào cũng thấy mọi kênh; kênh đang có bot khác trực vẫn hiện mờ kèm tên bot và brain. Tick một kênh của brain khác vào bot thì kênh đó chuyển sang brain của bot, để hộp thư của brain đó thấy các cuộc chat bot đang trả lời.
+- **Brain nào cũng thấy đủ Fanpage đã nối.** Trước đây thẻ Facebook Messenger và Threads ở trang Kết nối chỉ hiện tài khoản của brain đang mở, nên brain này thấy Trang này, brain kia thấy Trang khác. Giờ mọi brain thấy cùng một danh sách Trang, tài khoản Threads và app đã lưu. Trang mới nối vẫn ghi theo brain đang mở.
+- **Khung nháp ở Hội thoại gọn hơn.** Khi bạn ra lệnh cho Naota soạn câu trả lời, khung nháp trước đây chép lại nguyên văn lệnh ở dòng tiêu đề, trên điện thoại chiếm gần nửa màn hình. Giờ tiêu đề chỉ ghi "Naota soạn theo lệnh của bạn", lệnh gốc vẫn xem được khi rê chuột vào dòng này.
+### Cải thiện
+- **Chỉ mục trí nhớ của Naota cập nhật tăng dần.** Thêm hay sửa một ghi nhớ chỉ đọc lại đúng file đó thay vì dựng lại toàn bộ (5.000 ghi nhớ: từ 2,8 giây xuống 0,3 giây), và gõ không dấu cũng tìm ra chữ có "đ".
+
 ## [1.80.0] - 2026-11-29
 ### Thêm mới
 - **Naota đọc được số liệu Fanpage và từng bài** (lượt xem, người xem, tương tác, lượt theo dõi, click) bằng Trang đã nối ở thẻ Facebook Messenger, không cần kết nối riêng. Cần tick "Đọc số liệu bài viết" khi nối Trang.
