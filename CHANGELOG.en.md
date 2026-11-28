@@ -4,6 +4,16 @@
 
 NAOTA release history. Newest first.
 
+## [1.80.0] - 2026-11-29
+### Added
+- **Naota reads Facebook Page and post insights** (views, viewers, engagement, follows, clicks) through the Pages connected on the Facebook Messenger card, no separate connection needed. Tick "Read post insights" when connecting the Page.
+- **Supabase at Read only can run SELECT** when the connection is Supabase's official MCP server with `read_only=true`. Writes, several statements at once and functions with side effects stay blocked.
+- **Naota on Windows restarts itself when the server dies or hangs.** A background task checks Naota every minute and restarts it after three missed answers in a row, so it is back within about 3 minutes.
+- **A deliberate stop is respected.** After `stop-naota.bat` the watchdog waits until you start Naota again, and it never interrupts an update.
+- **No command to run:** a machine with "Launch Naota at startup" on gets the watchdog after updating, and turning it off removes the watchdog too. Remove it for good with `naota-watchdog.bat uninstall`.
+### Security
+- **A custom MCP connection at Read only can no longer run data-changing tools with unusual names** such as `apply_migration`, `reset_branch`, `pause_project` (they used to be taken for reads).
+
 ## [1.79.0] - 2026-11-29
 ### Added
 - **Clicking "the bot needs a human" opens that customer's chat** on the Inbox page, so you no longer look for them while they wait.
