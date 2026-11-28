@@ -908,7 +908,7 @@ class TelegramBot(HangLuot):
         # bất khả; thứ sửa được là đừng để tin nào biến mất và đừng nổ thông báo thừa.
         status_mid = None
         giu = None
-        # The owner turned the tool trail off (issue #1893): the status message would end as that trail, so it is not
+        # The owner turned the tool trail off: the status message would end as that trail, so it is not
         # sent at all; the "typing…" dots carry the wait, as in human mode.
         quiet_status = self.giau_trang_thai or not trace_wanted()
         if quiet_status:

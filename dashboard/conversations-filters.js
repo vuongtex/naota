@@ -174,7 +174,7 @@
     items.push(x.pinned ? { act: "unpin", icon: "pin-off", key: "ht.rm_unpin" } : { act: "pin", icon: "pin", key: "ht.rm_pin" });
     var nTags = (x.tags || []).length;
     items.push({ act: "tags", icon: "tag", key: "ht.rm_tags", more: true, sub: nTags ? (x.tags || []).map(function (g) { return g.name; }).join(", ") : "" });
-    // Rename (owner, 2026-11-27): on the platform too where it allows it (`rename_remote` from the server: a Zalo or
+    // Rename: on the platform too where it allows it (`rename_remote` from the server: a Zalo or
     // Telegram group's name, a Zalo friend's nickname), else in Naota only. The second line says which.
     items.push({ act: "rename", icon: "pencil", key: "ht.rm_rename", sub: renameSub(x) });
     if (x.bot_id && x.ai_allowed !== false) {

@@ -2207,7 +2207,7 @@ def _bao_nhan_vien(bot_cfg: dict, chat_id: str, ly_do: str, meta: dict = None) -
 def _chat_link(bot_cfg: dict, meta: dict) -> str:
     """`chatbot-chat:<conversation id>` for the customer chat a bell is about, "" when it has no stored conversation.
 
-    Issue #1864 (2026-11-26): clicking "the bot needs a human" opened Naota Core, and the owner had to look for the
+    Bug: clicking "the bot needs a human" opened Naota Core, and the owner had to look for the
     customer in the Inbox while the customer waited. With this channel the bell (and its push) opens that very chat."""
     chat = str((meta or {}).get("chat_id") or "")
     if not chat:
@@ -3770,7 +3770,7 @@ def start_bot(bot_id: str) -> tuple[bool, str]:
         )
         tb.account_id = aid
         tb.naota_bot_id = bot_id    # NOT `bot_id`: Telegram and Slack transports use that for the platform's own id
-        # Issue #1873: every channel waits for a customer to finish typing in a private chat before answering, read
+        # Every channel waits for a customer to finish typing in a private chat before answering, read
         # live so a change on the bot form applies at once (personal Zalo gathers in its own read loop).
         tb.quiet_wait_fn = (lambda chat, meta, _b=bot_id, _a=aid: chatbot_store.quiet_wait_of(
             chatbot_store.get_bot(_b) or {}, {"chat_id": str(chat), **(meta or {}), "account_id": _a}))

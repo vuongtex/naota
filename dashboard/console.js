@@ -7602,7 +7602,7 @@
         <div class="ach-opt"><label for="achTrace"><input type="checkbox" id="achTrace"${(s.chat || {}).tool_trace === false ? "" : " checked"}> ${esc(t("ach.tool_trace"))}</label>${infoBtn()}</div>
         ${infoBody(esc(t("ach.tool_trace_h")))}
       </div>`;
-    el.querySelector("#achTrace").onchange = async (e) => {   // #1893
+    el.querySelector("#achTrace").onchange = async (e) => {
       const c = e.target, ok = (await saveSetting("chat", { tool_trace: c.checked })).ok;
       if (!ok) c.checked = !c.checked;
       toast(t(ok ? "ach.tool_trace_saved" : "ach.tool_trace_fail"), !ok);

@@ -83,7 +83,7 @@ check("tags row opens a second view and lists the chat's tags",
 check("hide says the chat comes back when the customer writes", F.rowMenuItems(base).find((x) => x.act === "hide").sub === "ht.rm_hide_sub");
 check("no conversation: still a sane menu", acts(null).length === 7);
 
-// Owner, 2026-11-27: rename a chat from the inbox; the server says whether the platform follows (`rename_remote`).
+// Rename a chat from the inbox; the server says whether the platform follows (`rename_remote`).
 const rn = (c) => F.rowMenuItems({ ...base, ...c }).find((x) => x.act === "rename");
 check("rename: pencil row; its second line says where the name changes",
   rn({}).icon === "pencil" && rn({}).key === "ht.rm_rename" &&
@@ -233,7 +233,7 @@ check("Leave says before it happens that the chat is deleted from Naota; both en
 ["ellipsis", "mail-open", "eye-off", "pin-off", "eye", "copy", "chevron-left", "chevron-right", "ban", "log-out", "circle-check"].forEach((n) => {
   check("icon '" + n + "' is in the bundle", ICONS.indexOf('"' + n + '"') > 0);
 });
-check("cache-busters bumped", /conversations\.js\?v=(1[5-9]|[2-9]\d)/.test(HTML) && /conversations-filters\.js\?v=[4-9]/.test(HTML) &&
+check("cache-busters bumped", /conversations\.js\?v=(1[5-9]|[2-9]\d)/.test(HTML) && /conversations-filters\.js\?v=(?:[4-9]|[1-9]\d)/.test(HTML) &&
   /lucide-icons\.js\?v=(1[2-9]|[2-9]\d)/.test(HTML));
 const keys = new Set();
 [MOD, CV].forEach((t) => [...t.matchAll(/"(ht\.(?:rm_[a-z_]+|f_st_hidden))"/g)].forEach((m) => keys.add(m[1])));

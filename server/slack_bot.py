@@ -575,7 +575,7 @@ class SlackBot(HangLuot):
         last_edit = 0.0
         thread = str((meta or {}).get("thread_ts") or "") or self._thread.get(chat)
 
-        # Trail off (issue #1893): no status message at all, so nothing is left behind in the chat.
+        # Trail off: no status message at all, so nothing is left behind in the chat.
         if not self.giau_trang_thai and trace_wanted():
             d = await self._post(client, chat, localefmt.chu("⏳ Đang làm...", "⏳ Working..."), thread)
             status_ts = d.get("ts") if d.get("ok") else None

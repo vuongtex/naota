@@ -7,8 +7,16 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
 ## [1.79.0] - 2026-11-29
+### Thêm mới
+- **Bấm thông báo "bot cần người thật" là mở thẳng cuộc chat của khách** ở trang Hội thoại, không phải tự đi tìm trong lúc khách chờ.
+- **Mọi bot đều có ô "Câu khó ở chat riêng: im lặng và báo tôi"**, kể cả bot Messenger và Zalo OA. Trước đây chỉ bot có nhóm mới bật được, và bấm Lưu form còn làm mất thiết lập này.
+- **Bot chờ khách nhắn xong rồi mới trả lời một lần** trên mọi kênh (Messenger, Zalo OA, Telegram, WhatsApp...), như Zalo cá nhân đã làm. Khách bấm vài nút trả lời nhanh liền nhau thì nhận một tin gộp. Số giây chỉnh ở form bot, mặc định 5.
+- **Tắt được dòng công cụ "⚙ ... · 12s"** dưới câu trả lời trên Telegram, Zalo và mọi kênh chat của bạn, bằng một ô ở trang Kênh.
+- **Đổi tên cuộc chat ngay trong Chatbot.** Mục "Đổi tên" ở menu "..." và nút bút chì cạnh tên trong khung Thông tin.
+- **Tên đồng bộ hai chiều với Zalo.** Đổi tên nhóm trong Naota thì nhóm trên Zalo đổi theo, đổi tên khách thì Naota đặt tên gợi nhớ cho người đó trên Zalo. Sửa tên nhóm hay tên gợi nhớ trên Zalo thì Naota cũng tự đổi theo.
+- **Nhóm Telegram cũng đổi được tên từ Naota** khi bot là quản trị viên. Kênh khác (Messenger, Zalo OA, Slack...) không cho đổi tên qua API nên tên chỉ đổi trong Naota, và vẫn tự theo khi kênh báo một tên mới.
 ### Cải thiện
-- Đang làm: lấy đổi tên chat từ hộp thư, chuông bot mở chat khách.
+- **Nút "Naota soạn" và "Gửi" chỉ còn biểu tượng,** rê chuột vào là hiện tên, cho khung chat gọn hơn.
 
 ## [1.78.0] - 2026-11-28
 ### Thêm mới

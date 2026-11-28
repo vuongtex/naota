@@ -943,7 +943,7 @@
     // "Tự động hóa tất cả" không phải một giá trị lưu riêng: nó là "mọi cuộc chat" cộng "tự đánh giá" gộp làm MỘT cú chọn
     // (lưu xuống vẫn là audience=all, reply_when=auto), nên bot đã cài như vậy từ trước tự hiện đúng thẻ này.
     var card0 = (aud0 === "all" && rw0 === "auto") ? "auto" : aud0;
-    // "Hard question in a private chat: stay quiet and tell me" (issue #1864), a tick of its own on every bot. A bot never
+    // "Hard question in a private chat: stay quiet and tell me", a tick of its own on every bot. A bot never
     // saved with it shows what it does today: on in "Tự đánh giá", off otherwise.
     var esc0 = b ? (b.escalate_private != null ? !!b.escalate_private : b.reply_when === "auto") : false;
     var escTouched = false;
@@ -1074,7 +1074,7 @@
                 esc(b && b.nhuong_tay_phut != null ? String(b.nhuong_tay_phut) : "") + '"></label>' +
             '</div>' +
             infoBody(esc(window.t("cb.hint_nhuong_tay"))) +
-            // Issue #1873: seconds a customer must be quiet in a private chat before the bot answers, on every channel, so
+            // Seconds a customer must be quiet in a private chat before the bot answers, on every channel, so
             // three quick messages get one reply. Blank = not set (5 seconds), 0 = answer each message at once.
             '<div class="cb-gio-truc">' +
               '<label for="cbQuietWait">' + esc(window.t("cb.quiet_wait")) + infoBtn() +
@@ -1082,11 +1082,11 @@
                 esc(b && b.quiet_wait_s != null ? String(b.quiet_wait_s) : "") + '"></label>' +
             '</div>' +
             infoBody(esc(window.t("cb.hint_quiet_wait"))) +
-            // Issue #1864: every channel, Messenger and Zalo OA included, can leave a hard private question to the owner.
+            // Every channel, Messenger and Zalo OA included, can leave a hard private question to the owner.
             '<label class="cb-gio-truc" for="cbEscPrivate"><input type="checkbox" id="cbEscPrivate"' +
               (esc0 ? " checked" : "") + '> ' + esc(window.t("cb.esc_private")) + infoBtn() + '</label>' +
             infoBody(esc(window.t("cb.hint_esc_private"))) +
-            // Owner bell gap (issue #1838): minutes between two bells of one chat when the bot leaves hard messages to the
+            // Owner bell gap: minutes between two bells of one chat when the bot leaves hard messages to the
             // owner. Shown when the bot may escalate: "Tự đánh giá" in groups, or the private tick above (`veRw`).
             '<div class="cb-gio-truc" id="cbBellBox" style="display:none">' +
               '<label for="cbBellGap">' + esc(window.t("cb.bell_gap")) + infoBtn() +

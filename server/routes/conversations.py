@@ -281,7 +281,7 @@ async def owner_reply(conv_id: int, text: str, sender_name: str = "Bạn", via: 
 
 
 async def rename_conversation(conv_id: int, name: str) -> dict:
-    """Rename chat `conv_id` in Naota and, where its platform allows it, on the platform too (owner, 2026-11-27: a name
+    """Rename chat `conv_id` in Naota and, where its platform allows it, on the platform too (a name
     changed in Naota goes back to Zalo, and the other way round).
 
     The platform first (`channels.rename`: a Zalo or Telegram group's name, a Zalo friend's alias). Whatever it answers,
@@ -899,7 +899,7 @@ def register(app, deps: ConversationsDeps):
 
     @router.post("/conversations/{conv_id}/rename")
     async def conversations_rename(conv_id: int, name: str = Form(...)):
-        """Rename a chat (owner, 2026-11-27). See `rename_conversation`."""
+        """Rename a chat. See `rename_conversation`."""
         r = await rename_conversation(conv_id, name)
         if r.get("ok"):
             return r

@@ -566,7 +566,7 @@ QUIET_WAIT_MAX_S = 60
 
 
 def clean_quiet_wait(v: Any):
-    """Seconds to wait for a customer to finish typing in a private chat (issue #1873). None = not set (default 5)."""
+    """Seconds to wait for a customer to finish typing in a private chat. None = not set (default 5)."""
     if v is None or isinstance(v, bool) or str(v).strip() == "":
         return None
     try:
@@ -592,7 +592,7 @@ def quiet_wait_of(cfg: dict, meta: Optional[dict], default: float = DEFAULT_QUIE
 
 
 def clean_escalate_private(v: Any):
-    """"Hard question in a private chat: stay quiet and tell me" (issue #1864). None = the owner never set it, so the
+    """"Hard question in a private chat: stay quiet and tell me". None = the owner never set it, so the
     bot keeps the old rule (on only in "Tự đánh giá", `reply_when == "auto"`); otherwise True/False from the form."""
     if v is None or str(v).strip() == "":
         return None
@@ -1127,11 +1127,11 @@ def create_bot(data: dict) -> tuple[Optional[str], str]:
             "nhan_ket_ban": clean_bat(data.get("nhan_ket_ban")),
             # "Đang soạn tin" in groups once the bot decided to answer (personal Zalo). Default ON.
             "group_typing": group_typing_on(data),
-            # Hard question in a private chat: stay quiet and ring the owner (issue #1864). None = old rule.
+            # Hard question in a private chat: stay quiet and ring the owner. None = old rule.
             "escalate_private": clean_escalate_private(data.get("escalate_private")),
-            # Seconds to wait for a customer to finish typing in a private chat, every channel (issue #1873).
+            # Seconds to wait for a customer to finish typing in a private chat, every channel.
             "quiet_wait_s": clean_quiet_wait(data.get("quiet_wait_s")),
-            # Zalo chat labels the bot stays out of (0.281.0, personal Zalo only), e.g. family and friends.
+            # Zalo chat labels the bot stays out of (personal Zalo only), e.g. family and friends.
             "skip_labels": clean_skip_labels(data.get("skip_labels")),
             # Staff contact the bot asks when only a person knows the answer (staff_requests.py).
             "staff_contact": clean_staff_contact(data.get("staff_contact")),

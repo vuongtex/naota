@@ -12,7 +12,7 @@
      title, value, max, placeholder, hint,
      kinds: [{value, label}], kind, kindLabel,     // optional: one-of chips under the text (radio group)
      saveLabel, allowEmpty,                        // allowEmpty: an empty text is a valid answer (removes a description)
-     singleLine,                                   // a short one-line value (a chat's name, 2026-11-27): Enter saves
+     singleLine,                                   // a short one-line value (a chat's name): Enter saves
      save(text, kind) -> Promise<"" | error text>  // the box stays open and shows the error when saving fails
    }) -> Promise<boolean>                          // true once saved, false when closed without saving
 

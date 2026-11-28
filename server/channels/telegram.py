@@ -68,7 +68,7 @@ async def send_file(tk: dict, chat_id: str, path: str, caption: str = "", chat_t
     return await bot.send_file(path, caption, chat=chat_id)
 
 
-# Rename from the inbox (2026-11-27): a bot that is an admin with "Change group info" can retitle a group
+# Rename from the inbox: a bot that is an admin with "Change group info" can retitle a group
 # (setChatTitle). A person's name is theirs on Telegram, so a private chat is renamed in Naota only.
 RENAMES = {"group": "title"}
 

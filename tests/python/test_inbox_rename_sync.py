@@ -1,9 +1,9 @@
-"""Two-way chat names between the inbox and the platform (owner, 27/11/2026).
+"""Two-way chat names between the inbox and the platform.
 
     python tests/run.py inbox_rename_sync      (no network)
 
-Owner: "khi người dùng sửa tên ở một nhóm hoặc tên của khách hàng trong Zalo thì phải đồng bộ ngược lên Naota, sửa ở
-Naota thì đồng bộ về Zalo, có nút sửa tên trên chatbot của Naota, và kiểm tra các nền tảng chat khác". Guarded:
+A name changed on Zalo comes back to Naota, a name changed in Naota goes to Zalo, and the inbox has a
+rename button for every chat platform that allows it. Guarded:
 
   1. The store keeps the channel's own name apart from the shown one (`channel_title`, `channel_name`): a rename made in
      Naota survives the channel repeating its old name and the owner's own replies echoing the shown title; a NEW name
@@ -113,23 +113,23 @@ check("bulk: a private chat is never renamed by the group list",
       conversations.sync_group_titles("zalo_personal", "zalo-1", {"u9": "Whatever"}) == [] and conv(p)["title"] == "Lan Shop")
 
 # ---- 4. Zalo friend aliases ----
-q = ev("u7", chat_type="private", sender_id="u7", sender_name="Minh")["conversation_id"]
-changed = conversations.sync_aliases("zalo_personal", "zalo-1", {"u7": "Anh Minh kho"})
-check("alias set on Zalo: the chat and the customer take it", q in changed and conv(q)["title"] == "Anh Minh kho" and
-      conv(q)["customer_name"] == "Anh Minh kho" and conv(q)["metadata"].get("channel_alias") == "Anh Minh kho")
-ev("u7", chat_type="private", sender_id="u7", sender_name="Minh", text="hello")
-check("his messages (own display name) keep the alias", conv(q)["title"] == "Anh Minh kho")
-conversations.rename_conversation(q, "Minh (Naota)")
+q = ev("u7", chat_type="private", sender_id="u7", sender_name="Lan")["conversation_id"]
+changed = conversations.sync_aliases("zalo_personal", "zalo-1", {"u7": "Anh Lan kho"})
+check("alias set on Zalo: the chat and the customer take it", q in changed and conv(q)["title"] == "Anh Lan kho" and
+      conv(q)["customer_name"] == "Anh Lan kho" and conv(q)["metadata"].get("channel_alias") == "Anh Lan kho")
+ev("u7", chat_type="private", sender_id="u7", sender_name="Lan", text="hello")
+check("his messages (own display name) keep the alias", conv(q)["title"] == "Anh Lan kho")
+conversations.rename_conversation(q, "Lan (Naota)")
 check("same alias list again: a rename made in Naota meanwhile stays",
-      conversations.sync_aliases("zalo_personal", "zalo-1", {"u7": "Anh Minh kho"}) == [] and conv(q)["title"] == "Minh (Naota)")
-conversations.sync_aliases("zalo_personal", "zalo-1", {"u7": "Minh giao hàng"})
-check("alias changed on Zalo: it comes back to Naota", conv(q)["title"] == "Minh giao hàng")
+      conversations.sync_aliases("zalo_personal", "zalo-1", {"u7": "Anh Lan kho"}) == [] and conv(q)["title"] == "Lan (Naota)")
+conversations.sync_aliases("zalo_personal", "zalo-1", {"u7": "Lan giao hàng"})
+check("alias changed on Zalo: it comes back to Naota", conv(q)["title"] == "Lan giao hàng")
 conversations.sync_aliases("zalo_personal", "zalo-1", {})
-check("alias removed on Zalo: back to the name his messages carry", conv(q)["title"] == "Minh" and
-      conv(q)["customer_name"] == "Minh" and "channel_alias" not in conv(q)["metadata"], conv(q)["title"])
-conversations.rename_conversation(q, "Minh mới", alias="Minh mới")
+check("alias removed on Zalo: back to the name his messages carry", conv(q)["title"] == "Lan" and
+      conv(q)["customer_name"] == "Lan" and "channel_alias" not in conv(q)["metadata"], conv(q)["title"])
+conversations.rename_conversation(q, "Lan mới", alias="Lan mới")
 check("a rename pushed as an alias is remembered, so the next list does not undo it",
-      conversations.sync_aliases("zalo_personal", "zalo-1", {"u7": "Minh mới"}) == [] and conv(q)["title"] == "Minh mới")
+      conversations.sync_aliases("zalo_personal", "zalo-1", {"u7": "Lan mới"}) == [] and conv(q)["title"] == "Lan mới")
 
 # ---- 5. Which platforms can rename what ----
 check("Zalo personal: groups by name, people by alias", channels.rename_kind("zalo_personal", "group") == "title" and
@@ -166,9 +166,9 @@ if rc:
         n = len(calls)
         r = run(rc.rename_conversation(g, "Nhóm mới"))
         check("route: the same name asks nothing of the platform", r["ok"] and r.get("unchanged") and len(calls) == n)
-        r = run(rc.rename_conversation(q, "Minh VIP"))
+        r = run(rc.rename_conversation(q, "Lan VIP"))
         check("route: a Zalo friend gets an alias", r["remote"] and r["kind"] == "alias" and
-              conv(q)["metadata"].get("channel_alias") == "Minh VIP")
+              conv(q)["metadata"].get("channel_alias") == "Lan VIP")
         channels.rename = fake_no
         r = run(rc.rename_conversation(p, "Chị Lan"))
         check("route: the platform refuses, Naota keeps the name and says why", r["ok"] and not r["remote"] and
@@ -236,9 +236,9 @@ check("alias page parsed, empty rows dropped",
       and zc.parse_alias_page(None) == [])
 zc._TT["zalo-1"] = {"ten": {"g1": {"name": "Cũ", "type": "group"}}, "aliases": {}}
 zc.note_thread_name("zalo-1", "g1", "Mới")
-zc.note_alias("zalo-1", "u7", "Minh")
+zc.note_alias("zalo-1", "u7", "Lan")
 check("after a rename the reader's own tables carry the new name at once",
-      zc._TT["zalo-1"]["ten"]["g1"] == {"name": "Mới", "type": "group"} and zc._TT["zalo-1"]["aliases"]["u7"] == "Minh")
+      zc._TT["zalo-1"]["ten"]["g1"] == {"name": "Mới", "type": "group"} and zc._TT["zalo-1"]["aliases"]["u7"] == "Lan")
 zc._TT.clear()
 
 real_push = zc.push_active

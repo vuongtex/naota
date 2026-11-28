@@ -587,7 +587,7 @@ async def send_reaction(tk: dict, chat_id: str, msg_id: str, name: str, chat_typ
     return True, ""
 
 
-# Rename from the inbox (owner, 2026-11-27). A group gets a new name for every member (`group rename`); a person gets
+# Rename from the inbox. A group gets a new name for every member (`group rename`); a person gets
 # the owner's own nickname for them, which only this account sees (`friend alias`), like renaming a contact in Zalo.
 RENAMES = {"group": "title", "private": "alias"}
 RENAME_TIMEOUT = 40

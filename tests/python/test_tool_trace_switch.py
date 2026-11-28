@@ -1,4 +1,4 @@
-"""One switch hides the tool trail on every owner chat channel (issue #1893).
+"""One switch hides the tool trail on every owner chat channel.
 
     python tests/run.py tool_trace_switch      (no network)
 

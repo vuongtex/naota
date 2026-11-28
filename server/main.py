@@ -8373,7 +8373,7 @@ async def settings_set(section: str = Form(...), data: str = Form("{}")):
         # naota_plan for the API brains (plan_tool.py): the "+" menu of the composer switches it on and off.
         if "plan_tool" in patch:
             cfg.setdefault("chat", {})["plan_tool"] = bool(patch["plan_tool"])
-        # The tool trail under answers on Telegram, Zalo and the other owner chat channels (issue #1893).
+        # The tool trail under answers on Telegram, Zalo and the other owner chat channels.
         if "tool_trace" in patch:
             cfg.setdefault("chat", {})["tool_trace"] = bool(patch["tool_trace"])
     elif section == "general":
@@ -16136,7 +16136,7 @@ async def _bo_vao_hom_thu(owner_chat, text, *, kind="answer", label="", source="
         # bộ não chính, và tin gõ tiếp bay vào phiên của trợ lý (đúng lỗi đã chữa cho
         # đường rời trang). Hỏng thì bỏ qua - kênh là thứ làm ĐẸP đường về, không phải điều
         # kiện để lưu thư.
-        # `channel`: where a notice with no chat session of its own opens (2026-11-27, issue #1864: "chatbot-chat:<id>"
+        # `channel`: where a notice with no chat session of its own opens ("chatbot-chat:<id>"
         # opens that customer chat on the Inbox page). A session's own channel below always wins.
         kenh = str(channel or "") if not sid else ""
         muted = False
@@ -18673,9 +18673,9 @@ async def _start_scheduler():
                              admin_tokens=_admin_bot_tokens,
                              # The file of replies the owner confirmed joins the Agent's Documents.
                              agent_add_doc=_agent_add_doc,
-                             # Lượt bot hỏng: khách không nhận gì, chủ nghe ở chuông thông báo (chủ repo 15/10/2026).
+                             # Lượt bot hỏng: khách không nhận gì, chủ nghe ở chuông thông báo.
                              # urgent: a customer is waiting for a person, or got no answer at all.
-                             # 2026-11-27 (#1864): `channel` = "chatbot-chat:<id>", the bell opens that customer chat.
+                             #: `channel` = "chatbot-chat:<id>", the bell opens that customer chat.
                              notify=lambda text, channel="": _bo_vao_hom_thu("", text, kind="system", source="chatbot",
                                                                              label=localefmt.chu("Chatbot", "Chatbot"),
                                                                              level="urgent", channel=channel))
@@ -27842,7 +27842,7 @@ _TG_BOT = None
 
 
 def tool_trace_on(settings=None) -> bool:
-    """Owner chat channels show the tool trail under answers (issue #1893). On unless the owner turned it off."""
+    """Owner chat channels show the tool trail under answers. On unless the owner turned it off."""
     s = settings if settings is not None else cfgmod.read_settings()
     return (s.get("chat") or {}).get("tool_trace", True) is not False
 
@@ -32399,9 +32399,9 @@ async def chatbots_create(name: str = Form(...), agent_slug: str = Form(...),
         "bell_gap_min": bell_gap_min,
         # Staff contact: JSON {account_id, chat_id, chat_type, name}; blank = none (staff_requests.py).
         "staff_contact": staff_contact,
-        # Hard private question: stay quiet and ring the owner (issue #1864): "1" / "0", blank = the old rule.
+        # Hard private question: stay quiet and ring the owner: "1" / "0", blank = the old rule.
         "escalate_private": escalate_private,
-        # Seconds to wait for a customer to finish typing in a private chat, every channel (issue #1873): blank = 5.
+        # Seconds to wait for a customer to finish typing in a private chat, every channel: blank = 5.
         "quiet_wait_s": quiet_wait_s,
     })
     if err:

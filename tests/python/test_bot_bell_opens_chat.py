@@ -1,4 +1,4 @@
-"""A bot's "needs a human" bell opens the customer's chat, and every bot can leave a hard private question (issue #1864).
+"""A bot's "needs a human" bell opens the customer's chat, and every bot can leave a hard private question.
 
     python tests/run.py bot_bell_opens_chat      (no network, fake engine and bell)
 

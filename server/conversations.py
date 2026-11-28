@@ -219,7 +219,7 @@ def _nang_cap(db: sqlite3.Connection) -> None:
         db.execute("ALTER TABLE conversations ADD COLUMN contact TEXT NOT NULL DEFAULT ''")
         _backfill_contact(db)
     if "channel_title" not in cot_hoi_thoai:
-        # Two-way names (owner, 2026-11-27): the name the CHANNEL last gave this chat, kept apart from `title`, the name
+        # Two-way names: the name the CHANNEL last gave this chat, kept apart from `title`, the name
         # Naota shows. A rename made in Naota then survives the channel repeating its old name, and a rename made on the
         # channel (a new name the channel never gave before) still comes through. Seeded with the current title, so an
         # old store does not take the next message as a rename.
@@ -359,7 +359,7 @@ def chuan_hoa(ev: dict) -> dict:
     }
 
 
-# When a name an event carries replaces the stored one (two-way names, 2026-11-27). Only a name that is neither the
+# When a name an event carries replaces the stored one (two-way names). Only a name that is neither the
 # one shown (`old`: it may be what Naota itself sent back, e.g. the owner's reply carries the group title it shows) nor
 # the one the channel gave last (`seen`: the channel repeating itself after the owner renamed the chat in Naota). So the
 # last rename wins, wherever it was made. SQL over an upsert's `excluded` row; `v` is the column.
@@ -1286,7 +1286,7 @@ def set_customer_name(channel: str, account_id: str, external_user_id: str, name
 
 def rename_conversation(conversation_id: int, name: str, *, channel_title: Optional[str] = None,
                         alias: Optional[str] = None) -> bool:
-    """The owner renames a chat in Naota (owner, 2026-11-27: "có nút sửa tên ở trên chatbot của Naota").
+    """The owner renames a chat in Naota from the inbox.
 
     `title` becomes `name`; in a chat with one person (`is_profile_chat`) that person's customer name follows, so the
     inbox, the Info panel and the bot all use the new name. What the platform was told decides what else is stored:

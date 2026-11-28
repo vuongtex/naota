@@ -994,8 +994,8 @@ async def _nap_ten(conn: dict, tt: dict, cuong_buc: bool = False) -> Dict[str, d
 
 def _sync_group_names(conn: dict, table: Dict[str, dict]) -> None:
     """A group renamed on Zalo while nobody writes in it: the thread table already has the new name (naota-zalo keeps
-    its cache fresh from Zalo's group events), so carry it to the inbox now instead of at the next message (owner,
-    2026-11-27: a name changed on Zalo must come back to Naota). Never raises."""
+    its cache fresh from Zalo's group events), so carry it to the inbox now instead of at the next message (a name
+    changed on Zalo must come back to Naota). Never raises."""
     try:
         groups = {tid: str(v.get("name") or "") for tid, v in (table or {}).items()
                   if isinstance(v, dict) and str(v.get("type") or "").lower() == "group"}
@@ -1062,7 +1062,7 @@ async def read_aliases(conn: dict) -> Optional[Dict[str, str]]:
 
 async def _alias_turn(conn: dict, tt: dict, now: Optional[float] = None) -> None:
     """Every ALIAS_TTL seconds: read the account's friend aliases and rename the private chats whose alias changed on
-    Zalo (owner, 2026-11-27). A person's messages carry their own display name, never the nickname the owner gave
+    Zalo. A person's messages carry their own display name, never the nickname the owner gave
     them, so this list is the only way an alias set in the Zalo app reaches Naota. Never raises."""
     now = time.time() if now is None else float(now)
     if now < float(tt.get("alias_due") or 0):
@@ -1480,7 +1480,7 @@ def _loop_wait(conns: List[dict], on_ids: set, now: Optional[float] = None) -> O
         elif any(k[0] == cid for k in _CHO_CHU) or tt.get("history_pending"):
             waits.append(float(NHIP))
         elif tt.get("alias_due"):
-            # Names changed on Zalo (aliases, group names) come back even while nobody writes (2026-11-27).
+            # Names changed on Zalo (aliases, group names) come back even while nobody writes.
             # Never before the account's own next turn (`doc_toi`): a due beat must not spin the loop until then.
             waits.append(max(1.0, max(float(tt["alias_due"]), float(tt.get("doc_toi") or 0)) - now))
     return min(waits) if waits else None
@@ -2385,8 +2385,8 @@ def _giao_cho_bot(conn: dict, ev: dict) -> None:
 
 
 def _cho_cua(tb: Any, thread: str) -> float:
-    """Seconds this private chat must be quiet before the bot answers: the chat's own exception (0.172.0,
-    `chatbot_store.ngoai_le_cua`) when it sets one, then the bot's own "wait for the customer" setting (issue #1873,
+    """Seconds this private chat must be quiet before the bot answers: the chat's own exception
+    (`chatbot_store.ngoai_le_cua`) when it sets one, then the bot's own "wait for the customer" setting (
     the same one every other channel reads in `bot_gateway`), otherwise `CHO_KHACH_IM`. The exception must name this
     very account (`tb.account_id`, set by `chatbot_runtime.start_bot`)."""
     try:

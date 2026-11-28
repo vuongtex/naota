@@ -69,7 +69,7 @@ def ten_tool(txt) -> str:
     return nhan_ngan(m.group(1)) if m else ""
 
 
-# Owner, issue #1893 (2026-11-27): the tool trail under every answer clutters a phone chat for someone who only logs a
+# The tool trail under every answer clutters a phone chat for someone who only logs a
 # meal. One switch for every owner chat channel (settings.chat.tool_trace, default on), read through this hook, which
 # main.py points at the settings. Customer-facing bots never show a trail, whatever the switch says.
 def _trace_default() -> bool:
@@ -173,7 +173,7 @@ class HangLuot:
 
     @property
     def _gathering(self):
-        """chat -> {texts, meta, last, start} while a customer bot waits for that chat to go quiet (issue #1873)."""
+        """chat -> {texts, meta, last, start} while a customer bot waits for that chat to go quiet."""
         d = self.__dict__.get("_gathering_d")
         if d is None:
             d = self.__dict__["_gathering_d"] = {}
@@ -251,7 +251,7 @@ class HangLuot:
             if self.giau_trang_thai:
                 g = self._gathering.get(chat)
                 if g is not None:
-                    # Still waiting for this customer to finish (issue #1873): the message joins the same turn.
+                    # Still waiting for this customer to finish: the message joins the same turn.
                     if len(g["texts"]) < GATHER_MAX_TEXTS:
                         g["texts"].append(str(text or ""))
                     g["meta"] = meta or g["meta"]
@@ -328,9 +328,9 @@ class HangLuot:
         task.add_done_callback(lambda t, c=chat: self._xong_luot(client, c, t))
 
     def _start_gathering(self, client, chat, text, meta, wait):
-        """Issue #1873: a customer often sends a thought as several messages (an ad's prefilled question, then two
+        """A customer often sends a thought as several messages (an ad's prefilled question, then two
         quick-reply taps 12 seconds later). Answering the first at once sent two separate replies. Wait until the chat
-        has been quiet for `wait` seconds, then answer everything in ONE turn, as personal Zalo has done since 0.128.0."""
+        has been quiet for `wait` seconds, then answer everything in ONE turn, as personal Zalo already does."""
         task = asyncio.create_task(self._gather_then_answer(client, chat, text, meta, wait))
         self._current[chat] = task
         task.add_done_callback(lambda t, c=chat: self._xong_luot(client, c, t))

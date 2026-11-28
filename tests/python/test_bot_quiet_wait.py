@@ -1,4 +1,4 @@
-"""Every customer bot waits for a private chat to go quiet, then answers once (issue #1873).
+"""Every customer bot waits for a private chat to go quiet, then answers once.
 
     python tests/run.py bot_quiet_wait      (no network, a fake transport)
 

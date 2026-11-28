@@ -57,7 +57,7 @@ Optional module attributes (internal API channel):
 Pack channels may also set `SPEC.logo_svg`: their own logo, the inner SVG of a 24x24 viewBox, filtered to plain
 drawing elements (`_clean_svg`), so icons.js does not need to know them.
 
-Renaming a chat from the inbox (2026-11-27):
+Renaming a chat from the inbox:
     RENAMES = {"group": "title", "private": "alias"}   which chats the platform lets Naota rename, and how: "title" is
                                   the chat's own name, the same for everyone (a Zalo or Telegram group); "alias" is the
                                   account's private nickname for a person (a Zalo friend alias)

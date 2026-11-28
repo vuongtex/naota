@@ -1246,7 +1246,7 @@
     tai(true);
   }
 
-  // Rename (owner, 2026-11-27): the "..." menu and the pencil next to the name in Info. The server renames on the
+  // Rename: the "..." menu and the pencil next to the name in Info. The server renames on the
   // platform where it can (Zalo, Telegram groups) and always in Naota; a platform refusal comes back as `warning`.
   async function renameConv(id) {
     var c = rmItem(id);
@@ -2737,7 +2737,7 @@
         (fm ? '<button type="button" class="s-btn-ghost ib-plus" title="' + esc(t(fm === "image" ? "ht.file_add_img" : "ht.file_add")) +
           '" aria-label="' + esc(t(fm === "image" ? "ht.file_add_img" : "ht.file_add")) + '">' + ic("plus") + '</button>' +
           '<input type="file" class="ib-plus-in" hidden multiple' + (fm === "image" ? ' accept="image/*"' : "") + '>' : "") +
-        // Icons only, the name on hover (owner, 2026-11-27: "chỉ cần giữ icon thôi ... hover vào thì hiển thị"), like
+        // Icons only, the name on hover (the owner asked for icons only), like
         // the send button of the main chat and of Teams. The aria-label keeps the name for screen readers.
         (laBot && !priv ? '<button type="button" class="s-btn-ghost ib-ask ib-icon-btn"' + (_aiBusy ? " disabled" : "") + ' title="' +
           esc(_aiBusy === "ask" ? t("ib.ai_busy") : t("ib.ai_reply") + ": " + t("ib.ai_reply_t")) + '" aria-label="' + esc(t(_aiBusy === "ask" ? "ib.ai_busy" : "ib.ai_reply")) + '">' +

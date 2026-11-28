@@ -103,7 +103,7 @@ def private_escalation(cfg: dict, meta: dict) -> bool:
     Agent writes [BAO_CHU], nothing is sent and the owner is told in the Naota bell. Same exact match on "auto" as
     `can_danh_gia`: an odd value fails closed to the old behaviour.
 
-    Issue #1864 (2026-11-26): a bot on a channel with no groups (Messenger, Zalo OA) could never pick "Tự đánh giá",
+    Bug: a bot on a channel with no groups (Messenger, Zalo OA) could never pick "Tự đánh giá",
     so it could never stay quiet on a hard private question. `escalate_private`, a tick of its own on every bot form,
     now decides; a bot whose owner never ticked or unticked it (None) keeps the rule above.
     """
