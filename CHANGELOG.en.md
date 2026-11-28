@@ -4,6 +4,18 @@
 
 NAOTA release history. Newest first.
 
+## [1.79.0] - 2026-11-29
+### Added
+- **Clicking "the bot needs a human" opens that customer's chat** on the Inbox page, so you no longer look for them while they wait.
+- **Every bot has a "Hard question in a private chat: stay quiet and tell me" tick**, Messenger and Zalo OA bots included. Before, only bots with groups could turn it on, and saving the form switched it off again.
+- **Bots wait for the customer to finish, then answer once** on every channel (Messenger, Zalo OA, Telegram, WhatsApp...), as personal Zalo already did. A customer tapping a few quick replies gets one combined answer. Set the seconds on the bot form, 5 by default.
+- **Turn off the "⚙ ... · 12s" tool line** under answers on Telegram, Zalo and all your chat channels, with one tick on the Channels page.
+- **Rename a chat right in Chatbot.** A "Rename" item in the "..." menu and a pencil next to the name in the Info panel.
+- **Names sync both ways with Zalo.** Renaming a group in Naota renames it on Zalo, renaming a customer sets your Zalo nickname for them. A group name or nickname changed on Zalo comes back to Naota too.
+- **Telegram groups can be renamed from Naota** when the bot is an admin. Other channels (Messenger, Zalo OA, Slack...) allow no rename through their API, so the name changes in Naota only, and still follows when the channel reports a new one.
+### Improved
+- **"Naota draft" and "Send" are icons only,** with their name on hover, for a tidier chat box.
+
 ## [1.78.0] - 2026-11-28
 ### Added
 - **Pack channels show their own logo.** A pack declaring `logo_svg` gets its logo on the Chatbot and Conversations pages. The SVG is sanitized: shapes only, no scripts or outside links.

@@ -249,6 +249,9 @@
       if (window.NaotaNapCham) window.NaotaNapCham.goi("packs", moStore); else moStore();
       return;
     }
+    // A bot's "needs a human" opens that customer chat.
+    var mChat = /^chatbot-chat:([1-9][0-9]{0,11})$/.exec(String(item.channel || ""));
+    if (mChat && window.NaotaOpenConv) { closePanel(); window.NaotaOpenConv(+mChat[1]); return; }
     if (!item.session_id) { closePanel(); hoiCore("inbox", item.id); return; }
     closePanel();
     if (chuyenBrainNeuCan(item)) { setTimeout(function () { moThuTiep(item); }, 450); return; }
