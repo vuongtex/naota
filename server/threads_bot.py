@@ -35,7 +35,7 @@ from collections import deque
 import httpx
 
 import localefmt
-from bot_gateway import HangLuot, dong_vet, parse_chat_ids, ten_tool
+from bot_gateway import HangLuot, parse_chat_ids, ten_tool, with_trace
 from whatsapp_bot import verify_signature  # noqa: F401  - same Meta signature scheme, re-exported
 
 GRAPH_HOST = os.getenv("NAOTA_THREADS_GRAPH", "https://graph.threads.net")
@@ -388,8 +388,7 @@ class ThreadsBot(HangLuot):
         if silent and not str(reply or "").strip():
             return
         if not self.giau_trang_thai:
-            trail = dong_vet(tools, time.monotonic() - t0)
-            reply = ((str(reply or "").rstrip() + "\n\n") if str(reply or "").strip() else "") + trail
+            reply = with_trace(reply, tools, time.monotonic() - t0)
         if str(reply or "").strip():
             await self._send(client, chat, reply)
 
