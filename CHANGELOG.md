@@ -6,6 +6,16 @@ Lịch sử phiên bản NAOTA. Bản mới nhất ở trên cùng. Xem ngay tro
 
 Định dạng: mỗi phiên bản là một khối `## [x.y.z] - ngày`, bên dưới nhóm thay đổi theo `### Thêm mới / Sửa lỗi / Cải thiện / Bảo mật`.
 
+## [1.80.0] - 2026-11-29
+### Thêm mới
+- **Naota đọc được số liệu Fanpage và từng bài** (lượt xem, người xem, tương tác, lượt theo dõi, click) bằng Trang đã nối ở thẻ Facebook Messenger, không cần kết nối riêng. Cần tick "Đọc số liệu bài viết" khi nối Trang.
+- **Supabase ở mức Chỉ đọc chạy được câu SELECT** khi kết nối là máy chủ MCP chính thức của Supabase có `read_only=true`. Câu ghi, nhiều câu một lúc hay hàm có tác dụng phụ vẫn bị chặn.
+- **Naota trên Windows tự bật lại khi server chết hoặc treo.** Một tác vụ nền kiểm Naota mỗi phút, ba lần không trả lời liên tiếp thì khởi động lại, khoảng 3 phút là chạy lại.
+- **Tắt chủ động thì watchdog đứng yên.** Sau `stop-naota.bat` nó chờ tới khi bạn bật lại, và cũng không chen ngang lúc đang cập nhật.
+- **Không phải gõ lệnh:** máy đang bật "Tự bật Naota khi mở máy" tự có watchdog sau khi cập nhật, tắt mục đó thì watchdog cũng tắt theo. Gỡ hẳn bằng `naota-watchdog.bat uninstall`.
+### Bảo mật
+- **Kết nối MCP tự thêm ở mức Chỉ đọc không còn chạy được tool đổi dữ liệu có tên lạ** như `apply_migration`, `reset_branch`, `pause_project` (trước đây bị nhận nhầm là tool đọc).
+
 ## [1.79.0] - 2026-11-29
 ### Thêm mới
 - **Bấm thông báo "bot cần người thật" là mở thẳng cuộc chat của khách** ở trang Hội thoại, không phải tự đi tìm trong lúc khách chờ.
